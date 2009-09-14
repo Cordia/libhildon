@@ -521,6 +521,14 @@ hildon_window_stack_pop_and_push_list           (HildonWindowStack  *stack,
     g_return_if_fail (nwindows > 0);
     g_return_if_fail (g_list_length (stack->priv->list) >= nwindows);
 
+    /*
+     * We need to call gdk_flush() because the application that called us might
+     * just shown some of the windows we manipulate, and if the GTK+ has not
+     * processed the MapNotify yet it will end up calling the XWithdrawWindow
+     * when we hide the window (and will actually not unmap it).
+     */
+    gdk_flush ();
+
     /* Store the index of the topmost window */
     priv = HILDON_STACKABLE_WINDOW_GET_PRIVATE (hildon_window_stack_peek (stack));
     topmost_index = priv->stack_position;
@@ -551,11 +559,24 @@ hildon_window_stack_pop_and_push_list           (HildonWindowStack  *stack,
         }
     }
 
+    /* Hide windows that are popped and then pushed back (topmost last).
+       This way all the windows that has a changed stack index will be
+       unmapped and mapped again. */
+    for (l = popped; l != NULL; l = l->next) {
+        if (g_list_find (pushed, l->data) != NULL) {
+            gtk_widget_hide (GTK_WIDGET (l->data));
+        }
+    }
+
     /* Show windows in reverse order (topmost first) */
     g_list_foreach (pushed, (GFunc) gtk_widget_show, NULL);
 
-    /* Hide windows in reverse order (topmost last) */
-    g_list_foreach (popped, (GFunc) gtk_widget_hide, NULL);
+    /* Hide windows that are popped but not pushed back (topmost last) */
+    for (l = popped; l != NULL; l = l->next) {
+        if (g_list_find (pushed, l->data) == NULL) {
+            gtk_widget_hide (GTK_WIDGET (l->data));
+        }
+    }
 
     g_list_free (pushed);
     if (popped_windows) {
