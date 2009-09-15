@@ -431,25 +431,29 @@ void
 hildon_gtk_window_take_screenshot               (GtkWindow *window,
                                                  gboolean   take)
 {
-    GdkEventClient *ev;
-    GdkWindow *rootwin;
+    XEvent xev = { 0 };
 
     g_return_if_fail (GTK_IS_WINDOW (window));
     g_return_if_fail (GTK_WIDGET_MAPPED (window));
 
-    rootwin = gdk_screen_get_root_window (gtk_window_get_screen (window));
+    xev.xclient.type = ClientMessage;
+    xev.xclient.serial = 0;
+    xev.xclient.send_event = True;
+    xev.xclient.display = GDK_DISPLAY_XDISPLAY (gtk_widget_get_display (GTK_WIDGET (window)));
+    xev.xclient.window = XDefaultRootWindow (xev.xclient.display);
+    xev.xclient.message_type = XInternAtom (xev.xclient.display, "_HILDON_LOADING_SCREENSHOT", False);
+    xev.xclient.format = 32;
+    xev.xclient.data.l[0] = take ? 0 : 1;
+    xev.xclient.data.l[1] = GDK_WINDOW_XID (GTK_WIDGET (window)->window);
 
-    ev = (GdkEventClient *) gdk_event_new (GDK_CLIENT_EVENT);
-    ev->window = g_object_ref (rootwin);
-    ev->send_event = TRUE;
-    ev->message_type = gdk_atom_intern ("_HILDON_LOADING_SCREENSHOT", FALSE);
-    ev->data_format = 32;
-    ev->data.l[0] = take ? 1 : 0;
-    ev->data.l[1] = GDK_WINDOW_XID (GTK_WIDGET (window)->window);
+    XSendEvent (xev.xclient.display,
+                xev.xclient.window,
+                False,
+                SubstructureRedirectMask | SubstructureNotifyMask,
+                &xev);
 
-    gdk_event_send_client_message ((GdkEvent *) ev, GDK_WINDOW_XWINDOW (rootwin));
-
-    gdk_event_free ((GdkEvent *) ev);
+    XFlush (xev.xclient.display);
+    XSync (xev.xclient.display, False);
 }
 
 
