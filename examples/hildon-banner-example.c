@@ -44,32 +44,29 @@ on_progress_idle                                (GtkWidget *banner)
 
 #endif
 
-static gboolean
+static void
 on_information_clicked                          (GtkWidget *widget)
 {
     GtkWidget* banner = hildon_banner_show_information (widget, NULL, "Information banner");
     hildon_banner_set_timeout (HILDON_BANNER (banner), 9000);
-    return TRUE;
 }
 
 #ifndef HILDON_DISABLE_DEPRECATED
 
-static gboolean
+static void
 on_animation_clicked                            (GtkWidget *widget)
 {
     GtkWidget *banner = hildon_banner_show_animation (widget, NULL, "Animation banner");
     g_object_ref (banner);
     gdk_threads_add_timeout (5000, (GSourceFunc) on_animation_idle, banner);
-    return TRUE;
 }
 
-static gboolean
+static void
 on_progress_clicked                             (GtkWidget *widget)
 {
     GtkWidget *banner = hildon_banner_show_progress (widget, NULL, "Progress banner");
     g_object_ref (banner);
     gdk_threads_add_timeout (5000, (GSourceFunc) on_progress_idle, banner);
-    return TRUE;
 }
 
 #endif
