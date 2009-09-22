@@ -23,6 +23,67 @@
  */
 
 #include                                        <hildon/hildon.h>
+#include                                        <cairo.h>
+
+static gboolean
+area_expose                                     (GtkWidget      *widget,
+                                                 GdkEventExpose *expose,
+                                                 gpointer        data)
+{
+    cairo_t *cr = gdk_cairo_create (GDK_DRAWABLE (widget->window));
+    gint width, height, x, y;
+    GError *error = NULL;
+
+    GdkPixbuf *pixbuf = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (),
+                                                  "statusarea_volumelevel2",
+                                                  HILDON_ICON_PIXEL_SIZE_STYLUS,
+                                                  0, &error);
+
+    gint v_margins = 15;
+    gint h_margins = 100;
+    gdouble fill_level = 0.4;
+
+    width = widget->allocation.width;
+    height = widget->allocation.height;
+    x = widget->allocation.x;
+    y = widget->allocation.y;
+
+    cairo_rectangle (cr, x + h_margins, y + v_margins,
+                     (width - 2 * h_margins)*fill_level,
+                     height - 2 * v_margins);
+    cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 0.5);
+    cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
+    cairo_fill (cr);
+
+    cairo_rectangle (cr, x + h_margins, y + v_margins,
+                     width - 2 * h_margins,
+                     height - 2 * v_margins);
+
+    cairo_set_line_width (cr, 2);
+    cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+    cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
+    cairo_stroke (cr);
+
+    gdk_cairo_set_source_pixbuf (cr, pixbuf, x,
+                                 y + (height - gdk_pixbuf_get_height (pixbuf))/2);
+    cairo_paint (cr);
+
+    cairo_destroy (cr);
+    g_object_unref (pixbuf);
+    return FALSE;
+}
+
+static GtkWidget *
+custom_widget_new (void)
+{
+    GtkWidget *area = gtk_event_box_new ();
+    GTK_WIDGET_SET_FLAGS (area, GTK_NO_WINDOW);
+    gtk_widget_set_size_request (area, 600, 50);
+    g_signal_connect (area, "expose-event",
+                      G_CALLBACK (area_expose),
+                      NULL);
+    return area;
+}
 
 #ifndef HILDON_DISABLE_DEPRECATED
 
@@ -71,6 +132,13 @@ on_progress_clicked                             (GtkWidget *widget)
 
 #endif
 
+static void
+on_custom_clicked                             (GtkWidget *widget)
+{
+    GtkWidget *custom_widget = custom_widget_new ();
+    hildon_banner_show_custom_widget (widget, custom_widget);
+}
+
 int
 main                                            (int argc,
                                                  char **argv)
@@ -80,6 +148,7 @@ main                                            (int argc,
 #ifndef HILDON_DISABLE_DEPRECATED
     GtkWidget *button2, *button3;
 #endif
+    GtkWidget *button4;
 
     hildon_gtk_init (&argc, &argv);
 
@@ -97,6 +166,8 @@ main                                            (int argc,
     button3 = gtk_button_new_with_label ("Progress");
     g_signal_connect (button3, "clicked", G_CALLBACK (on_progress_clicked), NULL);
 #endif
+    button4 = gtk_button_new_with_label ("Custom");
+    g_signal_connect (button4, "clicked", G_CALLBACK (on_custom_clicked), NULL);
 
     vbox = gtk_vbox_new (6, FALSE);
     gtk_box_pack_start (GTK_BOX (vbox), button1, TRUE, TRUE, 0);
@@ -104,6 +175,7 @@ main                                            (int argc,
     gtk_box_pack_start (GTK_BOX (vbox), button2, TRUE, TRUE, 0);
     gtk_box_pack_start (GTK_BOX (vbox), button3, TRUE, TRUE, 0);
 #endif
+    gtk_box_pack_start (GTK_BOX (vbox), button4, TRUE, TRUE, 0);
 
     gtk_container_set_border_width (GTK_CONTAINER (window), 6);
     gtk_container_add (GTK_CONTAINER (window), vbox);

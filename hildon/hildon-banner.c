@@ -1178,6 +1178,59 @@ hildon_banner_show_progress                     (GtkWidget *widget,
     return GTK_WIDGET (banner);   
 }
 
+
+/**
+ * hildon_banner_show_custom_widget:
+ * @widget: the #GtkWidget that wants to display a banner
+ * @custom_widget: a #GtkWidget to be placed inside the banner.
+ *
+ * Shows a banner displaying a user-defined widget.
+ *
+ * Returns: a new #HildonBanner
+ *
+ * Since: 2.2
+ **/
+GtkWidget *
+hildon_banner_show_custom_widget                (GtkWidget *widget,
+                                                 GtkWidget *custom_widget)
+{
+    HildonBanner *banner;
+    HildonBannerPrivate *priv;
+
+    g_return_val_if_fail (GTK_IS_WIDGET (custom_widget), NULL);
+
+    banner = hildon_banner_get_instance_for_widget (widget, TRUE);
+    priv = HILDON_BANNER_GET_PRIVATE (banner);
+    g_assert (priv);
+
+    g_return_val_if_fail (gtk_widget_get_parent (custom_widget) == NULL ||
+                          priv->main_item == custom_widget, NULL);
+
+    if (priv->main_item != custom_widget) {
+        GtkWidget *old_item = priv->main_item;
+
+        /* Remove old item */
+        if (old_item) {
+            g_object_ref (old_item);
+            gtk_container_remove (GTK_CONTAINER (priv->layout), old_item);
+        }
+
+        /* Add new item */
+        gtk_box_pack_start (GTK_BOX (priv->layout), custom_widget, FALSE, FALSE, 0);
+        priv->main_item = custom_widget;
+
+        if (old_item)
+            g_object_unref (old_item);
+    }
+
+    priv->name_suffix = "information";
+    hildon_banner_bind_style (banner);
+
+    reshow_banner (banner);
+
+    return GTK_WIDGET (banner);
+}
+
 /**
  * hildon_banner_set_text:
  * @self: a #HildonBanner widget

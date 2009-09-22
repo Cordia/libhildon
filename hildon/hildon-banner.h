@@ -115,6 +115,10 @@ void
 hildon_banner_set_timeout                       (HildonBanner *self,
                                                  guint timeout);
 
+GtkWidget *
+hildon_banner_show_custom_widget                (GtkWidget *widget,
+                                                 GtkWidget *custom_widget);
+
 G_END_DECLS
 
 #endif                                          /* __HILDON_BANNER_H__ */

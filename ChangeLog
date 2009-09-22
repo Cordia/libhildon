@@ -1,3 +1,13 @@
+2009-09-23  Claudio Saavedra  <csaavedra@igalia.com>
+
+	* doc/hildon-sections.txt: Add hildon_banner_show_custom_widget()
+	* examples/hildon-banner-example.c: (area_expose),
+	(custom_widget_new), (on_progress_idle): New example showing a custom widget.
+	* hildon/hildon-banner.c:
+	* hildon/hildon-banner.h: Add hildon_banner_show_custom_widget().
+
+	Fixes: NB#140140 (Allow custom widgets to be used in banners)
+
 2009-10-01  Alberto Garcia  <agarcia@igalia.com>
 
 	* hildon/hildon-banner.c (hildon_banner_timeout):
