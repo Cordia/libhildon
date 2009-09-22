@@ -2160,6 +2160,7 @@ hildon_pannable_axis_scroll (HildonPannableArea *area,
         gtk_widget_queue_resize (GTK_WIDGET (area));
       } else {
         *vel = 0.0;
+        *scroll_to = -1;
       }
     } else if (dist > adjust->upper - adjust->page_size) {
       if (s) *s = FALSE;
@@ -2174,6 +2175,7 @@ hildon_pannable_axis_scroll (HildonPannableArea *area,
         gtk_widget_queue_resize (GTK_WIDGET (area));
       } else {
         *vel = 0.0;
+        *scroll_to = -1;
       }
     } else {
       if ((*scroll_to) != -1) {
@@ -2284,7 +2286,8 @@ hildon_pannable_area_scroll (HildonPannableArea *area,
                                  &priv->overshooting_y, &priv->overshot_dist_y,
                                  &priv->scroll_to_y, priv->vovershoot_max, &sy);
   } else {
-    priv->vel_y = 0;
+    priv->vel_y = 0.0;
+    priv->scroll_to_y = -1;
   }
 
   if (hscroll_visible) {
@@ -2292,7 +2295,8 @@ hildon_pannable_area_scroll (HildonPannableArea *area,
                                  &priv->overshooting_x, &priv->overshot_dist_x,
                                  &priv->scroll_to_x, priv->hovershoot_max, &sx);
   } else {
-    priv->vel_x = 0;
+    priv->vel_x = 0.0;
+    priv->scroll_to_x = -1;
   }
 
   if (hv != priv->hadjust->value)
