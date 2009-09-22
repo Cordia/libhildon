@@ -104,11 +104,11 @@ hildon_animation_actor_send_message (HildonAnimationActor *self,
                                      guint32 l4);
 void
 hildon_animation_actor_set_show_full (HildonAnimationActor *self,
-				      gint show,
+				      gboolean show,
 				      gint opacity);
 void
 hildon_animation_actor_set_show (HildonAnimationActor *self,
-				 gint show);
+				 gboolean show);
 void
 hildon_animation_actor_set_opacity (HildonAnimationActor *self,
 				    gint opacity);

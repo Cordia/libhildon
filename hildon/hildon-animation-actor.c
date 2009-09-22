@@ -264,7 +264,7 @@ hildon_animation_actor_show                    (GtkWidget *widget)
     HildonAnimationActor        *self = HILDON_ANIMATION_ACTOR (widget);
 
     GTK_WIDGET_CLASS (hildon_animation_actor_parent_class)->show (widget);
-    hildon_animation_actor_set_show (self, 1);
+    hildon_animation_actor_set_show (self, TRUE);
 }
 
 static void
@@ -272,7 +272,7 @@ hildon_animation_actor_hide                    (GtkWidget *widget)
 {
     HildonAnimationActor        *self = HILDON_ANIMATION_ACTOR (widget);
 
-    hildon_animation_actor_set_show (self, 0);
+    hildon_animation_actor_set_show (self, FALSE);
     GTK_WIDGET_CLASS (hildon_animation_actor_parent_class)->hide (widget);
 }
 
@@ -622,7 +622,7 @@ hildon_animation_actor_send_message (HildonAnimationActor *self,
  **/
 void
 hildon_animation_actor_set_show_full (HildonAnimationActor *self,
-				      gint show,
+				      gboolean show,
 				      gint opacity)
 {
     HildonAnimationActorPrivate
@@ -668,7 +668,7 @@ hildon_animation_actor_set_show_full (HildonAnimationActor *self,
  **/
 void
 hildon_animation_actor_set_show (HildonAnimationActor *self,
-				 gint show)
+				 gboolean show)
 {
     HildonAnimationActorPrivate
 	               *priv = HILDON_ANIMATION_ACTOR_GET_PRIVATE (self);
