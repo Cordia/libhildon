@@ -1,3 +1,10 @@
+2009-09-30  Alberto Garcia  <agarcia@igalia.com>
+
+	* hildon/hildon-banner.c (screen_size_changed):
+	Don't hide and show the banner when the screen size changes.
+
+	Fixes: NB#141140 (Rotation stops when banner is present)
+
 2009-09-22  Alejandro G. Castro  <alex@igalia.com>
 
 	* hildon/hildon-pannable-area.c,

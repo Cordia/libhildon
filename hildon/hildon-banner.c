@@ -198,6 +198,9 @@ hildon_banner_get_instance_for_widget           (GtkWidget *widget,
 static void
 hildon_banner_set_override_flag                 (HildonBanner *banner);
 
+static void
+reshow_banner                                   (HildonBanner *banner);
+
 static GtkWidget*
 hildon_banner_real_show_information             (GtkWidget *widget,
                                                  const gchar *text,
@@ -673,9 +676,9 @@ screen_size_changed                            (GdkScreen *screen,
                                                 GtkWindow *banner)
 
 {
-    hildon_banner_bind_style (HILDON_BANNER (banner));
-    gtk_window_reshow_with_initial_size (banner);
-    force_to_wrap_truncated (HILDON_BANNER (banner));
+    HildonBanner *hbanner = HILDON_BANNER (banner);
+    hildon_banner_bind_style (hbanner);
+    reshow_banner (hbanner);
 }
 
 static void
