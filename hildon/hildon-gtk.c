@@ -344,6 +344,17 @@ do_set_do_not_disturb                           (GtkWindow *window,
 }
 
 static void
+do_set_zoom_keys                                (GtkWindow *window,
+                                                 gpointer   zoomptr)
+{
+    gboolean zoomflag = GPOINTER_TO_INT (zoomptr);
+    hildon_gtk_window_set_clear_window_flag (window, "_HILDON_ZOOM_KEY_ATOM",
+                                             XA_INTEGER, zoomflag);
+    g_signal_handlers_disconnect_matched (window, G_SIGNAL_MATCH_FUNC,
+                                          0, 0, NULL, do_set_zoom_keys, NULL);
+}
+
+static void
 do_set_portrait_flags                           (GtkWindow *window,
                                                  gpointer   flagsptr)
 {
@@ -417,6 +428,27 @@ hildon_gtk_window_set_portrait_flags            (GtkWindow           *window,
                                                  HildonPortraitFlags  portrait_flags)
 {
     hildon_gtk_window_set_flag (window, (HildonFlagFunc) do_set_portrait_flags, GUINT_TO_POINTER (portrait_flags));
+}
+
+/**
+ * hildon_gtk_window_enable_zoom_keys:
+ * @window: a #GtkWindow
+ * @enable: %TRUE to let the window use the zoom keys
+ *
+ * Use this function with @enable set to %TRUE to make the window
+ * receive events from the zoom keys (#HILDON_HARDKEY_DECREASE and
+ * #HILDON_HARDKEY_INCREASE).
+ *
+ * If set to %FALSE, those keys will be reserved for the system to
+ * control things such as the volume level.
+ *
+ * Since: 2.2.2
+ **/
+void
+hildon_gtk_window_enable_zoom_keys              (GtkWindow *window,
+                                                 gboolean   enable)
+{
+    hildon_gtk_window_set_flag (window, (HildonFlagFunc) do_set_zoom_keys, GUINT_TO_POINTER (enable));
 }
 
 /**

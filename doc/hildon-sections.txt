@@ -1249,6 +1249,7 @@ hildon_gtk_window_set_do_not_disturb
 hildon_gtk_window_set_progress_indicator
 hildon_gtk_window_take_screenshot
 hildon_gtk_window_set_portrait_flags
+hildon_gtk_window_enable_zoom_keys
 hildon_gtk_hscale_new
 hildon_gtk_vscale_new
 <SUBSECTION Standard>
