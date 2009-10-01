@@ -1,5 +1,10 @@
 2009-09-23  Claudio Saavedra  <csaavedra@igalia.com>
 
+	* hildon/hildon-note.c: Declare hildon_note_set_padding() only when using
+	maemo-gtk.
+
+2009-09-23  Claudio Saavedra  <csaavedra@igalia.com>
+
 	* doc/hildon-sections.txt: Add hildon_banner_show_custom_widget()
 	* examples/hildon-banner-example.c: (area_expose),
 	(custom_widget_new), (on_progress_idle): New example showing a custom widget.

@@ -113,8 +113,10 @@ hildon_note_init                                (HildonNote *dialog);
 static void 
 hildon_note_rebuild                             (HildonNote *note);
 
+#ifdef MAEMO_GTK
 static void
 hildon_note_set_padding                         (HildonNote *note);
+#endif /* MAEMO_GTK */
 
 static void
 hildon_note_rename                              (HildonNote *note);
