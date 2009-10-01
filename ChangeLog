@@ -1,3 +1,11 @@
+2009-10-01  Alberto Garcia  <agarcia@igalia.com>
+
+	* hildon/hildon-banner.c (hildon_banner_timeout):
+	Remove the timeout, if present, before setting it to 0.
+
+	Fixes: NB#141447 (HildonBanner crashes if a new one is shown
+	during a delete event)
+
 2009-09-30  Alberto Garcia  <agarcia@igalia.com>
 
 	* hildon/hildon-banner.c (screen_size_changed):
