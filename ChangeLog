@@ -1,3 +1,13 @@
+2009-10-01  Claudio Saavedra  <csaavedra@igalia.com>
+
+	Fix HildonAppMenu crasher during destruction
+
+	* hildon/hildon-app-menu.c: (+hildon_app_menu_dispose):
+	Remove the weak references to the menu and filters to avoid
+	emitting the "changed" signal during destruction.
+
+	Fixes: NB#141367 (Reproducible browser crash)
+
 2009-09-23  Claudio Saavedra  <csaavedra@igalia.com>
 
 	* hildon/hildon-note.c: Declare hildon_note_set_padding() only when using

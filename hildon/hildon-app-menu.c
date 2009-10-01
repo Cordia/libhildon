@@ -969,6 +969,28 @@ hildon_app_menu_init                            (HildonAppMenu *menu)
     gtk_widget_show_all (GTK_WIDGET (priv->vbox));
 }
 
+
+static void
+disconnect_weak_refs (gpointer data,
+		      gpointer user_data)
+{
+	g_object_weak_unref (G_OBJECT (data),
+			     (GWeakNotify) emit_menu_changed,
+			     user_data);
+}
+
+static void
+hildon_app_menu_dispose                         (GObject *object)
+
+{
+    HildonAppMenuPrivate *priv = HILDON_APP_MENU_GET_PRIVATE(object);
+
+    g_list_foreach (priv->buttons, (GFunc) disconnect_weak_refs, object);
+    g_list_foreach (priv->filters, (GFunc) disconnect_weak_refs, object);
+
+    G_OBJECT_CLASS (hildon_app_menu_parent_class)->dispose (object);
+}
+
 static void
 hildon_app_menu_finalize                        (GObject *object)
 {
@@ -1008,6 +1030,7 @@ hildon_app_menu_class_init                      (HildonAppMenuClass *klass)
     GObjectClass *gobject_class = (GObjectClass *)klass;
     GtkWidgetClass *widget_class = (GtkWidgetClass *)klass;
 
+    gobject_class->dispose = hildon_app_menu_dispose;
     gobject_class->finalize = hildon_app_menu_finalize;
     widget_class->show_all = hildon_app_menu_show_all;
     widget_class->hide_all = hildon_app_menu_hide_all;
