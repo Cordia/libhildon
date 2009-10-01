@@ -25,8 +25,6 @@
 #ifndef                                         __HILDON_PROGRAM_PRIVATE_H__
 #define                                         __HILDON_PROGRAM_PRIVATE_H__
 
-#include                                        <gdk/gdkx.h>
-
 #include                                        "hildon-window.h"
 #include                                        "hildon-stackable-window.h"
 
@@ -47,7 +45,6 @@ struct                                          _HildonProgramPrivate
     HildonAppMenu *common_app_menu;
     GtkWidget *common_toolbar;
     GSList *windows;
-    Window window_group;
 };
 
 G_END_DECLS

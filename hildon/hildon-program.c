@@ -82,6 +82,7 @@
 #include                                        <config.h>
 #endif
 
+#include                                        <gdk/gdkx.h>
 #include                                        <X11/Xatom.h>
 
 #include                                        "hildon-program.h"
@@ -151,7 +152,6 @@ hildon_program_init                             (HildonProgram *self)
     priv->killable = FALSE;
     priv->window_count = 0;
     priv->is_topmost = FALSE;
-    priv->window_group = GDK_WINDOW_XID (gdk_display_get_default_group (gdk_display_get_default()));
     priv->common_menu = NULL;
     priv->common_app_menu = NULL;
     priv->common_toolbar = NULL;
@@ -366,7 +366,14 @@ hildon_program_update_top_most                  (HildonProgram *program)
 
       if (wm_hints)
       {
-        is_topmost = (wm_hints->window_group == priv->window_group);
+        GSList *iter;
+        for (iter = priv->windows ; iter && !is_topmost; iter = iter->next)
+          {
+            GdkWindow *gdkwin = GTK_WIDGET (iter->data)->window;
+            GdkWindow *group = gdkwin ? gdk_window_get_group (gdkwin) : NULL;
+            if (group)
+              is_topmost = wm_hints->window_group == GDK_WINDOW_XID (group);
+          }
         XFree (wm_hints);
       }
     }
