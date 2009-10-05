@@ -392,6 +392,21 @@ hildon_date_selector_finalize (GObject * object)
   g_slist_free (selector->priv->column_order);
   g_free (selector->priv->format);
 
+  if (selector->priv->year_model) {
+      g_object_unref (selector->priv->year_model);
+      selector->priv->year_model = NULL;
+  }
+
+  if (selector->priv->month_model) {
+      g_object_unref (selector->priv->month_model);
+      selector->priv->month_model = NULL;
+  }
+
+  if (selector->priv->day_model) {
+      g_object_unref (selector->priv->day_model);
+      selector->priv->day_model = NULL;
+  }
+
   (*G_OBJECT_CLASS (hildon_date_selector_parent_class)->finalize) (object);
 }
 

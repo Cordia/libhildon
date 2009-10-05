@@ -1,5 +1,11 @@
 2009-10-05  Alberto Garcia  <agarcia@igalia.com>
 
+	* hildon/hildon-date-selector.c
+	(hildon_date_selector_finalize):
+	Don't leak the tree models.
+
+2009-10-05  Alberto Garcia  <agarcia@igalia.com>
+
 	* hildon/hildon-touch-selector.c
 	(hildon_touch_selector_new_text):
 	Don't leak the GtkListStore
