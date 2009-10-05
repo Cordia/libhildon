@@ -1,3 +1,11 @@
+2009-10-05  Alberto Garcia  <agarcia@igalia.com>
+
+	* hildon/hildon-picker-button.c
+	(hildon_picker_button_set_selector):
+	Use g_object_ref_sink() when adding a selector to a picker button
+	to make sure that we don't leak the selector if the button is
+	destroyed without being used.
+
 2009-10-01  Claudio Saavedra  <csaavedra@igalia.com>
 
 	Fix HildonAppMenu crasher during destruction

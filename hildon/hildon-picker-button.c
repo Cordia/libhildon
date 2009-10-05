@@ -465,7 +465,7 @@ hildon_picker_button_set_selector (HildonPickerButton * button,
   priv->selector = GTK_WIDGET (selector);
 
   if (selector) {
-    g_object_ref (selector);
+    g_object_ref_sink (selector);
 
     g_signal_connect (G_OBJECT (selector), "changed",
                       G_CALLBACK (hildon_picker_button_selector_selection_changed),
