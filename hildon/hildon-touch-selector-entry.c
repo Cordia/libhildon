@@ -190,6 +190,7 @@ hildon_touch_selector_entry_init (HildonTouchSelectorEntry *self)
   gtk_entry_completion_set_inline_completion (completion, TRUE);
   gtk_entry_completion_set_popup_completion (completion, FALSE);
   gtk_entry_set_completion (GTK_ENTRY (priv->entry), completion);
+  g_object_unref (completion);
 
   gtk_widget_show (priv->entry);
   g_signal_connect (G_OBJECT (priv->entry), "changed",
@@ -245,6 +246,7 @@ hildon_touch_selector_entry_new_text (void)
   gtk_entry_completion_set_model (completion, GTK_TREE_MODEL (model));
   column = hildon_touch_selector_append_text_column (HILDON_TOUCH_SELECTOR (selector),
                                                      GTK_TREE_MODEL (model), FALSE);
+  g_object_unref (model);
 
   g_signal_connect (column, "notify::text-column", G_CALLBACK (_text_column_modified),
                     selector);
