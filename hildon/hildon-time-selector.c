@@ -313,10 +313,22 @@ hildon_time_selector_set_property (GObject *object,
 static void
 hildon_time_selector_finalize (GObject * object)
 {
-  /* Note: we don't require to free the models. We don't manage it using own
-     references, so will be freed on the hildon-touch-selector finalize code.
-     See the implementation notes related to that on the touch selector
-     code. */
+  HildonTimeSelectorPrivate *priv = HILDON_TIME_SELECTOR_GET_PRIVATE (object);
+
+  if (priv->hours_model) {
+    g_object_unref (priv->hours_model);
+    priv->hours_model = NULL;
+  }
+
+  if (priv->minutes_model) {
+    g_object_unref (priv->minutes_model);
+    priv->minutes_model = NULL;
+  }
+
+  if (priv->ampm_model) {
+    g_object_unref (priv->ampm_model);
+    priv->ampm_model = NULL;
+  }
 
   (*G_OBJECT_CLASS (hildon_time_selector_parent_class)->finalize) (object);
 }
@@ -562,6 +574,9 @@ update_format_dependant_columns                 (HildonTimeSelector *selector,
   /* To avoid an extra and wrong VALUE_CHANGED signal on the model update */
   hildon_touch_selector_block_changed (HILDON_TOUCH_SELECTOR(selector));
 
+  if (selector->priv->hours_model) {
+    g_object_unref (selector->priv->hours_model);
+  }
   selector->priv->hours_model = _create_hours_model (selector);
   hildon_touch_selector_set_model (HILDON_TOUCH_SELECTOR (selector),
                                    0,
@@ -577,6 +592,9 @@ update_format_dependant_columns                 (HildonTimeSelector *selector,
 
   /* if we are at this function, we are sure that a change on the number of columns
      will happen, so check the column number is not required */
+  if (selector->priv->ampm_model) {
+    g_object_unref (selector->priv->ampm_model);
+  }
   if (selector->priv->ampm_format) {
     selector->priv->ampm_model = _create_ampm_model (selector);
 
