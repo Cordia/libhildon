@@ -1,5 +1,13 @@
 2009-10-05  Alberto Garcia  <agarcia@igalia.com>
 
+	* hildon/hildon-touch-selector.c
+	(hildon_touch_selector_new_text):
+	Don't leak the GtkListStore
+
+	Fixes: NB#141831 (memory leak in hildon-touch-selector)
+
+2009-10-05  Alberto Garcia  <agarcia@igalia.com>
+
 	* hildon/hildon-picker-button.c
 	(hildon_picker_button_set_selector):
 	Use g_object_ref_sink() when adding a selector to a picker button

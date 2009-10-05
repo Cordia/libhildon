@@ -1178,6 +1178,8 @@ hildon_touch_selector_new_text (void)
   column = hildon_touch_selector_append_text_column (HILDON_TOUCH_SELECTOR (selector),
                                                      GTK_TREE_MODEL (store), TRUE);
 
+  g_object_unref (store);
+
   hildon_touch_selector_column_set_text_column (column, 0);
 
   return selector;
