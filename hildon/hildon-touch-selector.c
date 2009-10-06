@@ -881,6 +881,8 @@ static void
 hildon_touch_selector_column_set_property  (GObject *object, guint property_id,
                                             const GValue *value, GParamSpec *pspec);
 
+static void
+hildon_touch_selector_column_finalize      (GObject *object);
 
 static void
 hildon_touch_selector_column_class_init (HildonTouchSelectorColumnClass *klass)
@@ -894,6 +896,7 @@ hildon_touch_selector_column_class_init (HildonTouchSelectorColumnClass *klass)
   /* GObject */
   gobject_class->get_property = hildon_touch_selector_column_get_property;
   gobject_class->set_property = hildon_touch_selector_column_set_property;
+  gobject_class->finalize     = hildon_touch_selector_column_finalize;
 
   /**
    * HildonTouchSelectorColumn:text-column:
@@ -992,6 +995,18 @@ hildon_touch_selector_column_set_property (GObject *object, guint property_id,
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
   }
+}
+
+static void
+hildon_touch_selector_column_finalize     (GObject *object)
+{
+  HildonTouchSelectorColumnPrivate *priv = HILDON_TOUCH_SELECTOR_COLUMN (object)->priv;
+
+  if (priv->initial_path) {
+    gtk_tree_path_free (priv->initial_path);
+  }
+
+  G_OBJECT_CLASS (hildon_touch_selector_column_parent_class)->finalize (object);
 }
 
 /* ------------------------ GtkCellLayout implementation -------------------- */
