@@ -586,8 +586,6 @@ hildon_touch_selector_remove (GtkContainer * container, GtkWidget * widget)
     g_slist_free (selector->priv->columns);
 
     selector->priv->columns = NULL;
-  } else {
-    g_debug ("Freeing a widget outside the columns logic");
   }
 
   /* Now remove the widget itself from the container */
