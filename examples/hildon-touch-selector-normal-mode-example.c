@@ -53,6 +53,7 @@ value_changed (HildonPickerButton * button,
     gtk_tree_model_get (model, &iter, 0, &aux_string, -1);
 
     gtk_label_set_text (GTK_LABEL (label), aux_string);
+    g_free (aux_string);
   }
 
   gtk_tree_path_free (path);
