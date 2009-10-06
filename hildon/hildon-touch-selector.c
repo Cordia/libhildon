@@ -835,8 +835,6 @@ _create_new_column (HildonTouchSelector * selector,
   new_column->priv->model = model;
   new_column->priv->tree_view = tv;
   new_column->priv->panarea = panarea;
-  new_column->priv->realize_handler = 0;
-  new_column->priv->initial_path = NULL;
 
   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv));
   gtk_tree_selection_set_mode (selection, GTK_SELECTION_BROWSE);
@@ -922,6 +920,8 @@ hildon_touch_selector_column_init (HildonTouchSelectorColumn *column)
                                               HildonTouchSelectorColumnPrivate);
   column->priv->text_column = -1;
   column->priv->last_activated = NULL;
+  column->priv->realize_handler = 0;
+  column->priv->initial_path = NULL;
 }
 
 /**
