@@ -77,7 +77,8 @@ enum {
 };
 
 enum {
-    PROP_SIZE = 1
+    PROP_SIZE = 1,
+    PROP_ACTIVE
 };
 
 static guint                                    signals[LAST_SIGNAL] = { 0 };
@@ -214,6 +215,26 @@ set_property                                    (GObject      *object,
     case PROP_SIZE:
         hildon_gtk_widget_set_theme_size (GTK_WIDGET (object), g_value_get_flags (value));
         break;
+    case PROP_ACTIVE:
+        hildon_check_button_set_active (HILDON_CHECK_BUTTON (object), g_value_get_boolean (value));
+        break;
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+        break;
+    }
+}
+
+static void
+get_property                                    (GObject      *object,
+                                                 guint         prop_id,
+                                                 GValue       *value,
+                                                 GParamSpec   *pspec)
+{
+    switch (prop_id)
+    {
+    case PROP_ACTIVE:
+        g_value_set_boolean (value, hildon_check_button_get_active (HILDON_CHECK_BUTTON (object)));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -228,6 +249,7 @@ hildon_check_button_class_init                  (HildonCheckButtonClass *klass)
     GtkButtonClass *button_class = (GtkButtonClass*) klass;
 
     gobject_class->set_property = set_property;
+    gobject_class->get_property = get_property;
     widget_class->style_set = hildon_check_button_style_set;
     button_class->clicked = hildon_check_button_clicked;
 
@@ -268,6 +290,16 @@ hildon_check_button_class_init                  (HildonCheckButtonClass *klass)
             HILDON_TYPE_SIZE_TYPE,
             HILDON_SIZE_AUTO,
             G_PARAM_WRITABLE));
+
+    g_object_class_install_property (
+            gobject_class,
+            PROP_ACTIVE,
+            g_param_spec_boolean (
+                    "active",
+                    "Active",
+                    "Whether the check button is active or not",
+                    FALSE,
+                    G_PARAM_READWRITE));
 
     g_type_class_add_private (klass, sizeof (HildonCheckButtonPrivate));
 }
