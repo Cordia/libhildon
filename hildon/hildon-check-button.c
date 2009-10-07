@@ -169,7 +169,7 @@ hildon_check_button_get_active                  (HildonCheckButton *button)
 GtkWidget *
 hildon_check_button_new                         (HildonSizeType size)
 {
-    return g_object_new (HILDON_TYPE_CHECK_BUTTON, "xalign", 0.0, "size", size, NULL);
+    return g_object_new (HILDON_TYPE_CHECK_BUTTON, "size", size, NULL);
 }
 
 static void
@@ -325,6 +325,7 @@ hildon_check_button_init                        (HildonCheckButton *button)
     gtk_button_set_image (GTK_BUTTON (button), cell_view);
 
     gtk_button_set_focus_on_click (GTK_BUTTON (button), FALSE);
+    g_object_set (G_OBJECT (button), "xalign", 0.0, NULL);
 
     hildon_check_button_apply_style (GTK_WIDGET (button));
 }
