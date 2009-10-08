@@ -78,6 +78,8 @@ create_selector ()
                                                 renderer, "stock-id", 0, NULL);
   hildon_touch_selector_column_set_text_column (column, 0);
 
+  g_object_unref (store_icons);
+
   hildon_touch_selector_set_column_selection_mode (HILDON_TOUCH_SELECTOR (selector),
                                                    HILDON_TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE);
 
