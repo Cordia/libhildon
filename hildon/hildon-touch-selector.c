@@ -832,7 +832,7 @@ _create_new_column (HildonTouchSelector * selector,
 
   gtk_container_add (GTK_CONTAINER (panarea), GTK_WIDGET (tv));
 
-  new_column->priv->model = model;
+  new_column->priv->model = g_object_ref (model);
   new_column->priv->tree_view = tv;
   new_column->priv->panarea = panarea;
 
@@ -882,6 +882,9 @@ hildon_touch_selector_column_set_property  (GObject *object, guint property_id,
                                             const GValue *value, GParamSpec *pspec);
 
 static void
+hildon_touch_selector_column_dispose       (GObject *object);
+
+static void
 hildon_touch_selector_column_finalize      (GObject *object);
 
 static void
@@ -896,6 +899,7 @@ hildon_touch_selector_column_class_init (HildonTouchSelectorColumnClass *klass)
   /* GObject */
   gobject_class->get_property = hildon_touch_selector_column_get_property;
   gobject_class->set_property = hildon_touch_selector_column_set_property;
+  gobject_class->dispose      = hildon_touch_selector_column_dispose;
   gobject_class->finalize     = hildon_touch_selector_column_finalize;
 
   /**
@@ -995,6 +999,20 @@ hildon_touch_selector_column_set_property (GObject *object, guint property_id,
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
   }
+}
+
+static void
+hildon_touch_selector_column_dispose      (GObject *object)
+{
+  HildonTouchSelectorColumnPrivate *priv =
+      HILDON_TOUCH_SELECTOR_COLUMN (object)->priv;
+
+  if (priv->model != NULL) {
+      g_object_unref (priv->model);
+      priv->model = NULL;
+  }
+
+  G_OBJECT_CLASS (hildon_touch_selector_column_parent_class)->dispose (object);
 }
 
 static void
@@ -2020,8 +2038,9 @@ _hildon_touch_selector_set_model (HildonTouchSelector * selector,
   if (current_column->priv->model) {
     g_signal_handlers_disconnect_by_func (current_column->priv->model,
                                           on_row_changed, selector);
+    g_object_unref (current_column->priv->model);
   }
-  current_column->priv->model = model;
+  current_column->priv->model = g_object_ref (model);
   gtk_tree_view_set_model (current_column->priv->tree_view,
                            current_column->priv->model);
   g_signal_connect (model, "row-changed",
