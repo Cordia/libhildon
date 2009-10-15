@@ -507,6 +507,8 @@ check_automatic_ampm_format (HildonTimeSelector * selector)
     g_error_free (error);
   }
 
+  g_object_unref (client);
+
   selector->priv->ampm_format = !value;
 }
 
