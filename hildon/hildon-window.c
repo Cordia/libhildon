@@ -1062,7 +1062,9 @@ hildon_window_get_active_window                 (void)
     if (win.win != NULL)
         XFree(win.char_pointer);
 
-    return ret;
+    /* 0xFFFFFFFF is not an actual window ID, but a magic value to
+     * indicate that the task switcher is visible */
+    return (ret != 0xFFFFFFFF) ? ret : None;
 }
 
 static int
