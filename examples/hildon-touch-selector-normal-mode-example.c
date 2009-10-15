@@ -95,6 +95,7 @@ create_selector ()
   hildon_touch_selector_set_hildon_ui_mode (HILDON_TOUCH_SELECTOR (selector),
                                             HILDON_UI_MODE_NORMAL);
 
+  g_object_unref (store_icons);
 
   return selector;
 }
