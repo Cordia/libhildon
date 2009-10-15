@@ -79,6 +79,8 @@ create_selector ()
                                                 NULL, NULL);
   hildon_touch_selector_column_set_text_column (column, 1);
 
+  g_object_unref (store_icons);
+
   renderer = gtk_cell_renderer_pixbuf_new ();
   gtk_cell_renderer_set_fixed_size (renderer, 75, 75);
   gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (column), renderer, FALSE);
