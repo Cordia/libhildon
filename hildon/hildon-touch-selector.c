@@ -1295,7 +1295,9 @@ hildon_touch_selector_insert_text (HildonTouchSelector * selector,
  * be obtained from the model. Only widgets added this way should used on
  * the selection logic, the print function, the #HildonTouchSelector::changed
  * signal, etc. Internally, a #GtkTreeView will be added to the widget, using
- * @model as the data source.
+ * @model as the data source. This will add a reference to @model, so you
+ * must unref it after calling this function if you are not going to
+ * use it anymore.
  *
  * You can optionally pass a #GtkCellRenderer in @cell_renderer,
  * together with a %NULL-terminated list of pairs property/value, in
@@ -1378,6 +1380,9 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
  * Equivalent to hildon_touch_selector_append_column(), but using a
  * default text cell renderer. This is the most common use case of the
  * widget.
+ *
+ * Note that this call adds a reference to @model, so you must unref
+ * it afterwards if you are not going to use it anymore.
  *
  * Returns: the new column added, NULL otherwise.
  *
@@ -2025,9 +2030,13 @@ _hildon_touch_selector_set_model (HildonTouchSelector * selector,
  * hildon_touch_selector_set_model:
  * @selector: a #HildonTouchSelector
  * @column: the position of the column to set the model to
- * @model: a #GtkTreeModel
+ * @model: a #GtkTreeModel. It increases a reference so you are not
+ * going to use the model anymore, unref it.
  *
  * Sets the #GtkTreeModel for a particular column in @model.
+ *
+ * Note that this call adds a reference to @model, so you must unref
+ * it afterwards if you are not going to use it anymore.
  *
  * Since: 2.2
  **/
