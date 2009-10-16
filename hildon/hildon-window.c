@@ -224,11 +224,6 @@ hildon_window_event_filter                      (GdkXEvent *xevent,
                                                  GdkEvent *event, 
                                                  gpointer data);
 
-static GdkFilterReturn
-hildon_window_root_window_event_filter          (GdkXEvent *xevent, 
-                                                 GdkEvent *event, 
-                                                 gpointer data );
-
 static void
 hildon_window_get_borders                       (HildonWindow *window);
 
@@ -365,13 +360,6 @@ hildon_window_init                              (HildonWindow *self)
     priv->fullscreen = FALSE;
 
     priv->program = NULL;
-
-    /* We need to track the root window _MB_CURRENT_APP_WINDOW property */
-    gdk_window_set_events (gdk_get_default_root_window (),
-            gdk_window_get_events (gdk_get_default_root_window ()) | GDK_PROPERTY_CHANGE_MASK);
-
-    gdk_window_add_filter (gdk_get_default_root_window (), 
-            hildon_window_root_window_event_filter, self);
 }
 
 static void
@@ -468,6 +456,8 @@ hildon_window_unrealize                         (GtkWidget *widget)
 
     gdk_window_remove_filter (widget->window, hildon_window_event_filter,
             widget);
+
+    hildon_window_update_topmost (HILDON_WINDOW (widget), 0);
 
     gtk_widget_unrealize (GTK_WIDGET (priv->vbox));
 
@@ -930,10 +920,6 @@ hildon_window_destroy                           (GtkObject *obj)
         hildon_program_remove_window (priv->program, self);
     }
 
-    gdk_window_remove_filter (gdk_get_default_root_window(), 
-            hildon_window_root_window_event_filter,
-            obj);
-
     gtk_widget_set_events (GTK_WIDGET(obj), 0);
 
     GTK_OBJECT_CLASS (hildon_window_parent_class)->destroy (obj);
@@ -1115,21 +1101,6 @@ hildon_window_event_filter                      (GdkXEvent *xevent,
         }
     }
 
-    return GDK_FILTER_CONTINUE;
-}
-
-/*
- * Here we keep track of changes in the _MB_CURRENT_APP_WINDOW,
- * to know when we acquire/lose topmost status
- */
-static GdkFilterReturn
-hildon_window_root_window_event_filter          (GdkXEvent *xevent, 
-                                                 GdkEvent *event, 
-                                                 gpointer data)
-{
-    XAnyEvent *eventti = xevent;
-    HildonWindow *hwindow = HILDON_WINDOW (data);
-
     if (eventti->type == PropertyNotify)
     {
         XPropertyEvent *pevent = xevent;
@@ -1138,9 +1109,10 @@ hildon_window_root_window_event_filter          (GdkXEvent *xevent,
 
         if (pevent->atom == active_app_atom)
         {
+            HildonWindow *window = HILDON_WINDOW (data);
             Window active_window = hildon_window_get_active_window();
 
-            hildon_window_update_topmost (hwindow, active_window);
+            hildon_window_update_topmost (window, active_window);
         }
     }
 
@@ -1398,12 +1370,6 @@ hildon_window_set_program                       (HildonWindow *self,
         g_object_unref (priv->program);
     }
 
-    /* Now that we are bound to a program, we can rely on it to track the
-     * root window */
-    gdk_window_remove_filter (gdk_get_default_root_window(), 
-            hildon_window_root_window_event_filter,
-            self);
-
     priv->program = HILDON_PROGRAM (program);
     g_object_ref (program);
 }
@@ -1424,14 +1390,6 @@ hildon_window_unset_program                     (HildonWindow *self)
     {
         g_object_unref (priv->program);
         priv->program = NULL;
-
-        /* We need to start tacking the root window again */
-        gdk_window_set_events (gdk_get_default_root_window (),
-                gdk_window_get_events (gdk_get_default_root_window ())
-                | GDK_PROPERTY_CHANGE_MASK);
-
-        gdk_window_add_filter (gdk_get_default_root_window (),
-                hildon_window_root_window_event_filter, self );
     }
 
     priv->program = NULL;

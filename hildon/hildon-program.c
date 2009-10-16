@@ -478,6 +478,23 @@ hildon_program_get_instance                     (void)
     return program;
 }
 
+static void
+window_add_event_filter                         (GtkWidget     *widget,
+                                                 HildonProgram *program)
+{
+    GdkWindow *gdk_window = gtk_widget_get_window (widget);
+    g_assert (gdk_window);
+
+    gdk_window_set_events (gdk_window,
+                           gdk_window_get_events (gdk_window) | GDK_PROPERTY_CHANGE_MASK);
+
+    gdk_window_add_filter (gdk_window,
+                           hildon_program_root_window_event_filter, program);
+
+    g_signal_handlers_disconnect_by_func (widget, G_CALLBACK (window_add_event_filter),
+                                          program);
+}
+
 /**
  * hildon_program_add_window:
  * @self: The #HildonProgram to which the window should be registered
@@ -507,19 +524,20 @@ hildon_program_add_window                       (HildonProgram *self,
         return;
     }
 
-    if (!priv->window_count)
-    {
-        hildon_program_update_top_most (self);
-        
-        /* Now that we have a window we should start keeping track of
-         * the root window */
-        gdk_window_set_events (gdk_get_default_root_window (),
-                gdk_window_get_events (gdk_get_default_root_window ()) | GDK_PROPERTY_CHANGE_MASK);
+    hildon_program_update_top_most (self);
 
-        gdk_window_add_filter (gdk_get_default_root_window (),
-                hildon_program_root_window_event_filter, self );
+    /* Now that we have a window we should start keeping track of
+     * the root window */
+    if (GTK_WIDGET_REALIZED (window))
+    {
+        window_add_event_filter (GTK_WIDGET (window), self);
     }
-    
+    else
+    {
+        g_signal_connect_after (window, "realize",
+                                G_CALLBACK (window_add_event_filter), self);
+    }
+
     hildon_window_set_can_hibernate_property (window, &priv->killable);
 
     hildon_window_set_program (window, G_OBJECT (self));
@@ -560,10 +578,12 @@ hildon_program_remove_window                    (HildonProgram *self,
 
     priv->window_count --;
 
-    if (! priv->window_count)
-        gdk_window_remove_filter (gdk_get_default_root_window(),
-                hildon_program_root_window_event_filter,
-                self);
+    if (GTK_WIDGET_REALIZED (window))
+    {
+        gdk_window_remove_filter (gtk_widget_get_window (GTK_WIDGET (window)),
+                                  hildon_program_root_window_event_filter,
+                                  self);
+    }
 
     if (priv->common_menu || priv->common_app_menu)
         hildon_program_window_set_common_menu_flag (window, FALSE);
