@@ -955,10 +955,8 @@ hildon_banner_set_override_flag                 (HildonBanner *banner)
 static void
 reshow_banner                                   (HildonBanner *banner)
 {
-    if (GTK_WIDGET_VISIBLE (banner)) {
-        gint width = gdk_screen_get_width (gtk_widget_get_screen (GTK_WIDGET (banner)));
-        gtk_window_resize (GTK_WINDOW (banner), width, 1);
-    }
+    gint width = gdk_screen_get_width (gtk_widget_get_screen (GTK_WIDGET (banner)));
+    gtk_window_resize (GTK_WINDOW (banner), width, 1);
     force_to_wrap_truncated (banner);
     gtk_widget_show_all (GTK_WIDGET (banner));
 }
