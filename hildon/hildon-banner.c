@@ -679,9 +679,11 @@ screen_size_changed                            (GdkScreen *screen,
                                                 GtkWindow *banner)
 
 {
-    HildonBanner *hbanner = HILDON_BANNER (banner);
-    hildon_banner_bind_style (hbanner);
-    reshow_banner (hbanner);
+    if (GTK_WIDGET_VISIBLE (banner)) {
+        HildonBanner *hbanner = HILDON_BANNER (banner);
+        hildon_banner_bind_style (hbanner);
+        reshow_banner (hbanner);
+    }
 }
 
 static void
