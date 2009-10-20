@@ -161,6 +161,9 @@ hildon_banner_constructor                       (GType type,
                                                  GObjectConstructParam *construct_params);
 
 static void
+hildon_banner_dispose                           (GObject *object);
+
+static void
 hildon_banner_finalize                          (GObject *object);
 
 static gboolean
@@ -527,6 +530,19 @@ hildon_banner_constructor                       (GType type,
 }
 
 static void
+hildon_banner_dispose                           (GObject *object)
+{
+    HildonBannerPrivate *priv = HILDON_BANNER_GET_PRIVATE (object);
+
+    if (priv->label) {
+        g_object_unref (priv->label);
+        priv->label = NULL;
+    }
+
+    G_OBJECT_CLASS (hildon_banner_parent_class)->dispose (object);
+}
+
+static void
 hildon_banner_finalize                          (GObject *object)
 {
     HildonBannerPrivate *priv = HILDON_BANNER_GET_PRIVATE (object);
@@ -600,6 +616,13 @@ banner_do_set_text                              (HildonBanner *banner,
     GtkRequisition req;
 
     priv = HILDON_BANNER_GET_PRIVATE (banner);
+
+    if (priv->main_item) {
+        gtk_container_remove (GTK_CONTAINER (priv->layout), priv->main_item);
+        priv->main_item = NULL;
+        gtk_box_pack_start (GTK_BOX (priv->layout), priv->label, FALSE, FALSE,
+                            0);
+    }
 
     if (is_markup) {
         gtk_label_set_markup (GTK_LABEL (priv->label), text);
@@ -751,6 +774,7 @@ hildon_banner_class_init                        (HildonBannerClass *klass)
 
     /* Override virtual methods */
     object_class->constructor = hildon_banner_constructor;
+    object_class->dispose = hildon_banner_dispose;
     object_class->finalize = hildon_banner_finalize;
     object_class->set_property = hildon_banner_set_property;
     object_class->get_property = hildon_banner_get_property;
@@ -819,6 +843,7 @@ hildon_banner_init                              (HildonBanner *self)
     priv->overrides_dnd = FALSE;
     priv->require_override_dnd = FALSE;
     priv->name_suffix = NULL;
+    priv->main_item = NULL;
 
     /* Initialize the common layout inside banner */
     priv->alignment = gtk_alignment_new (0.5, 0.5, 0, 0);
@@ -832,6 +857,7 @@ hildon_banner_init                              (HildonBanner *self)
     gtk_container_set_border_width (GTK_CONTAINER (priv->layout), HILDON_MARGIN_DEFAULT);
     gtk_container_add (GTK_CONTAINER (self), priv->alignment);
     gtk_container_add (GTK_CONTAINER (priv->alignment), priv->layout);
+    g_object_ref (priv->label);
     gtk_box_pack_start (GTK_BOX (priv->layout), priv->label, FALSE, FALSE, 0);
 
     gtk_window_set_accept_focus (GTK_WINDOW (self), FALSE);
@@ -1205,6 +1231,10 @@ hildon_banner_show_custom_widget                (GtkWidget *widget,
 
     g_return_val_if_fail (gtk_widget_get_parent (custom_widget) == NULL ||
                           priv->main_item == custom_widget, NULL);
+
+    if (priv->main_item == NULL) {
+        gtk_container_remove (GTK_CONTAINER (priv->layout), priv->label);
+    }
 
     if (priv->main_item != custom_widget) {
         GtkWidget *old_item = priv->main_item;
