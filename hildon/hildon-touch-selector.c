@@ -200,6 +200,7 @@ struct _HildonTouchSelectorColumnPrivate
   GtkTreeView *tree_view;
   gulong realize_handler;
   GtkTreePath *initial_path;
+  GtkTreeModel *filter;
 
   GtkWidget *panarea;           /* the pannable widget */
   GtkTreeRowReference *last_activated;
@@ -786,6 +787,7 @@ _create_new_column (HildonTouchSelector * selector,
   HildonTouchSelectorColumn *new_column = NULL;
   GtkTreeViewColumn *tree_column = NULL;
   GtkTreeView *tv = NULL;
+  GtkTreeModel *filter;
   GtkWidget *panarea = NULL;
   GtkTreeSelection *selection = NULL;
   GtkTreeIter iter;
@@ -815,7 +817,8 @@ _create_new_column (HildonTouchSelector * selector,
   gtk_tree_view_set_enable_search (tv, FALSE);
   GTK_WIDGET_UNSET_FLAGS (GTK_WIDGET (tv), GTK_CAN_FOCUS);
 
-  gtk_tree_view_set_model (tv, model);
+  filter = gtk_tree_model_filter_new (model, NULL);
+  gtk_tree_view_set_model (tv, filter);
   g_signal_connect (model, "row-changed",
                     G_CALLBACK (on_row_changed), selector);
   gtk_tree_view_set_rules_hint (tv, TRUE);
@@ -835,13 +838,14 @@ _create_new_column (HildonTouchSelector * selector,
   new_column->priv->model = g_object_ref (model);
   new_column->priv->tree_view = tv;
   new_column->priv->panarea = panarea;
+  new_column->priv->filter = filter;
 
   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv));
   gtk_tree_selection_set_mode (selection, GTK_SELECTION_BROWSE);
 
   /* select the first item */
   *emit_changed = FALSE;
-  if ((gtk_tree_model_get_iter_first (model, &iter))&&
+  if ((gtk_tree_model_get_iter_first (filter, &iter))&&
       (selector->priv->hildon_ui_mode == HILDON_UI_MODE_EDIT)) {
     gtk_tree_selection_select_iter (selection, &iter);
     *emit_changed = TRUE;
@@ -1010,6 +1014,11 @@ hildon_touch_selector_column_dispose      (GObject *object)
   if (priv->model != NULL) {
       g_object_unref (priv->model);
       priv->model = NULL;
+  }
+
+  if (priv->filter != NULL) {
+      g_object_unref (priv->filter);
+      priv->filter = NULL;
   }
 
   G_OBJECT_CLASS (hildon_touch_selector_column_parent_class)->dispose (object);
@@ -1623,7 +1632,7 @@ hildon_touch_selector_set_column_selection_mode (HildonTouchSelector * selector,
     gtk_tree_selection_set_mode (selection, treeview_mode);
 
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv));
-    gtk_tree_model_get_iter_first (column->priv->model, &iter);
+    gtk_tree_model_get_iter_first (column->priv->filter, &iter);
     gtk_tree_selection_unselect_all (selection);
     gtk_tree_selection_select_iter (selection, &iter);
 
@@ -1770,7 +1779,7 @@ hildon_touch_selector_get_active                (HildonTouchSelector *selector,
   GtkTreeSelection *selection = NULL;
   HildonTouchSelectorColumn *current_column = NULL;
   HildonTouchSelectorSelectionMode mode;
-  GtkTreeIter iter;
+  GtkTreeIter filter_iter;
   gint index = -1;
 
   g_return_val_if_fail (HILDON_IS_TOUCH_SELECTOR (selector), -1);
@@ -1783,11 +1792,12 @@ hildon_touch_selector_get_active                (HildonTouchSelector *selector,
 
   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (current_column->priv->tree_view));
 
-  if (gtk_tree_selection_get_selected (selection, NULL, &iter)) {
+  if (gtk_tree_selection_get_selected (selection, NULL, &filter_iter)) {
     GtkTreePath *path;
-    GtkTreeModel *model;
-    model = gtk_tree_view_get_model (GTK_TREE_VIEW (current_column->priv->tree_view));
-    path = gtk_tree_model_get_path (model, &iter);
+    GtkTreeIter iter;
+    gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (current_column->priv->filter),
+                                                      &iter, &filter_iter);
+    path = gtk_tree_model_get_path (current_column->priv->model, &iter);
     index = (gtk_tree_path_get_indices (path))[0];
     gtk_tree_path_free (path);
   }
@@ -1822,6 +1832,8 @@ hildon_touch_selector_get_selected (HildonTouchSelector * selector,
   GtkTreeSelection *selection = NULL;
   HildonTouchSelectorColumn *current_column = NULL;
   HildonTouchSelectorSelectionMode mode;
+  GtkTreeIter filter_iter;
+  gboolean result;
 
   g_return_val_if_fail (HILDON_IS_TOUCH_SELECTOR (selector), FALSE);
   g_return_val_if_fail (column < hildon_touch_selector_get_num_columns (selector),
@@ -1837,7 +1849,16 @@ hildon_touch_selector_get_selected (HildonTouchSelector * selector,
   selection =
     gtk_tree_view_get_selection (GTK_TREE_VIEW (current_column->priv->tree_view));
 
-  return gtk_tree_selection_get_selected (selection, NULL, iter);
+  result = gtk_tree_selection_get_selected (selection, NULL, &filter_iter);
+  if (result == TRUE) {
+    gtk_tree_model_filter_convert_iter_to_child_iter
+            (GTK_TREE_MODEL_FILTER (current_column->priv->filter),
+             iter, &filter_iter);
+  } else if (iter) {
+    memset (iter, 0, sizeof (GtkTreeIter));
+  }
+
+  return result;
 }
 
 /**
@@ -1857,8 +1878,8 @@ hildon_touch_selector_select_iter (HildonTouchSelector * selector,
                                    gint column, GtkTreeIter * iter,
                                    gboolean scroll_to)
 {
-  GtkTreePath *path;
-  GtkTreeModel *model;
+  GtkTreePath *filter_path;
+  GtkTreeIter filter_iter;
   HildonTouchSelectorColumn *current_column = NULL;
   GtkTreeView *tv = NULL;
   GtkTreeSelection *selection = NULL;
@@ -1870,18 +1891,19 @@ hildon_touch_selector_select_iter (HildonTouchSelector * selector,
 
   tv = current_column->priv->tree_view;
   selection = gtk_tree_view_get_selection (tv);
-  model = gtk_tree_view_get_model (tv);
-  path = gtk_tree_model_get_path (model, iter);
+  gtk_tree_model_filter_convert_child_iter_to_iter (GTK_TREE_MODEL_FILTER (current_column->priv->filter),
+						    &filter_iter, iter);
+  filter_path = gtk_tree_model_get_path (current_column->priv->filter, &filter_iter);
 
-  gtk_tree_selection_select_iter (selection, iter);
+  gtk_tree_selection_select_iter (selection, &filter_iter);
 
   if (scroll_to) {
-    hildon_touch_selector_scroll_to (current_column, tv, path);
+    hildon_touch_selector_scroll_to (current_column, tv, filter_path);
   }
 
   hildon_touch_selector_emit_value_changed (selector, column);
 
-  gtk_tree_path_free (path);
+  gtk_tree_path_free (filter_path);
 }
 
 /**
@@ -1939,6 +1961,32 @@ hildon_touch_selector_unselect_all (HildonTouchSelector * selector,
 }
 
 /**
+ * hildon_touch_selector_filter_selected_to_child_selected:
+ * @filter: 
+ * @filter_selected: 
+ *
+ * Converts a list of #GtkTreePath<!-- -->s from the internal
+ * #GtkTreeModelFilter to the child #GtkTreeModel.
+ *
+ * Returns: a newly created list of #GtkTreePath<!-- -->s. The list
+ * and paths should be freed when not needed anymore.
+ **/
+static GList *
+hildon_touch_selector_filter_selected_to_child_selected (GtkTreeModelFilter *filter,
+                                                         GList *filter_selected)
+{
+    GList *iter;
+    GList *child_selected = NULL;
+
+    for (iter = filter_selected; iter; iter = iter->next)
+        child_selected = g_list_append (child_selected,
+                                        gtk_tree_model_filter_convert_path_to_child_path (
+                                            filter, (GtkTreePath *)iter->data));
+
+    return child_selected;
+}
+
+/**
  * hildon_touch_selector_get_selected_rows:
  * @selector: a #HildonTouchSelector
  * @column: the position of the column to get the selected rows from
@@ -1958,7 +2006,8 @@ GList *
 hildon_touch_selector_get_selected_rows (HildonTouchSelector * selector,
                                          gint column)
 {
-  GList *result = NULL;
+  GList *result;
+  GList *filter_selected;
   HildonTouchSelectorColumn *current_column = NULL;
   GtkTreeSelection *selection = NULL;
 
@@ -1969,7 +2018,12 @@ hildon_touch_selector_get_selected_rows (HildonTouchSelector * selector,
   current_column = g_slist_nth_data (selector->priv->columns, column);
   selection = gtk_tree_view_get_selection (current_column->priv->tree_view);
 
-  result = gtk_tree_selection_get_selected_rows (selection, NULL);
+  filter_selected = gtk_tree_selection_get_selected_rows (selection, NULL);
+  result = hildon_touch_selector_filter_selected_to_child_selected
+      (GTK_TREE_MODEL_FILTER (current_column->priv->filter),
+       filter_selected);
+  g_list_foreach (filter_selected, (GFunc) gtk_tree_path_free, NULL);
+  g_list_free (filter_selected);
 
   return result;
 }
@@ -2007,6 +2061,7 @@ on_row_changed (GtkTreeModel *model,
 {
   HildonTouchSelector *selector;
   HildonTouchSelectorColumn *current_column;
+  GtkTreePath *filter_path;
 
   gint column = 0;
   GSList *col;
@@ -2015,10 +2070,16 @@ on_row_changed (GtkTreeModel *model,
 
   for (col = selector->priv->columns; col != NULL; col = col->next) {
     current_column = HILDON_TOUCH_SELECTOR_COLUMN (col->data);
-    if (current_column->priv->model == model &&
-        gtk_tree_selection_path_is_selected (gtk_tree_view_get_selection (current_column->priv->tree_view),
-                                             path)) {
-      hildon_touch_selector_emit_value_changed (selector, column);
+    if (current_column->priv->model == model) {
+        filter_path =
+            gtk_tree_model_filter_convert_child_path_to_path (GTK_TREE_MODEL_FILTER (current_column->priv->filter),
+                                                              path);
+        if (filter_path &&
+            gtk_tree_selection_path_is_selected (gtk_tree_view_get_selection (current_column->priv->tree_view),
+                                                 filter_path)) {
+            hildon_touch_selector_emit_value_changed (selector, column);
+        }
+        gtk_tree_path_free (filter_path);
     }
     column ++;
   }
@@ -2038,9 +2099,16 @@ _hildon_touch_selector_set_model (HildonTouchSelector * selector,
                                           on_row_changed, selector);
     g_object_unref (current_column->priv->model);
   }
+
+  if (current_column->priv->filter) {
+    g_object_unref (current_column->priv->filter);
+    current_column->priv->filter = gtk_tree_model_filter_new (model, NULL);
+  }
   current_column->priv->model = g_object_ref (model);
+
   gtk_tree_view_set_model (current_column->priv->tree_view,
-                           current_column->priv->model);
+                           current_column->priv->filter);
+
   g_signal_connect (model, "row-changed",
                     G_CALLBACK (on_row_changed), selector);
 }
