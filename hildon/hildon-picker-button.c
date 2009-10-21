@@ -446,6 +446,7 @@ hildon_picker_button_set_selector (HildonPickerButton * button,
 {
   HildonPickerButtonPrivate *priv;
   gchar *value = NULL;
+  GtkWidget *old_selector = NULL;
 
   g_return_if_fail (HILDON_IS_PICKER_BUTTON (button));
   g_return_if_fail (!selector || HILDON_IS_TOUCH_SELECTOR (selector));
@@ -459,7 +460,7 @@ hildon_picker_button_set_selector (HildonPickerButton * button,
     g_signal_handlers_disconnect_by_func (priv->selector,
                                           hildon_picker_button_selector_columns_changed,
                                           button);
-    g_object_unref (priv->selector);
+    old_selector = priv->selector;
   }
 
   priv->selector = GTK_WIDGET (selector);
@@ -483,6 +484,10 @@ hildon_picker_button_set_selector (HildonPickerButton * button,
 
   hildon_button_set_value (HILDON_BUTTON (button), value);
   hildon_picker_button_value_changed (button);
+
+  if (old_selector) {
+      g_object_unref (old_selector);
+  }
 
   g_free (value);
 }
