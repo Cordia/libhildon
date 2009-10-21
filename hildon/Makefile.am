@@ -156,8 +156,7 @@ libhildon_@API_VERSION_MAJOR@_public_headers = \
 		hildon-check-button.h			\
 		hildon-gtk.h				\
 		hildon-version.h			\
-		hildon-main.h				\
-		osso-abook-live-search.h
+		hildon-main.h
 
 libhildon_@API_VERSION_MAJOR@_include_HEADERS = \
 		$(libhildon_@API_VERSION_MAJOR@_public_headers)		\
@@ -198,7 +197,8 @@ noinst_HEADERS = hildon-calendar-popup-private.h 	\
 		hildon-calendar-private.h		\
 		hildon-app-menu-private.h		\
 		hildon-bread-crumb-widget.h		\
-		hildon-touch-selector-private.h
+		hildon-touch-selector-private.h		\
+		osso-abook-live-search.h
 
 # Don't build the library until we have built the header that it needs:
 $(OBJECTS) $(libhildon_$(API_VERSION_MAJOR)_la_OBJECTS): hildon-enum-types.h hildon-marshalers.c hildon-marshalers.h
