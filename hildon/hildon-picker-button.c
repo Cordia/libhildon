@@ -453,6 +453,10 @@ hildon_picker_button_set_selector (HildonPickerButton * button,
 
   priv = GET_PRIVATE (button);
 
+  if (priv->selector == (GtkWidget*) selector) {
+      return;
+  }
+
   if (priv->selector) {
     g_signal_handlers_disconnect_by_func (priv->selector,
                                           hildon_picker_button_selector_selection_changed,
