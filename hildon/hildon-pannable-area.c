@@ -2663,8 +2663,7 @@ hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
     return TRUE;
   }
 
-  if ((!priv->selection_mode)||
-      (priv->selection_mode && (!priv->selection_movement))) {
+  if ((!priv->selection_mode) || (!priv->selection_movement)) {
 
     if (priv->last_type == 1) {
       priv->first_drag = TRUE;
@@ -2754,8 +2753,7 @@ hildon_pannable_area_button_release_cb (GtkWidget * widget,
        || (!priv->button_pressed) || (!priv->enabled) || (event->button != 1))
     return TRUE;
 
-  if ((!priv->selection_mode)||
-      (priv->selection_mode && (!priv->selection_movement))) {
+  if ((!priv->selection_mode) || (!priv->selection_movement)) {
     /* if last event was a motion-notify we have to check the movement
        and launch the animation */
     if (priv->last_type == 2) {
