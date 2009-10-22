@@ -153,6 +153,9 @@ struct _HildonPannableAreaPrivate {
 
   gboolean center_on_child_focus;
   gboolean center_on_child_focus_pending;
+
+  gboolean selection_mode;
+  gboolean selection_movement;
 };
 
 /*signals*/
@@ -751,6 +754,8 @@ hildon_pannable_area_init (HildonPannableArea * area)
   priv->x_offset = 0;
   priv->y_offset = 0;
   priv->center_on_child_focus_pending = FALSE;
+  priv->selection_mode = TRUE;
+  priv->selection_movement = FALSE;
 
   gtk_style_lookup_color (GTK_WIDGET (area)->style,
 			  "SecondaryTextColor", &priv->scroll_color);
@@ -1958,9 +1963,20 @@ hildon_pannable_area_button_press_cb (GtkWidget * widget,
   HildonPannableArea *area = HILDON_PANNABLE_AREA (widget);
   HildonPannableAreaPrivate *priv = area->priv;
 
+
+  if ((priv->selection_mode) &&
+      (event->time == priv->last_time) &&
+      (priv->last_type == 1) &&
+      (event->type == GDK_2BUTTON_PRESS)) {
+    priv->selection_movement = TRUE;
+  } else {
+    priv->selection_movement = FALSE;
+  }
+
   if ((!priv->enabled) || (event->button != 1) ||
       ((event->time == priv->last_time) &&
-       (priv->last_type == 1)) || (gtk_bin_get_child (GTK_BIN (widget)) == NULL))
+       (priv->last_type == 1) && (priv->selection_movement)) ||
+      (gtk_bin_get_child (GTK_BIN (widget)) == NULL))
     return TRUE;
 
   priv->scroll_indicator_event_interrupt = 1;
@@ -2647,51 +2663,57 @@ hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
     return TRUE;
   }
 
-  if (priv->last_type == 1) {
-    priv->first_drag = TRUE;
-  }
+  if ((!priv->selection_mode)||
+      (priv->selection_mode && (!priv->selection_movement))) {
 
-  x = event->x - priv->x;
-  y = event->y - priv->y;
-
-  if (!priv->moved) {
-    hildon_pannable_area_check_move (area, event, &x, &y);
-  }
-
-  if (priv->moved) {
-    hildon_pannable_area_handle_move (area, event, &x, &y);
-  } else if (priv->child) {
-    gboolean in;
-    gint pos_x, pos_y;
-
-    pos_x = priv->cx + (event->x - priv->ix);
-    pos_y = priv->cy + (event->y - priv->iy);
-
-    in = (((0 <= pos_x)&&(priv->child_width >= pos_x)) &&
-          ((0 <= pos_y)&&(priv->child_height >= pos_y)));
-
-    if (((!priv->last_in)&&in)||((priv->last_in)&&(!in))) {
-
-      synth_crossing (priv->child, pos_x, pos_y, event->x_root,
-                      event->y_root, event->time, in);
-
-      priv->last_in = in;
+    if (priv->last_type == 1) {
+      priv->first_drag = TRUE;
     }
-  }
 
-  priv->last_time = event->time;
-  priv->last_type = 2;
+    x = event->x - priv->x;
+    y = event->y - priv->y;
 
-  if (priv->child) {
-    /* Send motion notify to child */
-    event = (GdkEventMotion *) gdk_event_copy ((GdkEvent *) event);
-    /* remove the reference we added with the copy */
-    g_object_unref (priv->event_window);
-    event->x = priv->cx + (event->x - priv->ix);
-    event->y = priv->cy + (event->y - priv->iy);
-    event->window = g_object_ref (priv->child);
-    gdk_event_put ((GdkEvent *) event);
-    gdk_event_free ((GdkEvent *) event);
+    if (!priv->moved) {
+      hildon_pannable_area_check_move (area, event, &x, &y);
+    }
+
+    if (priv->moved) {
+      hildon_pannable_area_handle_move (area, event, &x, &y);
+    } else if (priv->child) {
+      gboolean in;
+      gint pos_x, pos_y;
+
+      pos_x = priv->cx + (event->x - priv->ix);
+      pos_y = priv->cy + (event->y - priv->iy);
+
+      in = (((0 <= pos_x)&&(priv->child_width >= pos_x)) &&
+            ((0 <= pos_y)&&(priv->child_height >= pos_y)));
+
+      if (((!priv->last_in)&&in)||((priv->last_in)&&(!in))) {
+
+        synth_crossing (priv->child, pos_x, pos_y, event->x_root,
+                        event->y_root, event->time, in);
+
+        priv->last_in = in;
+      }
+    }
+
+
+    priv->last_time = event->time;
+    priv->last_type = 2;
+
+    if (priv->child) {
+      /* Send motion notify to child */
+      event = (GdkEventMotion *) gdk_event_copy ((GdkEvent *) event);
+      /* remove the reference we added with the copy */
+      g_object_unref (priv->event_window);
+      event->x = priv->cx + (event->x - priv->ix);
+      event->y = priv->cy + (event->y - priv->iy);
+      event->window = g_object_ref (priv->child);
+      gdk_event_put ((GdkEvent *) event);
+      gdk_event_free ((GdkEvent *) event);
+    }
+
   }
 
   gdk_window_get_pointer (widget->window, NULL, NULL, 0);
@@ -2732,122 +2754,125 @@ hildon_pannable_area_button_release_cb (GtkWidget * widget,
        || (!priv->button_pressed) || (!priv->enabled) || (event->button != 1))
     return TRUE;
 
-  /* if last event was a motion-notify we have to check the movement
-     and launch the animation */
-  if (priv->last_type == 2) {
+  if ((!priv->selection_mode)||
+      (priv->selection_mode && (!priv->selection_movement))) {
+    /* if last event was a motion-notify we have to check the movement
+       and launch the animation */
+    if (priv->last_type == 2) {
 
-    dx = event->x - priv->x;
-    dy = event->y - priv->y;
+      dx = event->x - priv->x;
+      dy = event->y - priv->y;
 
-    hildon_pannable_area_check_move (area, (GdkEventMotion *) event, &dx, &dy);
+      hildon_pannable_area_check_move (area, (GdkEventMotion *) event, &dx, &dy);
 
-    if (priv->moved) {
-      gdouble delta = event->time - priv->last_time;
+      if (priv->moved) {
+        gdouble delta = event->time - priv->last_time;
 
-      hildon_pannable_area_handle_move (area, (GdkEventMotion *) event, &dx, &dy);
+        hildon_pannable_area_handle_move (area, (GdkEventMotion *) event, &dx, &dy);
 
-      /* move all the way to the last position now */
-      if (priv->motion_event_scroll_timeout) {
-        g_source_remove (priv->motion_event_scroll_timeout);
-        hildon_pannable_area_motion_event_scroll_timeout (HILDON_PANNABLE_AREA (widget));
-        priv->motion_x = 0;
-        priv->motion_y = 0;
+        /* move all the way to the last position now */
+        if (priv->motion_event_scroll_timeout) {
+          g_source_remove (priv->motion_event_scroll_timeout);
+          hildon_pannable_area_motion_event_scroll_timeout (HILDON_PANNABLE_AREA (widget));
+          priv->motion_x = 0;
+          priv->motion_y = 0;
+        }
+
+        if ((ABS (dx) < 4.0) && (delta >= CURSOR_STOPPED_TIMEOUT))
+          priv->vel_x = 0;
+
+        if ((ABS (dy) < 4.0) && (delta >= CURSOR_STOPPED_TIMEOUT))
+          priv->vel_y = 0;
+      }
+    }
+
+    /* If overshoot has been initiated with a finger down, on release set max speed */
+    if (priv->overshot_dist_y != 0) {
+      priv->overshooting_y = priv->bounce_steps; /* Hack to stop a bounce in the finger down case */
+      priv->vel_y = priv->overshot_dist_y * 0.9;
+    }
+
+    if (priv->overshot_dist_x != 0) {
+      priv->overshooting_x = priv->bounce_steps; /* Hack to stop a bounce in the finger down case */
+      priv->vel_x = priv->overshot_dist_x * 0.9;
+    }
+
+    priv->button_pressed = FALSE;
+
+    /* if widget was moving fast in the panning, increase speed even more */
+    if ((event->time - priv->last_press_time < FAST_CLICK) &&
+        ((ABS (priv->old_vel_x) > priv->vmin) ||
+         (ABS (priv->old_vel_y) > priv->vmin)) &&
+        ((ABS (priv->old_vel_x) > MIN_ACCEL_THRESHOLD) ||
+         (ABS (priv->old_vel_y) > MIN_ACCEL_THRESHOLD)))
+      {
+        gint symbol = 0;
+
+        if (priv->vel_x != 0)
+          symbol = ((priv->vel_x * priv->old_vel_x) > 0) ? 1 : -1;
+
+        priv->vel_x = symbol *
+          (priv->old_vel_x + ((priv->old_vel_x > 0) ? priv->accel_vel_x
+                              : -priv->accel_vel_x));
+
+        symbol = 0;
+
+        if (priv->vel_y != 0)
+          symbol = ((priv->vel_y * priv->old_vel_y) > 0) ? 1 : -1;
+
+        priv->vel_y = symbol *
+          (priv->old_vel_y + ((priv->old_vel_y > 0) ? priv->accel_vel_y
+                              : -priv->accel_vel_y));
+
+        force_fast = FALSE;
       }
 
-      if ((ABS (dx) < 4.0) && (delta >= CURSOR_STOPPED_TIMEOUT))
-        priv->vel_x = 0;
+    if  ((ABS (priv->vel_y) >= priv->vmin) ||
+         (ABS (priv->vel_x) >= priv->vmin)) {
 
-      if ((ABS (dy) < 4.0) && (delta >= CURSOR_STOPPED_TIMEOUT))
-        priv->vel_y = 0;
+      /* we have to move because we are in overshooting position*/
+      if (!priv->moved) {
+        gboolean result_val;
+
+        g_signal_emit (area,
+                       pannable_area_signals[PANNING_STARTED],
+                       0, &result_val);
+      }
+
+      priv->scroll_indicator_alpha = 1.0;
+
+      if (force_fast) {
+        if ((ABS (priv->vel_x) > MAX_SPEED_THRESHOLD) &&
+            (priv->accel_vel_x > MAX_SPEED_THRESHOLD))
+          priv->vel_x = (priv->vel_x > 0) ? priv->accel_vel_x : -priv->accel_vel_x;
+
+        if ((ABS (priv->vel_y) > MAX_SPEED_THRESHOLD) &&
+            (priv->accel_vel_y > MAX_SPEED_THRESHOLD))
+          priv->vel_y = (priv->vel_y > 0) ? priv->accel_vel_y : -priv->accel_vel_y;
+      }
+
+      if (!priv->idle_id)
+        priv->idle_id = gdk_threads_add_timeout_full (G_PRIORITY_HIGH_IDLE + 20,
+                                                      (gint) (1000.0 / (gdouble) priv->sps),
+                                                      (GSourceFunc) hildon_pannable_area_timeout,
+                                                      widget, NULL);
+    } else {
+      if (priv->center_on_child_focus_pending) {
+        hildon_pannable_area_center_on_child_focus (area);
+      }
+
+      if (priv->moved)
+        g_signal_emit (widget, pannable_area_signals[PANNING_FINISHED], 0);
     }
+
+    area->priv->center_on_child_focus_pending = FALSE;
+
+    priv->scroll_indicator_event_interrupt = 0;
+    priv->scroll_delay_counter = priv->scrollbar_fade_delay;
+
+    hildon_pannable_area_launch_fade_timeout (HILDON_PANNABLE_AREA (widget),
+                                              priv->scroll_indicator_alpha);
   }
-
-  /* If overshoot has been initiated with a finger down, on release set max speed */
-  if (priv->overshot_dist_y != 0) {
-    priv->overshooting_y = priv->bounce_steps; /* Hack to stop a bounce in the finger down case */
-    priv->vel_y = priv->overshot_dist_y * 0.9;
-  }
-
-  if (priv->overshot_dist_x != 0) {
-    priv->overshooting_x = priv->bounce_steps; /* Hack to stop a bounce in the finger down case */
-    priv->vel_x = priv->overshot_dist_x * 0.9;
-  }
-
-  priv->button_pressed = FALSE;
-
-  /* if widget was moving fast in the panning, increase speed even more */
-  if ((event->time - priv->last_press_time < FAST_CLICK) &&
-      ((ABS (priv->old_vel_x) > priv->vmin) ||
-       (ABS (priv->old_vel_y) > priv->vmin)) &&
-      ((ABS (priv->old_vel_x) > MIN_ACCEL_THRESHOLD) ||
-       (ABS (priv->old_vel_y) > MIN_ACCEL_THRESHOLD)))
-    {
-      gint symbol = 0;
-
-      if (priv->vel_x != 0)
-        symbol = ((priv->vel_x * priv->old_vel_x) > 0) ? 1 : -1;
-
-      priv->vel_x = symbol *
-        (priv->old_vel_x + ((priv->old_vel_x > 0) ? priv->accel_vel_x
-                            : -priv->accel_vel_x));
-
-      symbol = 0;
-
-      if (priv->vel_y != 0)
-        symbol = ((priv->vel_y * priv->old_vel_y) > 0) ? 1 : -1;
-
-      priv->vel_y = symbol *
-        (priv->old_vel_y + ((priv->old_vel_y > 0) ? priv->accel_vel_y
-                            : -priv->accel_vel_y));
-
-      force_fast = FALSE;
-    }
-
-  if  ((ABS (priv->vel_y) >= priv->vmin) ||
-       (ABS (priv->vel_x) >= priv->vmin)) {
-
-    /* we have to move because we are in overshooting position*/
-    if (!priv->moved) {
-      gboolean result_val;
-
-      g_signal_emit (area,
-                     pannable_area_signals[PANNING_STARTED],
-                     0, &result_val);
-    }
-
-    priv->scroll_indicator_alpha = 1.0;
-
-    if (force_fast) {
-      if ((ABS (priv->vel_x) > MAX_SPEED_THRESHOLD) &&
-          (priv->accel_vel_x > MAX_SPEED_THRESHOLD))
-        priv->vel_x = (priv->vel_x > 0) ? priv->accel_vel_x : -priv->accel_vel_x;
-
-      if ((ABS (priv->vel_y) > MAX_SPEED_THRESHOLD) &&
-          (priv->accel_vel_y > MAX_SPEED_THRESHOLD))
-        priv->vel_y = (priv->vel_y > 0) ? priv->accel_vel_y : -priv->accel_vel_y;
-    }
-
-    if (!priv->idle_id)
-      priv->idle_id = gdk_threads_add_timeout_full (G_PRIORITY_HIGH_IDLE + 20,
-						    (gint) (1000.0 / (gdouble) priv->sps),
-						    (GSourceFunc) hildon_pannable_area_timeout,
-						    widget, NULL);
-  } else {
-    if (priv->center_on_child_focus_pending) {
-      hildon_pannable_area_center_on_child_focus (area);
-    }
-
-    if (priv->moved)
-      g_signal_emit (widget, pannable_area_signals[PANNING_FINISHED], 0);
-  }
-
-  area->priv->center_on_child_focus_pending = FALSE;
-
-  priv->scroll_indicator_event_interrupt = 0;
-  priv->scroll_delay_counter = priv->scrollbar_fade_delay;
-
-  hildon_pannable_area_launch_fade_timeout (HILDON_PANNABLE_AREA (widget),
-                                            priv->scroll_indicator_alpha);
 
   priv->last_time = event->time;
   priv->last_type = 3;
