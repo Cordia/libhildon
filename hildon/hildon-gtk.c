@@ -456,8 +456,23 @@ hildon_gtk_window_enable_zoom_keys              (GtkWindow *window,
  * @window: a #GtkWindow
  * @take: %TRUE to take a screenshot, %FALSE to destroy the existing one.
  *
- * Tells the window manager to take a screenshot of @window, or to
- * destroy the existing one. @window must be mapped.
+ * Tells the window manager to create a screenshot of @window and save
+ * it, or to destroy the existing one. If @take is %TRUE but the
+ * screenshot is already available, the window manager will not create
+ * it again.
+ *
+ * You should only call this method when @window is already mapped.
+ *
+ * In Maemo 5 this screenshot, if existent, will be used by the window
+ * manager in subsequent launches of the application that created
+ * it. The window manager will remove this screenshot automatically
+ * whenever the theme, locale, or the time changes; also when a backup
+ * is restored. If your application changes its appearance between
+ * runs and you want to force the existent screenshot to be removed,
+ * set @take to %FALSE.
+ *
+ * Since: 2.2
+ *
  **/
 void
 hildon_gtk_window_take_screenshot               (GtkWindow *window,
