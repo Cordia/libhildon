@@ -1931,26 +1931,26 @@ synth_crossing (GdkWindow * child,
 		gint x_root, gint y_root,
                 guint32 time, gboolean in)
 {
-  GdkEventCrossing *crossing_event;
+  GdkEvent *event;
   GdkEventType type = in ? GDK_ENTER_NOTIFY : GDK_LEAVE_NOTIFY;
 
   /* Send synthetic enter event */
-  crossing_event = (GdkEventCrossing *) gdk_event_new (type);
-  ((GdkEventAny *) crossing_event)->type = type;
-  ((GdkEventAny *) crossing_event)->window = g_object_ref (child);
-  ((GdkEventAny *) crossing_event)->send_event = FALSE;
-  crossing_event->subwindow = g_object_ref (child);
-  crossing_event->time = time;
-  crossing_event->x = x;
-  crossing_event->y = y;
-  crossing_event->x_root = x_root;
-  crossing_event->y_root = y_root;
-  crossing_event->mode = GDK_CROSSING_NORMAL;
-  crossing_event->detail = GDK_NOTIFY_UNKNOWN;
-  crossing_event->focus = FALSE;
-  crossing_event->state = 0;
-  gdk_event_put ((GdkEvent *) crossing_event);
-  gdk_event_free ((GdkEvent *) crossing_event);
+  event = gdk_event_new (type);
+  event->any.type = type;
+  event->any.window = g_object_ref (child);
+  event->any.send_event = FALSE;
+  event->crossing.subwindow = g_object_ref (child);
+  event->crossing.time = time;
+  event->crossing.x = x;
+  event->crossing.y = y;
+  event->crossing.x_root = x_root;
+  event->crossing.y_root = y_root;
+  event->crossing.mode = GDK_CROSSING_NORMAL;
+  event->crossing.detail = GDK_NOTIFY_UNKNOWN;
+  event->crossing.focus = FALSE;
+  event->crossing.state = 0;
+  gdk_event_put (event);
+  gdk_event_free (event);
 }
 
 static gboolean
@@ -2038,7 +2038,7 @@ hildon_pannable_area_button_press_cb (GtkWidget * widget,
 		    event->y_root, event->time, TRUE);
 
     /* Send synthetic click (button press/release) event */
-    ((GdkEventAny *) event)->window = g_object_ref (priv->child);
+    ((GdkEvent*) event)->any.window = g_object_ref (priv->child);
 
     gdk_event_put ((GdkEvent *) event);
     gdk_event_free ((GdkEvent *) event);
@@ -2701,7 +2701,7 @@ hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
       g_object_unref (((GdkEvent*) event)->any.window);
       event->x = priv->cx + (event->x - priv->ix);
       event->y = priv->cy + (event->y - priv->iy);
-      event->window = g_object_ref (priv->child);
+      ((GdkEvent*) event)->any.window = g_object_ref (priv->child);
       gdk_event_put ((GdkEvent *) event);
       gdk_event_free ((GdkEvent *) event);
     }
@@ -2895,11 +2895,11 @@ hildon_pannable_area_button_release_cb (GtkWidget * widget,
     event->x = -16384;
     event->y = -16384;
     /* Send synthetic button release event */
-    ((GdkEventAny *) event)->window = g_object_ref (priv->child);
+    ((GdkEvent *) event)->any.window = g_object_ref (priv->child);
     gdk_event_put ((GdkEvent *) event);
   } else {
     /* Send synthetic button release event */
-    ((GdkEventAny *) event)->window = g_object_ref (child);
+    ((GdkEvent *) event)->any.window = g_object_ref (child);
     gdk_event_put ((GdkEvent *) event);
     /* Send synthetic leave event */
     synth_crossing (priv->child, x, y, event->x_root,
