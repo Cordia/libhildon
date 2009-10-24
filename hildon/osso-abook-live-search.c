@@ -48,6 +48,8 @@ struct _OssoABookLiveSearchPrivate
         gulong focus_in_event_id;
         gulong focus_out_event_id;
         gulong on_entry_changed_id;
+
+        gchar *prefix;
 };
 
 enum
@@ -63,6 +65,11 @@ osso_abook_live_search_real_show (GtkWidget *widget);
 
 static void
 osso_abook_live_search_real_hide (GtkWidget *widget);
+
+static gboolean
+visible_func (GtkTreeModel *model,
+              GtkTreeIter *iter,
+              gpointer data);
 
 /* Private implementation */
 
@@ -147,8 +154,7 @@ selection_map_update_map_from_selection (OssoABookLiveSearchPrivate *priv)
         for (working = gtk_tree_model_get_iter_first (base_model, &iter);
              working;
              working = gtk_tree_model_iter_next (base_model, &iter)) {
-                if (osso_abook_filter_model_is_row_visible (priv->filter,
-                                                            &iter)) {
+                if (visible_func (base_model, &iter, priv)) {
                                 OssoABookContact *contact;
                                 GtkTreeIter filter_iter;
 
@@ -201,8 +207,7 @@ selection_map_update_selection_from_map (OssoABookLiveSearchPrivate *priv)
         for (working = gtk_tree_model_get_iter_first (base_model, &iter);
              working;
              working = gtk_tree_model_iter_next (base_model, &iter)) {
-                if (osso_abook_filter_model_is_row_visible (priv->filter,
-                                                            &iter)) {
+                if (visible_func (base_model, &iter, priv)) {
                                 OssoABookContact *contact;
                                 GtkTreeIter filter_iter;
                                 gboolean selected;
@@ -255,8 +260,7 @@ on_entry_changed (GtkEntry *entry,
         text = gtk_entry_get_text (GTK_ENTRY (entry));
         len = g_utf8_strlen (text, -1);
 
-        old_prefix = g_strdup
-                (osso_abook_filter_model_get_text (priv->filter));
+        old_prefix = priv->prefix;
 
         if (len < 1) {
                 text = NULL;
@@ -267,7 +271,8 @@ on_entry_changed (GtkEntry *entry,
         }
 
         selection_map_update_map_from_selection (priv);
-        osso_abook_filter_model_set_prefix (priv->filter, text);
+        priv->prefix = g_strdup (text);
+        gtk_tree_model_filter_refilter (priv->filter);
         selection_map_update_selection_from_map (priv);
 
         if (len < 1) {
@@ -599,9 +604,13 @@ osso_abook_live_search_dispose (GObject *object)
         
         if (priv->filter) {
                 selection_map_destroy (priv);
-                osso_abook_filter_model_set_prefix (priv->filter, NULL);
                 g_object_unref (priv->filter);
                 priv->filter = NULL;
+        }
+
+        if (priv->prefix) {
+                g_free (priv->prefix);
+                priv->prefix = NULL;
         }
 
         if (priv->im_context) {
@@ -671,6 +680,7 @@ osso_abook_live_search_init (OssoABookLiveSearch *self)
         gtk_container_set_border_width (GTK_CONTAINER (self), 0);
         
         priv->treeview = NULL;
+        priv->prefix = NULL;
 
         entry_container = gtk_tool_item_new ();
         gtk_tool_item_set_expand (entry_container, TRUE);
@@ -791,6 +801,28 @@ osso_abook_live_search_real_hide (GtkWidget *widget)
         }
 }
 
+static gboolean
+visible_func (GtkTreeModel *model,
+              GtkTreeIter *iter,
+              gpointer data)
+{
+        OssoABookLiveSearchPrivate *priv;
+        gchar *string;
+        gboolean visible = FALSE;
+
+        priv = (OssoABookLiveSearchPrivate *) data;
+
+        if (priv->prefix == NULL)
+                return TRUE;
+
+        gtk_tree_model_get (model, iter, 0, &string, -1);
+        visible = (string != NULL && g_str_has_prefix (string, priv->prefix));
+
+        g_free (string);
+
+        return visible;
+}
+
 /**
  * osso_abook_live_search_set_filter:
  * @livesearch: An #OssoABookLiveSearch widget
@@ -817,6 +849,11 @@ osso_abook_live_search_set_filter (OssoABookLiveSearch  *livesearch,
         if (filter) {
                 priv->filter = g_object_ref (filter);
         }
+
+        gtk_tree_model_filter_set_visible_func (filter,
+                                                visible_func,
+                                                priv,
+                                                NULL);
 
         g_object_notify (G_OBJECT (livesearch), "filter");
 }
