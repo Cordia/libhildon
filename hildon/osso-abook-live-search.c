@@ -82,6 +82,29 @@ grab_treeview_focus (OssoABookLiveSearchPrivate *priv)
         gtk_widget_grab_focus (GTK_WIDGET (priv->treeview));
 }
 
+static guint
+hash_func (gconstpointer key)
+{
+        GtkTreePath *path;
+        gchar *path_str;
+        guint val;
+
+        path = (GtkTreePath *) key;
+        path_str = gtk_tree_path_to_string (path);
+        val = g_str_hash (path_str);
+        g_free (path_str);
+
+        return val;
+}
+
+static gboolean
+key_equal_func (gconstpointer v1,
+                gconstpointer v2)
+{
+        return gtk_tree_path_compare ((GtkTreePath *)v1,
+                                      (GtkTreePath *)v2) == 0;
+}
+
 /**
  * selection_map_create:
  * @priv: The private pimpl
@@ -95,26 +118,21 @@ selection_map_create (OssoABookLiveSearchPrivate *priv)
         gboolean working;
         GtkTreeModel *base_model;
         GtkTreeIter iter;
+        GtkTreePath *path;
 
         g_assert (priv->selection_map == NULL);
 
         base_model = gtk_tree_model_filter_get_model (priv->filter);
 
-        priv->selection_map = g_hash_table_new
-                (g_direct_hash, g_direct_equal);
+        priv->selection_map = g_hash_table_new_full
+                (hash_func, key_equal_func, (GDestroyNotify) gtk_tree_path_free, NULL);
 
         for (working = gtk_tree_model_get_iter_first (base_model, &iter);
              working;
              working = gtk_tree_model_iter_next (base_model, &iter)) {
-                OssoABookContact *contact;
-
-                gtk_tree_model_get (base_model, &iter,
-                                    OSSO_ABOOK_LIST_STORE_COLUMN_CONTACT,
-                                    &contact,
-                                    -1);
+                path = gtk_tree_model_get_path (base_model, &iter);
                 g_hash_table_insert (priv->selection_map,
-                                     contact, GINT_TO_POINTER (FALSE));
-                g_object_unref (contact);
+                                     path, GINT_TO_POINTER (FALSE));
         }
 }
 
@@ -155,33 +173,24 @@ selection_map_update_map_from_selection (OssoABookLiveSearchPrivate *priv)
              working;
              working = gtk_tree_model_iter_next (base_model, &iter)) {
                 if (visible_func (base_model, &iter, priv)) {
-                                OssoABookContact *contact;
+                                GtkTreePath *path;
                                 GtkTreeIter filter_iter;
 
-                                gtk_tree_model_get
-                                        (base_model, &iter,
-                                         OSSO_ABOOK_LIST_STORE_COLUMN_CONTACT,
-                                         &contact,
-                                         -1);
-
+                                path = gtk_tree_model_get_path (base_model, &iter);
                                 gtk_tree_model_filter_convert_child_iter_to_iter
-                                        (GTK_TREE_MODEL_FILTER (priv->filter),
-                                         &filter_iter, &iter);
-
+                                        (priv->filter, &filter_iter, &iter);
                                 if (gtk_tree_selection_iter_is_selected
                                     (selection, &filter_iter)) {
                                         g_hash_table_replace
                                                 (priv->selection_map,
-                                                 contact,
+                                                 path,
                                                  GINT_TO_POINTER (TRUE));
                                 } else {
                                         g_hash_table_replace
                                                 (priv->selection_map,
-                                                 contact,
+                                                 path,
                                                  GINT_TO_POINTER (FALSE));
                                 }
-
-                                g_object_unref (contact);
                         }
         }
 }
@@ -208,23 +217,18 @@ selection_map_update_selection_from_map (OssoABookLiveSearchPrivate *priv)
              working;
              working = gtk_tree_model_iter_next (base_model, &iter)) {
                 if (visible_func (base_model, &iter, priv)) {
-                                OssoABookContact *contact;
+                                GtkTreePath *path;
                                 GtkTreeIter filter_iter;
                                 gboolean selected;
 
-                                gtk_tree_model_get
-                                        (base_model, &iter,
-                                         OSSO_ABOOK_LIST_STORE_COLUMN_CONTACT,
-                                         &contact,
-                                         -1);
-
+                                path = gtk_tree_model_get_path (base_model,
+                                                                &iter);
                                 selected = GPOINTER_TO_INT
                                         (g_hash_table_lookup
-                                         (priv->selection_map, contact));
+                                         (priv->selection_map, path));
 
                                 gtk_tree_model_filter_convert_child_iter_to_iter
-                                        (GTK_TREE_MODEL_FILTER (priv->filter),
-                                         &filter_iter, &iter);
+                                        (priv->filter, &filter_iter, &iter);
 
                                 if (selected) {
                                         gtk_tree_selection_select_iter
@@ -233,8 +237,6 @@ selection_map_update_selection_from_map (OssoABookLiveSearchPrivate *priv)
                                         gtk_tree_selection_unselect_iter
                                                 (selection, &filter_iter);
                                 }
-
-                                g_object_unref (contact);
                         }
         }
 }
