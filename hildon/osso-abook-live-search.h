@@ -10,7 +10,6 @@
 #ifndef _OSSO_ABOOK_LIVE_SEARCH
 #define _OSSO_ABOOK_LIVE_SEARCH
 
-#include "osso-abook-filter-model.h"
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
@@ -66,7 +65,7 @@ osso_abook_live_search_get_text      (OssoABookLiveSearch *livesearch);
 
 void
 osso_abook_live_search_set_filter    (OssoABookLiveSearch *livesearch,
-                                      OssoABookFilterModel *filter);
+                                      GtkTreeModelFilter *filter);
 
 void
 osso_abook_live_search_widget_hook   (OssoABookLiveSearch *livesearch,

@@ -11,7 +11,7 @@
  * @short_description: A widget for manipulating contact filters.
  *
  * This widget provides a user interface for manipulating
- * #OssoABookFilterModel instances.
+ * #GtkTreeModelFilter instances.
  */
 
 #include "config.h"
@@ -31,7 +31,7 @@ typedef struct _OssoABookLiveSearchPrivate OssoABookLiveSearchPrivate;
 
 struct _OssoABookLiveSearchPrivate
 {
-        OssoABookFilterModel *filter;
+        GtkTreeModelFilter *filter;
         
         GtkTreeView *treeview;
         
@@ -643,7 +643,7 @@ osso_abook_live_search_class_init (OssoABookLiveSearchClass *klass)
                                          g_param_spec_object ("filter",
                                                               "Filter",
                                                               "Model filter",
-                                                              OSSO_ABOOK_TYPE_FILTER_MODEL,
+                                                              GTK_TYPE_TREE_MODEL_FILTER,
                                                               G_PARAM_READWRITE |
                                                               G_PARAM_STATIC_NICK |
                                                               G_PARAM_STATIC_NAME |
@@ -828,18 +828,18 @@ visible_func (GtkTreeModel *model,
 /**
  * osso_abook_live_search_set_filter:
  * @livesearch: An #OssoABookLiveSearch widget
- * @filter: a #OssoABookFilterModel, or %NULL
+ * @filter: a #GtkTreeModelFilter, or %NULL
  *
  * Sets the filter for @livesearch.
  */
 void
 osso_abook_live_search_set_filter (OssoABookLiveSearch  *livesearch,
-                                   OssoABookFilterModel *filter)
+                                   GtkTreeModelFilter *filter)
 {
         OssoABookLiveSearchPrivate *priv;
         
         g_return_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (livesearch));
-        g_return_if_fail (filter == NULL || OSSO_ABOOK_IS_FILTER_MODEL (filter));
+        g_return_if_fail (filter == NULL || GTK_IS_TREE_MODEL_FILTER (filter));
         
         priv = GET_PRIVATE (livesearch);
         
