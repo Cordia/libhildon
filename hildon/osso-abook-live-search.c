@@ -91,7 +91,7 @@ selection_map_create (OssoABookLiveSearchPrivate *priv)
 
         g_assert (priv->selection_map == NULL);
 
-        g_object_get (priv->filter, "base-model", &base_model, NULL);
+        base_model = gtk_tree_model_filter_get_model (priv->filter);
 
         priv->selection_map = g_hash_table_new
                 (g_direct_hash, g_direct_equal);
@@ -109,8 +109,6 @@ selection_map_create (OssoABookLiveSearchPrivate *priv)
                                      contact, GINT_TO_POINTER (FALSE));
                 g_object_unref (contact);
         }
-
-        g_object_unref (base_model);
 }
 
 /**
@@ -143,8 +141,7 @@ selection_map_update_map_from_selection (OssoABookLiveSearchPrivate *priv)
         GtkTreeSelection *selection;
         GtkTreeIter iter;
 
-        g_object_get (priv->filter, "base-model", &base_model, NULL);
-
+        base_model = gtk_tree_model_filter_get_model (priv->filter);
         selection = gtk_tree_view_get_selection (priv->treeview);
 
         for (working = gtk_tree_model_get_iter_first (base_model, &iter);
@@ -181,8 +178,6 @@ selection_map_update_map_from_selection (OssoABookLiveSearchPrivate *priv)
                                 g_object_unref (contact);
                         }
         }
-
-        g_object_unref (base_model);
 }
 
 /**
@@ -200,8 +195,7 @@ selection_map_update_selection_from_map (OssoABookLiveSearchPrivate *priv)
         GtkTreeSelection *selection;
         GtkTreeIter iter;
 
-        g_object_get (priv->filter, "base-model", &base_model, NULL);
-
+        base_model = gtk_tree_model_filter_get_model (priv->filter);
         selection = gtk_tree_view_get_selection (priv->treeview);
 
         for (working = gtk_tree_model_get_iter_first (base_model, &iter);
@@ -238,8 +232,6 @@ selection_map_update_selection_from_map (OssoABookLiveSearchPrivate *priv)
                                 g_object_unref (contact);
                         }
         }
-
-        g_object_unref (base_model);
 }
 
 /*
