@@ -83,6 +83,6 @@
 #include                                        "hildon-gtk.h"
 #include                                        "hildon-dialog.h"
 #include                                        "hildon-main.h"
-#include                                        "osso-abook-live-search.h"
+#include                                        "hildon-live-search.h"
 
 #endif

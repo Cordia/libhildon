@@ -7,7 +7,7 @@
  */
 
 /**
- * SECTION:osso-abook-live-search
+ * SECTION:hildon-live-search
  * @short_description: A widget for manipulating contact filters.
  *
  * This widget provides a user interface for manipulating
@@ -15,21 +15,21 @@
  */
 
 #include "config.h"
-#include "osso-abook-live-search.h"
+#include "hildon-live-search.h"
 
 #include <hildon/hildon.h>
 #include <string.h>
 
-G_DEFINE_TYPE (OssoABookLiveSearch, osso_abook_live_search,
+G_DEFINE_TYPE (HildonLiveSearch, hildon_live_search,
                GTK_TYPE_TOOLBAR);
 
 #define GET_PRIVATE(o) \
-        (G_TYPE_INSTANCE_GET_PRIVATE ((o), OSSO_ABOOK_TYPE_LIVE_SEARCH, \
-                                      OssoABookLiveSearchPrivate))
+        (G_TYPE_INSTANCE_GET_PRIVATE ((o), HILDON_TYPE_LIVE_SEARCH, \
+                                      HildonLiveSearchPrivate))
 
-typedef struct _OssoABookLiveSearchPrivate OssoABookLiveSearchPrivate;
+typedef struct _HildonLiveSearchPrivate HildonLiveSearchPrivate;
 
-struct _OssoABookLiveSearchPrivate
+struct _HildonLiveSearchPrivate
 {
         GtkTreeModelFilter *filter;
         
@@ -61,10 +61,10 @@ enum
 };
 
 static void
-osso_abook_live_search_real_show (GtkWidget *widget);
+hildon_live_search_real_show (GtkWidget *widget);
 
 static void
-osso_abook_live_search_real_hide (GtkWidget *widget);
+hildon_live_search_real_hide (GtkWidget *widget);
 
 static gboolean
 visible_func (GtkTreeModel *model,
@@ -74,7 +74,7 @@ visible_func (GtkTreeModel *model,
 /* Private implementation */
 
 static void
-grab_treeview_focus (OssoABookLiveSearchPrivate *priv)
+grab_treeview_focus (HildonLiveSearchPrivate *priv)
 {
         if (GTK_WIDGET_HAS_FOCUS (GTK_WIDGET (priv->treeview)))
                 gtk_im_context_focus_in (priv->im_context);
@@ -113,7 +113,7 @@ key_equal_func (gconstpointer v1,
  * the treeview, when the live search widget is used.
  **/
 static void
-selection_map_create (OssoABookLiveSearchPrivate *priv)
+selection_map_create (HildonLiveSearchPrivate *priv)
 {
         gboolean working;
         GtkTreeModel *base_model;
@@ -143,7 +143,7 @@ selection_map_create (OssoABookLiveSearchPrivate *priv)
  * Destroys resources associated with the selection map.
  **/
 static void
-selection_map_destroy (OssoABookLiveSearchPrivate *priv)
+selection_map_destroy (HildonLiveSearchPrivate *priv)
 {
         if (priv->selection_map != NULL) {
                 g_hash_table_destroy (priv->selection_map);
@@ -159,7 +159,7 @@ selection_map_destroy (OssoABookLiveSearchPrivate *priv)
  * or unselected from treeview to selection map.
  **/
 static void
-selection_map_update_map_from_selection (OssoABookLiveSearchPrivate *priv)
+selection_map_update_map_from_selection (HildonLiveSearchPrivate *priv)
 {
         gboolean working;
         GtkTreeModel *base_model;
@@ -203,7 +203,7 @@ selection_map_update_map_from_selection (OssoABookLiveSearchPrivate *priv)
  * map to treeview.
  **/
 static void
-selection_map_update_selection_from_map (OssoABookLiveSearchPrivate *priv)
+selection_map_update_selection_from_map (HildonLiveSearchPrivate *priv)
 {
         gboolean working;
         GtkTreeModel *base_model;
@@ -251,12 +251,12 @@ static void
 on_entry_changed (GtkEntry *entry,
                   gpointer user_data)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         const char *text;
         glong len;
         char *old_prefix;
 
-        g_return_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (user_data));
+        g_return_if_fail (HILDON_IS_LIVE_SEARCH (user_data));
         priv = GET_PRIVATE (user_data);
         
         text = gtk_entry_get_text (GTK_ENTRY (entry));
@@ -309,21 +309,21 @@ scroll_to_focus (GtkTreeView *treeview)
 }
 
 /**
- * osso_abook_live_search_append_text:
- * @livesearch: An #OssoABookLiveSearch widget
+ * hildon_live_search_append_text:
+ * @livesearch: An #HildonLiveSearch widget
  * @utf8: The text to append. This text is copied internally, and @utf8 can be freed later by the caller.
  *
  * Appends a string to the entry text in the live search widget.
  **/
 void
-osso_abook_live_search_append_text (OssoABookLiveSearch *livesearch,
-                                     const char *utf8)
+hildon_live_search_append_text (HildonLiveSearch *livesearch,
+                                const char *utf8)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         GtkEditable *editable;
         int pos, start, end;
 
-        g_return_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (livesearch));
+        g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         g_return_if_fail (NULL != utf8);
 
         priv = GET_PRIVATE (livesearch);
@@ -351,21 +351,21 @@ osso_abook_live_search_append_text (OssoABookLiveSearch *livesearch,
 }
 
 /**
- * osso_abook_live_search_get_text:
- * @livesearch: An #OssoABookLiveSearch widget
+ * hildon_live_search_get_text:
+ * @livesearch: An #HildonLiveSearch widget
  *
- * Retrieves the text contents of the #OssoABookLiveSearch widget.
+ * Retrieves the text contents of the #HildonLiveSearch widget.
  *
  * Returns: a pointer to the text contents of the widget as a
  * string. This string points to an internal widget buffer and must not
  * be freed, modified or stored.
  **/
 const char *
-osso_abook_live_search_get_text (OssoABookLiveSearch *livesearch)
+hildon_live_search_get_text (HildonLiveSearch *livesearch)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
 
-        g_return_val_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (livesearch), NULL);
+        g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (livesearch), NULL);
 
         priv = GET_PRIVATE (livesearch);
 
@@ -382,12 +382,12 @@ on_im_context_commit (GtkIMContext *imcontext,
                       gchar *utf8,
                       gpointer user_data)
 {
-        OssoABookLiveSearch *live_search;
+        HildonLiveSearch *live_search;
 
-        g_return_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (user_data));
+        g_return_if_fail (HILDON_IS_LIVE_SEARCH (user_data));
 
-        live_search = OSSO_ABOOK_LIVE_SEARCH (user_data);
-        osso_abook_live_search_append_text (live_search, utf8);
+        live_search = HILDON_LIVE_SEARCH (user_data);
+        hildon_live_search_append_text (live_search, utf8);
 }
 
 /*
@@ -397,11 +397,11 @@ on_im_context_commit (GtkIMContext *imcontext,
 static gboolean
 on_key_press_event (GtkWidget *widget,
                     GdkEventKey *key,
-                    OssoABookLiveSearch *live_search)
+                    HildonLiveSearch *live_search)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         
-        g_return_val_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (live_search), FALSE);
+        g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (live_search), FALSE);
         priv = GET_PRIVATE (live_search);
         
         /* Don't intercept control- presses.
@@ -469,11 +469,11 @@ on_key_press_event (GtkWidget *widget,
 static gboolean
 on_key_release_event (GtkWidget *widget,
                       GdkEventKey *key,
-                      OssoABookLiveSearch *live_search)
+                      HildonLiveSearch *live_search)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
 
-        g_return_val_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (live_search), FALSE);
+        g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (live_search), FALSE);
         priv = GET_PRIVATE (live_search);
 
         /* Don't intercept control- presses */
@@ -524,7 +524,7 @@ static void
 on_unmap (GtkWidget *widget,
           gpointer   user_data)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
 
         priv = GET_PRIVATE (user_data);
         
@@ -535,7 +535,7 @@ static void
 on_hook_widget_realize (GtkWidget *hook_widget,
                         gpointer   user_data)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
 
         priv = GET_PRIVATE (user_data);
         gtk_im_context_set_client_window (priv->im_context,
@@ -546,7 +546,7 @@ static void
 on_hook_widget_unrealize (GtkWidget *hook_widget,
                           gpointer   user_data)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
 
         priv = GET_PRIVATE (user_data);
         gtk_im_context_set_client_window (priv->im_context,
@@ -556,13 +556,13 @@ on_hook_widget_unrealize (GtkWidget *hook_widget,
 /* GObject methods */
 
 static void
-osso_abook_live_search_get_property (GObject    *object,
-                                      guint       property_id,
-                                      GValue     *value,
-                                      GParamSpec *pspec)
+hildon_live_search_get_property (GObject    *object,
+                                 guint       property_id,
+                                 GValue     *value,
+                                 GParamSpec *pspec)
 {
-        OssoABookLiveSearch *livesearch = OSSO_ABOOK_LIVE_SEARCH (object);
-        OssoABookLiveSearchPrivate *priv = GET_PRIVATE (livesearch);
+        HildonLiveSearch *livesearch = HILDON_LIVE_SEARCH (object);
+        HildonLiveSearchPrivate *priv = GET_PRIVATE (livesearch);
 
         switch (property_id) {
         case PROP_FILTER:
@@ -574,17 +574,17 @@ osso_abook_live_search_get_property (GObject    *object,
 }
 
 static void
-osso_abook_live_search_set_property (GObject      *object,
-                                      guint         property_id,
-                                      const GValue *value,
-                                      GParamSpec   *pspec)
+hildon_live_search_set_property (GObject      *object,
+                                 guint         property_id,
+                                 const GValue *value,
+                                 GParamSpec   *pspec)
 {
-        OssoABookLiveSearch *livesearch = OSSO_ABOOK_LIVE_SEARCH (object);
+        HildonLiveSearch *livesearch = HILDON_LIVE_SEARCH (object);
 
         switch (property_id) {
         case PROP_FILTER:
-                osso_abook_live_search_set_filter (livesearch,
-                                                    g_value_get_object (value));
+                hildon_live_search_set_filter (livesearch,
+                                               g_value_get_object (value));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -592,9 +592,9 @@ osso_abook_live_search_set_property (GObject      *object,
 }
 
 static void
-osso_abook_live_search_dispose (GObject *object)
+hildon_live_search_dispose (GObject *object)
 {
-        OssoABookLiveSearchPrivate *priv = GET_PRIVATE (object);
+        HildonLiveSearchPrivate *priv = GET_PRIVATE (object);
 
         if (priv->on_entry_changed_id) {
                 g_signal_handler_disconnect (priv->entry,
@@ -602,7 +602,7 @@ osso_abook_live_search_dispose (GObject *object)
                 priv->on_entry_changed_id = 0;
         }
 
-        osso_abook_live_search_widget_unhook (OSSO_ABOOK_LIVE_SEARCH (object));
+        hildon_live_search_widget_unhook (HILDON_LIVE_SEARCH (object));
         
         if (priv->filter) {
                 selection_map_destroy (priv);
@@ -620,23 +620,23 @@ osso_abook_live_search_dispose (GObject *object)
                 priv->im_context = NULL;
         }
         
-        G_OBJECT_CLASS (osso_abook_live_search_parent_class)->dispose (object);
+        G_OBJECT_CLASS (hildon_live_search_parent_class)->dispose (object);
 }
 
 static void
-osso_abook_live_search_class_init (OssoABookLiveSearchClass *klass)
+hildon_live_search_class_init (HildonLiveSearchClass *klass)
 {
         GObjectClass *object_class = G_OBJECT_CLASS (klass);
         GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-        g_type_class_add_private (klass, sizeof (OssoABookLiveSearchPrivate));
+        g_type_class_add_private (klass, sizeof (HildonLiveSearchPrivate));
 
-        object_class->get_property = osso_abook_live_search_get_property;
-        object_class->set_property = osso_abook_live_search_set_property;
-        object_class->dispose = osso_abook_live_search_dispose;
+        object_class->get_property = hildon_live_search_get_property;
+        object_class->set_property = hildon_live_search_set_property;
+        object_class->dispose = hildon_live_search_dispose;
 
-        widget_class->show = osso_abook_live_search_real_show;
-        widget_class->hide = osso_abook_live_search_real_hide;
+        widget_class->show = hildon_live_search_real_show;
+        widget_class->hide = hildon_live_search_real_hide;
 
         g_object_class_install_property (object_class,
                                          PROP_FILTER,
@@ -665,9 +665,9 @@ filter_input_mode (HildonGtkInputMode imode)
 }
 
 static void
-osso_abook_live_search_init (OssoABookLiveSearch *self)
+hildon_live_search_init (HildonLiveSearch *self)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         GtkWidget *close_button_alignment;
         GtkToolItem *close_button_container;
         GtkWidget *close;
@@ -699,7 +699,7 @@ osso_abook_live_search_init (OssoABookLiveSearch *self)
                                          filter_input_mode (imode));
 
         gtk_widget_set_name (GTK_WIDGET (priv->entry),
-                             "OssoABookLiveSearchEntry");
+                             "HildonLiveSearchEntry");
 
         gtk_box_pack_start (GTK_BOX (entry_hbox), priv->entry, TRUE, TRUE,
                             HILDON_MARGIN_DEFAULT);
@@ -755,45 +755,45 @@ osso_abook_live_search_init (OssoABookLiveSearch *self)
 /* Public interface */
 
 /**
- * osso_abook_live_search_new:
+ * hildon_live_search_new:
  *
- * Creates and returns a new #OssoABookLiveSearch widget.
+ * Creates and returns a new #HildonLiveSearch widget.
  *
  * Returns: The newly created live search widget.
  **/
 GtkWidget *
-osso_abook_live_search_new (void)
+hildon_live_search_new (void)
 {
-        return g_object_new (OSSO_ABOOK_TYPE_LIVE_SEARCH, NULL);
+        return g_object_new (HILDON_TYPE_LIVE_SEARCH, NULL);
 }
 
 static void
-osso_abook_live_search_real_show (GtkWidget *widget)
+hildon_live_search_real_show (GtkWidget *widget)
 {
-        OssoABookLiveSearch *livesearch;
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearch *livesearch;
+        HildonLiveSearchPrivate *priv;
 
-        livesearch = OSSO_ABOOK_LIVE_SEARCH (widget);
+        livesearch = HILDON_LIVE_SEARCH (widget);
         priv = GET_PRIVATE (livesearch);
         
-        GTK_WIDGET_CLASS (osso_abook_live_search_parent_class)->show (widget);
+        GTK_WIDGET_CLASS (hildon_live_search_parent_class)->show (widget);
 
         if (priv->treeview != NULL)
                 grab_treeview_focus (priv);
 }
 
 static void
-osso_abook_live_search_real_hide (GtkWidget *widget)
+hildon_live_search_real_hide (GtkWidget *widget)
 {
-        OssoABookLiveSearch *livesearch;
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearch *livesearch;
+        HildonLiveSearchPrivate *priv;
         
-        livesearch = OSSO_ABOOK_LIVE_SEARCH (widget);
+        livesearch = HILDON_LIVE_SEARCH (widget);
         priv = GET_PRIVATE (livesearch);
         
         gtk_editable_delete_text (GTK_EDITABLE (priv->entry), 0, -1);
 
-        GTK_WIDGET_CLASS (osso_abook_live_search_parent_class)->hide (widget);
+        GTK_WIDGET_CLASS (hildon_live_search_parent_class)->hide (widget);
 
         if (priv->treeview != NULL) {
                 if (GTK_WIDGET_MAPPED (priv->treeview))
@@ -808,11 +808,11 @@ visible_func (GtkTreeModel *model,
               GtkTreeIter *iter,
               gpointer data)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         gchar *string;
         gboolean visible = FALSE;
 
-        priv = (OssoABookLiveSearchPrivate *) data;
+        priv = (HildonLiveSearchPrivate *) data;
 
         if (priv->prefix == NULL)
                 return TRUE;
@@ -826,19 +826,19 @@ visible_func (GtkTreeModel *model,
 }
 
 /**
- * osso_abook_live_search_set_filter:
- * @livesearch: An #OssoABookLiveSearch widget
+ * hildon_live_search_set_filter:
+ * @livesearch: An #HildonLiveSearch widget
  * @filter: a #GtkTreeModelFilter, or %NULL
  *
  * Sets the filter for @livesearch.
  */
 void
-osso_abook_live_search_set_filter (OssoABookLiveSearch  *livesearch,
-                                   GtkTreeModelFilter *filter)
+hildon_live_search_set_filter (HildonLiveSearch  *livesearch,
+                               GtkTreeModelFilter *filter)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         
-        g_return_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (livesearch));
+        g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         g_return_if_fail (filter == NULL || GTK_IS_TREE_MODEL_FILTER (filter));
         
         priv = GET_PRIVATE (livesearch);
@@ -865,7 +865,7 @@ on_hook_widget_focus_in_out_event (GtkWidget     *widget,
                                    GdkEventFocus *focus,
                                    gpointer       user_data)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         
         priv = GET_PRIVATE (user_data);
         
@@ -878,24 +878,24 @@ on_hook_widget_focus_in_out_event (GtkWidget     *widget,
 }
 
 /**
- * osso_abook_live_search_widget_hook:
- * @livesearch: An #OssoABookLiveSearch widget
+ * hildon_live_search_widget_hook:
+ * @livesearch: An #HildonLiveSearch widget
  * @hook_widget: A widget on which we listen for key events
  * @kb_focus: The widget which we grab focus on
  *
- * This function must be called after an #OssoABookLiveSearch widget is
+ * This function must be called after an #HildonLiveSearch widget is
  * constructed to set the hook widget and the focus widget for
- * @livesearch. After that, the #OssoABookLiveSearch widget can be
+ * @livesearch. After that, the #HildonLiveSearch widget can be
  * packed into a container and used.
  **/
 void
-osso_abook_live_search_widget_hook (OssoABookLiveSearch *livesearch,
-                                    GtkWidget           *hook_widget,
-                                    GtkTreeView         *kb_focus)
+hildon_live_search_widget_hook (HildonLiveSearch *livesearch,
+                                GtkWidget        *hook_widget,
+                                GtkTreeView      *kb_focus)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         
-        g_return_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (livesearch));
+        g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         priv = GET_PRIVATE (livesearch);
 
         g_return_if_fail (priv->event_widget == NULL);
@@ -938,18 +938,18 @@ osso_abook_live_search_widget_hook (OssoABookLiveSearch *livesearch,
 }
 
 /**
- * osso_abook_live_search_widget_unhook:
- * @livesearch: An #OssoABookLiveSearch widget
+ * hildon_live_search_widget_unhook:
+ * @livesearch: An #HildonLiveSearch widget
  *
  * This function unsets the hook and focus widgets which were set
- * earlier using osso_abook_live_search_widget_hook().
+ * earlier using hildon_live_search_widget_hook().
  **/
 void
-osso_abook_live_search_widget_unhook (OssoABookLiveSearch *livesearch)
+hildon_live_search_widget_unhook (HildonLiveSearch *livesearch)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         
-        g_return_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (livesearch));
+        g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         priv = GET_PRIVATE (livesearch);
         
         if (priv->event_widget == NULL)
@@ -988,20 +988,20 @@ osso_abook_live_search_widget_unhook (OssoABookLiveSearch *livesearch)
 }
 
 /**
- * osso_abook_live_search_save_state:
- * @livesearch: An #OssoABookLiveSearch widget
+ * hildon_live_search_save_state:
+ * @livesearch: An #HildonLiveSearch widget
  * @key_file: The key file to save to
  *
  * Saves the live search text to a #GKeyFile.
  **/
 void
-osso_abook_live_search_save_state (OssoABookLiveSearch *livesearch,
-                                   GKeyFile *key_file)
+hildon_live_search_save_state (HildonLiveSearch *livesearch,
+                               GKeyFile *key_file)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         const char *text;
         
-        g_return_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (livesearch));
+        g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         priv = GET_PRIVATE (livesearch);
         
         text = gtk_entry_get_text (GTK_ENTRY (priv->entry));
@@ -1014,20 +1014,20 @@ osso_abook_live_search_save_state (OssoABookLiveSearch *livesearch,
 }
 
 /**
- * osso_abook_live_search_restore_state:
- * @livesearch: An #OssoABookLiveSearch widget
+ * hildon_live_search_restore_state:
+ * @livesearch: An #HildonLiveSearch widget
  * @key_file: The key file to read from
  *
  * Restores a live search widget's text from a #GKeyFile.
  **/
 void
-osso_abook_live_search_restore_state (OssoABookLiveSearch *livesearch,
-                                      GKeyFile *key_file)
+hildon_live_search_restore_state (HildonLiveSearch *livesearch,
+                                  GKeyFile *key_file)
 {
-        OssoABookLiveSearchPrivate *priv;
+        HildonLiveSearchPrivate *priv;
         char *text;
         
-        g_return_if_fail (OSSO_ABOOK_IS_LIVE_SEARCH (livesearch));
+        g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         priv = GET_PRIVATE (livesearch);
 
         text = g_key_file_get_string (key_file,
