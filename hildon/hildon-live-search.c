@@ -185,14 +185,14 @@ selection_map_update_map_from_selection (HildonLiveSearchPrivate *priv)
              working;
              working = gtk_tree_model_iter_next (base_model, &iter)) {
                 if (visible_func (base_model, &iter, priv)) {
-                                GtkTreePath *path;
-                                GtkTreeIter filter_iter;
+                                GtkTreePath *path, *filter_path;
 
                                 path = gtk_tree_model_get_path (base_model, &iter);
-                                gtk_tree_model_filter_convert_child_iter_to_iter
-                                        (priv->filter, &filter_iter, &iter);
-                                if (gtk_tree_selection_iter_is_selected
-                                    (selection, &filter_iter)) {
+                                filter_path = gtk_tree_model_filter_convert_child_path_to_path
+                                        (priv->filter, path);
+
+                                if (gtk_tree_selection_path_is_selected
+                                    (selection, filter_path)) {
                                         g_hash_table_replace
                                                 (priv->selection_map,
                                                  path,
@@ -203,6 +203,7 @@ selection_map_update_map_from_selection (HildonLiveSearchPrivate *priv)
                                                  path,
                                                  GINT_TO_POINTER (FALSE));
                                 }
+                                gtk_tree_path_free (filter_path);
                         }
         }
 }
@@ -230,7 +231,7 @@ selection_map_update_selection_from_map (HildonLiveSearchPrivate *priv)
              working = gtk_tree_model_iter_next (base_model, &iter)) {
                 if (visible_func (base_model, &iter, priv)) {
                                 GtkTreePath *path;
-                                GtkTreeIter filter_iter;
+                                GtkTreePath *filter_path;
                                 gboolean selected;
 
                                 path = gtk_tree_model_get_path (base_model,
@@ -239,16 +240,17 @@ selection_map_update_selection_from_map (HildonLiveSearchPrivate *priv)
                                         (g_hash_table_lookup
                                          (priv->selection_map, path));
 
-                                gtk_tree_model_filter_convert_child_iter_to_iter
-                                        (priv->filter, &filter_iter, &iter);
+                                filter_path = gtk_tree_model_filter_convert_child_path_to_path
+                                        (priv->filter, path);
 
                                 if (selected) {
-                                        gtk_tree_selection_select_iter
-                                                (selection, &filter_iter);
+                                        gtk_tree_selection_select_path
+                                                (selection, filter_path);
                                 } else {
-                                        gtk_tree_selection_unselect_iter
-                                                (selection, &filter_iter);
+                                        gtk_tree_selection_unselect_path
+                                                (selection, filter_path);
                                 }
+                                gtk_tree_path_free (filter_path);
                         }
         }
 }
