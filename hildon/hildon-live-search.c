@@ -1,7 +1,7 @@
 /*
  * This file is a part of hildon
  *
- * Copyright (C) 2007-2009 Nokia Corporation. All rights reserved.
+ * Copyright (C) 2007-2009 Nokia Corporation.
  *
  * Based in OssoABookLiveSearch, OSSO Address Book.
  * Author: Joergen Scheibengruber <jorgen.scheibengruber@nokia.com>
