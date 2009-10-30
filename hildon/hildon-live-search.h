@@ -101,6 +101,18 @@ hildon_live_search_restore_state (HildonLiveSearch *livesearch,
 void
 hildon_live_search_set_text_column (HildonLiveSearch *livesearch,
                                     gint text_column);
+
+typedef gboolean (* HildonLiveSearchFilterFunc) (GtkTreeModel *model,
+                                                 GtkTreeIter  *iter,
+                                                 gchar        *text,
+                                                 gpointer      data);
+
+void
+hildon_live_search_set_filter_func (HildonLiveSearch *livesearch,
+                                    HildonLiveSearchFilterFunc func,
+                                    gpointer data,
+                                    GDestroyNotify destroy);
+
 G_END_DECLS
 
 #endif /* _HILDON_LIVE_SEARCH */

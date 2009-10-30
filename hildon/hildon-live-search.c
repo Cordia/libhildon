@@ -63,6 +63,10 @@ struct _HildonLiveSearchPrivate
 
         gchar *prefix;
         gint text_column;
+
+        HildonLiveSearchFilterFunc visible_func;
+        gpointer visible_data;
+        GDestroyNotify visible_destroy;
 };
 
 enum
@@ -638,6 +642,11 @@ hildon_live_search_dispose (GObject *object)
                 priv->prefix = NULL;
         }
 
+        if (priv->visible_destroy) {
+                priv->visible_destroy (priv->visible_data);
+                priv->visible_destroy = NULL;
+        }
+
         if (priv->im_context) {
                 g_object_unref (priv->im_context);
                 priv->im_context = NULL;
@@ -716,6 +725,10 @@ hildon_live_search_init (HildonLiveSearch *self)
         
         priv->treeview = NULL;
         priv->prefix = NULL;
+
+        priv->visible_func = NULL;
+        priv->visible_data = NULL;
+        priv->visible_destroy = NULL;
 
         entry_container = gtk_tool_item_new ();
         gtk_tool_item_set_expand (entry_container, TRUE);
@@ -847,13 +860,21 @@ visible_func (GtkTreeModel *model,
 
         priv = (HildonLiveSearchPrivate *) data;
 
-        if (priv->prefix == NULL || priv->text_column == -1)
+        if (priv->prefix == NULL)
                 return TRUE;
 
-        gtk_tree_model_get (model, iter, priv->text_column, &string, -1);
-        visible = (string != NULL && g_str_has_prefix (string, priv->prefix));
+        if (priv->visible_func == NULL && priv->text_column == -1)
+                return TRUE;
 
-        g_free (string);
+        if (priv->visible_func) {
+                visible = (priv->visible_func) (model, iter,
+                                                priv->prefix,
+                                                priv->visible_data);
+        } else {
+                gtk_tree_model_get (model, iter, priv->text_column, &string, -1);
+                visible = (string != NULL && g_str_has_prefix (string, priv->prefix));
+                g_free (string);
+        }
 
         return visible;
 }
@@ -904,7 +925,8 @@ hildon_live_search_set_filter (HildonLiveSearch  *livesearch,
  * This column must be of type %G_TYPE_STRING.
  *
  * Calling this method will filtering of the model,
- * so use with moderation.
+ * so use with moderation. You can only use either #HildonLiveSearch:text-column
+ * or hildon_live_search_set_filter_func().
  **/
 void
 hildon_live_search_set_text_column (HildonLiveSearch *livesearch,
@@ -916,6 +938,7 @@ hildon_live_search_set_text_column (HildonLiveSearch *livesearch,
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         g_return_if_fail (-1 <= text_column);
         g_return_if_fail (text_column < gtk_tree_model_get_n_columns (gtk_tree_model_filter_get_model (priv->filter)));
+        g_return_if_fail (priv->visible_func == NULL);
 
         if (priv->text_column == text_column)
                 return;
@@ -1104,3 +1127,43 @@ hildon_live_search_restore_state (HildonLiveSearch *livesearch,
         }
 }
 
+/**
+ * hildon_live_search_set_filter_func:
+ * @livesearch: a HildonLiveSearch
+ * @func: a #HildonLiveSearchFilterFunc
+ * @data: user data to pass to @func or %NULL
+ * @destroy: Destroy notifier of @data, or %NULL.
+ *
+ * Sets the function to use to determine whether a row should be
+ * visible when the text in the entry changes. Internally,
+ * gtk_tree_model_filter_set_visible_func() is used.
+ *
+ * If this function is unset, #HildonLiveSearch:text-column is used.
+ **/
+void
+hildon_live_search_set_filter_func (HildonLiveSearch *livesearch,
+                                    HildonLiveSearchFilterFunc func,
+                                    gpointer data,
+                                    GDestroyNotify destroy)
+{
+        HildonLiveSearchPrivate *priv;
+
+        g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
+        g_return_if_fail (func != NULL);
+
+        priv = GET_PRIVATE (livesearch);
+
+        g_return_if_fail (priv->visible_func == NULL);
+        g_return_if_fail (priv->text_column == -1);
+
+        if (priv->visible_func) {
+                GDestroyNotify d = priv->visible_destroy;
+
+                priv->visible_destroy = NULL;
+                d (priv->visible_data);
+        }
+
+        priv->visible_func = func;
+        priv->visible_data = data;
+        priv->visible_destroy = destroy;
+}
