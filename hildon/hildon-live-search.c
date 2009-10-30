@@ -62,6 +62,7 @@ struct _HildonLiveSearchPrivate
         gulong on_entry_changed_id;
 
         gchar *prefix;
+        gint text_column;
 };
 
 enum
@@ -69,7 +70,8 @@ enum
   PROP_0,
 
   PROP_FILTER,
-  PROP_WIDGET
+  PROP_WIDGET,
+  PROP_TEXT_COLUMN
 };
 
 static void
@@ -582,6 +584,9 @@ hildon_live_search_get_property (GObject    *object,
         case PROP_FILTER:
                 g_value_set_object (value, priv->filter);
                 break;
+        case PROP_TEXT_COLUMN:
+                g_value_set_int (value, priv->text_column);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
         }
@@ -599,6 +604,10 @@ hildon_live_search_set_property (GObject      *object,
         case PROP_FILTER:
                 hildon_live_search_set_filter (livesearch,
                                                g_value_get_object (value));
+                break;
+        case PROP_TEXT_COLUMN:
+                hildon_live_search_set_text_column (livesearch,
+                                                    g_value_get_int (value));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -662,6 +671,16 @@ hildon_live_search_class_init (HildonLiveSearchClass *klass)
                                                               G_PARAM_STATIC_NICK |
                                                               G_PARAM_STATIC_NAME |
                                                               G_PARAM_STATIC_BLURB));
+
+        g_object_class_install_property (object_class,
+                                         PROP_TEXT_COLUMN,
+                                         g_param_spec_int ("text-column",
+                                                           "Text column",
+                                                           "Column to use to filter "
+                                                           "elements from the #GtkTreeModelFilter",
+                                                           -1, G_MAXINT, -1,
+                                                           G_PARAM_READWRITE |
+                                                           G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -828,10 +847,10 @@ visible_func (GtkTreeModel *model,
 
         priv = (HildonLiveSearchPrivate *) data;
 
-        if (priv->prefix == NULL)
+        if (priv->prefix == NULL || priv->text_column == -1)
                 return TRUE;
 
-        gtk_tree_model_get (model, iter, 0, &string, -1);
+        gtk_tree_model_get (model, iter, priv->text_column, &string, -1);
         visible = (string != NULL && g_str_has_prefix (string, priv->prefix));
 
         g_free (string);
@@ -866,12 +885,44 @@ hildon_live_search_set_filter (HildonLiveSearch  *livesearch,
                 priv->filter = g_object_ref (filter);
         }
 
+        priv->text_column = -1;
+
         gtk_tree_model_filter_set_visible_func (filter,
                                                 visible_func,
                                                 priv,
                                                 NULL);
 
         g_object_notify (G_OBJECT (livesearch), "filter");
+}
+
+/**
+ * hildon_live_search_set_text_column:
+ * @livesearch: 
+ * @text_column: 
+ *
+ * Sets the column to be used by the default filtering method.
+ * This column must be of type %G_TYPE_STRING.
+ *
+ * Calling this method will filtering of the model,
+ * so use with moderation.
+ **/
+void
+hildon_live_search_set_text_column (HildonLiveSearch *livesearch,
+                                    gint text_column)
+{
+        HildonLiveSearchPrivate *priv;
+        priv = GET_PRIVATE (livesearch);
+
+        g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
+        g_return_if_fail (-1 <= text_column);
+        g_return_if_fail (text_column < gtk_tree_model_get_n_columns (gtk_tree_model_filter_get_model (priv->filter)));
+
+        if (priv->text_column == text_column)
+                return;
+
+        priv->text_column = text_column;
+
+        gtk_tree_model_filter_refilter (priv->filter);
 }
 
 static gboolean

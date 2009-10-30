@@ -98,6 +98,9 @@ void
 hildon_live_search_restore_state (HildonLiveSearch *livesearch,
                                   GKeyFile         *key_file);
 
+void
+hildon_live_search_set_text_column (HildonLiveSearch *livesearch,
+                                    gint text_column);
 G_END_DECLS
 
 #endif /* _HILDON_LIVE_SEARCH */
