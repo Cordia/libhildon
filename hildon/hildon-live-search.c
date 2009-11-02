@@ -965,6 +965,22 @@ on_hook_widget_focus_in_out_event (GtkWidget     *widget,
         return FALSE;
 }
 
+static void
+hook_widget_weak_notify (gpointer user_data,
+                         GObject *hook_widget)
+{
+        HildonLiveSearchPrivate *priv;
+
+        priv = GET_PRIVATE (user_data);
+
+        priv->key_press_id = 0;
+        priv->key_release_id = 0;
+        priv->realize_id = 0;
+        priv->unrealize_id = 0;
+        priv->focus_in_event_id = 0;
+        priv->focus_out_event_id = 0;
+}
+
 /**
  * hildon_live_search_widget_hook:
  * @livesearch: An #HildonLiveSearch widget
@@ -1023,6 +1039,9 @@ hildon_live_search_widget_hook (HildonLiveSearch *livesearch,
                 g_signal_connect (G_OBJECT (hook_widget), "focus-out-event",
                                   G_CALLBACK (on_hook_widget_focus_in_out_event),
                                   livesearch);
+
+        g_object_weak_ref (G_OBJECT (hook_widget),
+                           (GWeakNotify) hook_widget_weak_notify, livesearch);
 }
 
 /**
