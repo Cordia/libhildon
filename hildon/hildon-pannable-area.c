@@ -2026,22 +2026,25 @@ hildon_pannable_area_button_press_cb (GtkWidget * widget,
     g_object_add_weak_pointer ((GObject *) priv->child,
 			       (gpointer) & priv->child);
 
-    event = (GdkEventButton *) gdk_event_copy ((GdkEvent *) event);
-    /* remove the reference we added with the copy */
-    g_object_unref (((GdkEvent*) event)->any.window);
-    event->x = x;
-    event->y = y;
-    priv->cx = x;
-    priv->cy = y;
-
     synth_crossing (priv->child, x, y, event->x_root,
 		    event->y_root, event->time, TRUE);
 
-    /* Send synthetic click (button press/release) event */
-    ((GdkEvent*) event)->any.window = g_object_ref (priv->child);
+    /* Avoid reinjecting the event to create an infinite loop */
+    if (priv->event_window == ((GdkEvent*) event)->any.window) {
+      event = (GdkEventButton *) gdk_event_copy ((GdkEvent *) event);
+      /* remove the reference we added with the copy */
+      g_object_unref (((GdkEvent*) event)->any.window);
+      event->x = x;
+      event->y = y;
+      priv->cx = x;
+      priv->cy = y;
 
-    gdk_event_put ((GdkEvent *) event);
-    gdk_event_free ((GdkEvent *) event);
+      /* Send synthetic click (button press/release) event */
+      ((GdkEvent*) event)->any.window = g_object_ref (priv->child);
+
+      gdk_event_put ((GdkEvent *) event);
+      gdk_event_free ((GdkEvent *) event);
+    }
   } else
     priv->child = NULL;
 
