@@ -44,13 +44,13 @@ typedef struct _HildonLiveSearchPrivate HildonLiveSearchPrivate;
 struct _HildonLiveSearchPrivate
 {
         GtkTreeModelFilter *filter;
-        
+
         GtkTreeView *treeview;
-        
+
         GtkWidget *entry;
         GtkWidget *event_widget;
         GHashTable *selection_map;
-        
+
         GtkIMContext *im_context;
 
         gulong key_press_id;
@@ -278,7 +278,7 @@ on_entry_changed (GtkEntry *entry,
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (user_data));
         priv = GET_PRIVATE (user_data);
-        
+
         text = gtk_entry_get_text (GTK_ENTRY (entry));
         len = g_utf8_strlen (text, -1);
 
@@ -315,7 +315,7 @@ adj_changed_cb (GtkAdjustment *adj, gpointer user_data)
                 gtk_tree_view_scroll_to_cell (view, path, NULL, FALSE, 0.0f, 0.0f);
         }
         gtk_tree_path_free (path);
-        
+
         g_object_disconnect (adj, "any_signal::changed", G_CALLBACK (adj_changed_cb), user_data, NULL);
 }
 
@@ -323,7 +323,7 @@ static void
 scroll_to_focus (GtkTreeView *treeview)
 {
         GtkAdjustment *adj;
-        
+
         adj = gtk_tree_view_get_vadjustment (treeview);
         g_signal_connect (G_OBJECT (adj), "changed", G_CALLBACK (adj_changed_cb), treeview);
 }
@@ -350,7 +350,7 @@ hildon_live_search_append_text (HildonLiveSearch *livesearch,
 
         if (FALSE == GTK_WIDGET_MAPPED (livesearch)) {
                 gunichar c;
-        
+
                 c = g_utf8_get_char_validated (utf8, strlen (utf8));
                 if (g_unichar_isgraph (c))
                         gtk_widget_show (GTK_WIDGET (livesearch));
@@ -359,7 +359,7 @@ hildon_live_search_append_text (HildonLiveSearch *livesearch,
         }
 
         editable = GTK_EDITABLE (priv->entry);
-        
+
         if (gtk_editable_get_selection_bounds (editable,
                                                &start,
                                                &end)) {
@@ -420,10 +420,10 @@ on_key_press_event (GtkWidget *widget,
                     HildonLiveSearch *live_search)
 {
         HildonLiveSearchPrivate *priv;
-        
+
         g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (live_search), FALSE);
         priv = GET_PRIVATE (live_search);
-        
+
         /* Don't intercept control- presses.
          * Make an exception for ctr-space because it is the keyboard layout
          * switch */
@@ -433,7 +433,7 @@ on_key_press_event (GtkWidget *widget,
 
         /* Are we already visible, yet ? */
         if (GTK_WIDGET_MAPPED (live_search)) {
-                
+
                 /* Eat escape */
                 if (key->keyval == GDK_Escape)
                         return TRUE;
@@ -444,7 +444,7 @@ on_key_press_event (GtkWidget *widget,
                 if (key->keyval == GDK_BackSpace) {
                         GtkEditable *editable;
                         int start, end;
-                        
+
                         editable = GTK_EDITABLE (priv->entry);
                         if (gtk_editable_get_selection_bounds (editable,
                                                                &start,
@@ -468,7 +468,7 @@ on_key_press_event (GtkWidget *widget,
                 /* Run the key through the IM context filter to get the value */
                 return gtk_im_context_filter_keypress (priv->im_context, key);
         }
-        
+
         /* If the treeview is not visible, then don't bother */
         if (FALSE == GTK_WIDGET_MAPPED (priv->treeview))
                 return FALSE;
@@ -520,7 +520,7 @@ on_key_release_event (GtkWidget *widget,
                 /* Does the entry have focus? */
                 if (GTK_WIDGET_HAS_FOCUS (priv->entry))
                         return FALSE;
-                
+
                 /* Run the key through the IM context filter to get the
                    value */
                 return gtk_im_context_filter_keypress (priv->im_context, key);
@@ -529,7 +529,7 @@ on_key_release_event (GtkWidget *widget,
         /* If the treeview is not visible, then don't bother */
         if (FALSE == GTK_WIDGET_MAPPED (priv->treeview))
                 return FALSE;
-        
+
         /* Don't pop up fkb or the preview bar */
         if (key->keyval == GDK_Return ||
             key->keyval == GDK_space)
@@ -547,7 +547,7 @@ on_unmap (GtkWidget *widget,
         HildonLiveSearchPrivate *priv;
 
         priv = GET_PRIVATE (user_data);
-        
+
         hildon_gtk_im_context_hide (priv->im_context);
 }
 
@@ -630,7 +630,7 @@ hildon_live_search_dispose (GObject *object)
         }
 
         hildon_live_search_widget_unhook (HILDON_LIVE_SEARCH (object));
-        
+
         if (priv->filter) {
                 selection_map_destroy (priv);
                 g_object_unref (priv->filter);
@@ -651,7 +651,7 @@ hildon_live_search_dispose (GObject *object)
                 g_object_unref (priv->im_context);
                 priv->im_context = NULL;
         }
-        
+
         G_OBJECT_CLASS (hildon_live_search_parent_class)->dispose (object);
 }
 
@@ -722,7 +722,7 @@ hildon_live_search_init (HildonLiveSearch *self)
 
         gtk_toolbar_set_style (GTK_TOOLBAR (self), GTK_TOOLBAR_ICONS);
         gtk_container_set_border_width (GTK_CONTAINER (self), 0);
-        
+
         priv->treeview = NULL;
         priv->prefix = NULL;
 
@@ -821,7 +821,7 @@ hildon_live_search_real_show (GtkWidget *widget)
 
         livesearch = HILDON_LIVE_SEARCH (widget);
         priv = GET_PRIVATE (livesearch);
-        
+
         GTK_WIDGET_CLASS (hildon_live_search_parent_class)->show (widget);
 
         if (priv->treeview != NULL)
@@ -833,10 +833,10 @@ hildon_live_search_real_hide (GtkWidget *widget)
 {
         HildonLiveSearch *livesearch;
         HildonLiveSearchPrivate *priv;
-        
+
         livesearch = HILDON_LIVE_SEARCH (widget);
         priv = GET_PRIVATE (livesearch);
-        
+
         gtk_editable_delete_text (GTK_EDITABLE (priv->entry), 0, -1);
 
         GTK_WIDGET_CLASS (hildon_live_search_parent_class)->hide (widget);
@@ -891,12 +891,12 @@ hildon_live_search_set_filter (HildonLiveSearch  *livesearch,
                                GtkTreeModelFilter *filter)
 {
         HildonLiveSearchPrivate *priv;
-        
+
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         g_return_if_fail (filter == NULL || GTK_IS_TREE_MODEL_FILTER (filter));
-        
+
         priv = GET_PRIVATE (livesearch);
-        
+
         if (priv->filter) {
                 g_object_unref (priv->filter);
                 priv->filter = NULL;
@@ -954,9 +954,9 @@ on_hook_widget_focus_in_out_event (GtkWidget     *widget,
                                    gpointer       user_data)
 {
         HildonLiveSearchPrivate *priv;
-        
+
         priv = GET_PRIVATE (user_data);
-        
+
         if (focus->in) {
                 gtk_im_context_focus_in (priv->im_context);
         } else {
@@ -998,12 +998,12 @@ hildon_live_search_widget_hook (HildonLiveSearch *livesearch,
                                 GtkTreeView      *kb_focus)
 {
         HildonLiveSearchPrivate *priv;
-        
+
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         priv = GET_PRIVATE (livesearch);
 
         g_return_if_fail (priv->event_widget == NULL);
-        
+
         priv->event_widget = hook_widget;
 
         priv->treeview = kb_focus;
@@ -1055,13 +1055,13 @@ void
 hildon_live_search_widget_unhook (HildonLiveSearch *livesearch)
 {
         HildonLiveSearchPrivate *priv;
-        
+
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         priv = GET_PRIVATE (livesearch);
-        
+
         if (priv->event_widget == NULL)
                 return;
-        
+
         if (priv->key_press_id) {
                 g_signal_handler_disconnect (priv->event_widget, priv->key_press_id);
                 priv->key_press_id = 0;
@@ -1107,10 +1107,10 @@ hildon_live_search_save_state (HildonLiveSearch *livesearch,
 {
         HildonLiveSearchPrivate *priv;
         const char *text;
-        
+
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         priv = GET_PRIVATE (livesearch);
-        
+
         text = gtk_entry_get_text (GTK_ENTRY (priv->entry));
         if (text) {
                 g_key_file_set_string (key_file,
@@ -1133,7 +1133,7 @@ hildon_live_search_restore_state (HildonLiveSearch *livesearch,
 {
         HildonLiveSearchPrivate *priv;
         char *text;
-        
+
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         priv = GET_PRIVATE (livesearch);
 
