@@ -918,15 +918,18 @@ hildon_live_search_set_filter (HildonLiveSearch  *livesearch,
 
 /**
  * hildon_live_search_set_text_column:
- * @livesearch: 
- * @text_column: 
+ * @livesearch: a #HildonLiveSearch
+ * @text_column: the column in the model of @livesearch to get the strings
+ * to filter from
  *
  * Sets the column to be used by the default filtering method.
  * This column must be of type %G_TYPE_STRING.
  *
- * Calling this method will filtering of the model,
- * so use with moderation. You can only use either #HildonLiveSearch:text-column
- * or hildon_live_search_set_filter_func().
+ * Calling this method will filtering of the model, so use with
+ * moderation. Note that you can only use either
+ * #HildonLiveSearch:text-column or
+ * hildon_live_search_set_filter_func().
+ *
  **/
 void
 hildon_live_search_set_text_column (HildonLiveSearch *livesearch,
