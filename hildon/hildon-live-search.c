@@ -60,6 +60,7 @@ struct _HildonLiveSearchPrivate
         gulong focus_in_event_id;
         gulong focus_out_event_id;
         gulong on_entry_changed_id;
+        gulong destroy_id;
 
         gchar *prefix;
         gint text_column;
@@ -969,8 +970,8 @@ on_hook_widget_focus_in_out_event (GtkWidget     *widget,
 }
 
 static void
-hook_widget_weak_notify (gpointer user_data,
-                         GObject *hook_widget)
+on_hook_widget_destroy (GtkObject *object,
+                        gpointer user_data)
 {
         HildonLiveSearchPrivate *priv;
 
@@ -982,6 +983,7 @@ hook_widget_weak_notify (gpointer user_data,
         priv->unrealize_id = 0;
         priv->focus_in_event_id = 0;
         priv->focus_out_event_id = 0;
+        priv->destroy_id = 0;
 }
 
 /**
@@ -1043,8 +1045,10 @@ hildon_live_search_widget_hook (HildonLiveSearch *livesearch,
                                   G_CALLBACK (on_hook_widget_focus_in_out_event),
                                   livesearch);
 
-        g_object_weak_ref (G_OBJECT (hook_widget),
-                           (GWeakNotify) hook_widget_weak_notify, livesearch);
+        priv->destroy_id =
+                g_signal_connect (G_OBJECT (hook_widget), "destroy",
+                                  G_CALLBACK (on_hook_widget_destroy),
+                                  livesearch);
 }
 
 /**
@@ -1088,6 +1092,11 @@ hildon_live_search_widget_unhook (HildonLiveSearch *livesearch)
         if (priv->focus_out_event_id) {
                 g_signal_handler_disconnect (priv->event_widget, priv->focus_out_event_id);
                 priv->focus_out_event_id = 0;
+        }
+
+        if (priv->destroy_id) {
+                g_signal_handler_disconnect (priv->event_widget, priv->destroy_id);
+                priv->destroy_id = 0;
         }
 
         gtk_im_context_focus_out (priv->im_context);
