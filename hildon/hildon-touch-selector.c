@@ -954,6 +954,117 @@ hildon_touch_selector_column_init (HildonTouchSelectorColumn *column)
   column->priv->realize_handler = 0;
   column->priv->initial_path = NULL;
 }
+static gunichar
+stripped_char (gunichar ch)
+{
+        gunichar *decomp, retval;
+        GUnicodeType utype;
+        gsize dlen;
+
+        utype = g_unichar_type (ch);
+
+        switch (utype) {
+        case G_UNICODE_CONTROL:
+        case G_UNICODE_FORMAT:
+        case G_UNICODE_UNASSIGNED:
+        case G_UNICODE_COMBINING_MARK:
+                /* Ignore those */
+                return 0;
+               break;
+        default:
+                /* Convert to lowercase, fall through */
+                ch = g_unichar_tolower (ch);
+        case G_UNICODE_LOWERCASE_LETTER:
+                if ((decomp = g_unicode_canonical_decomposition (ch, &dlen))) {
+                        retval = decomp[0];
+                        g_free (decomp);
+                        return retval;
+                }
+                break;
+        }
+
+        return 0;
+}
+
+static gchar *
+e_util_unicode_get_utf8 (const gchar *text, gunichar *out)
+{
+        *out = g_utf8_get_char (text);
+        return (*out == (gunichar)-1) ? NULL : g_utf8_next_char (text);
+}
+
+static const gchar *
+e_util_utf8_strstrcasedecomp (const gchar *haystack, const gchar *needle)
+{
+        gunichar *nuni;
+        gunichar unival;
+        gint nlen;
+        const gchar *o, *p;
+
+        if (haystack == NULL) return NULL;
+        if (needle == NULL) return NULL;
+        if (strlen (needle) == 0) return haystack;
+        if (strlen (haystack) == 0) return NULL;
+
+        nuni = g_alloca (sizeof (gunichar) * strlen (needle));
+
+        nlen = 0;
+        for (p = e_util_unicode_get_utf8 (needle, &unival); p && unival; p = e_util_unicode_get_utf8 (p, &unival)) {
+                gunichar sc;
+                sc = stripped_char (unival);
+                if (sc) {
+                       nuni[nlen++] = sc;
+                }
+        }
+        /* NULL means there was illegal utf-8 sequence */
+        if (!p) return NULL;
+        /* If everything is correct, we have decomposed, lowercase, stripped needle */
+        if (nlen < 1) return haystack;
+
+        o = haystack;
+        for (p = e_util_unicode_get_utf8 (o, &unival); p && unival; p = e_util_unicode_get_utf8 (p, &unival)) {
+                gunichar sc;
+                sc = stripped_char (unival);
+                if (sc) {
+                        /* We have valid stripped gchar */
+                        if (sc == nuni[0]) {
+                                const gchar *q = p;
+                                gint npos = 1;
+                                while (npos < nlen) {
+                                        q = e_util_unicode_get_utf8 (q, &unival);
+                                        if (!q || !unival) return NULL;
+                                        sc = stripped_char (unival);
+                                        if ((!sc) || (sc != nuni[npos])) break;
+                                        npos++;
+                                }
+                                if (npos == nlen) {
+                                        return o;
+                                }
+                        }
+                }
+                o = p;
+        }
+
+        return NULL;
+}
+
+static gboolean
+visible_func (GtkTreeModel *model,
+	      GtkTreeIter *iter,
+	      gchar *prefix,
+	      gpointer userdata)
+{
+	gboolean visible;
+	gchar *string;
+	gint text_column = GPOINTER_TO_INT (userdata);
+
+	gtk_tree_model_get (model, iter, text_column, &string, -1);
+	visible = (string != NULL &&
+		   e_util_utf8_strstrcasedecomp (string, prefix) != NULL);
+	g_free (string);
+
+	return visible;
+}
 
 /**
  * hildon_touch_selector_column_set_text_column:
@@ -975,8 +1086,13 @@ hildon_touch_selector_column_set_text_column (HildonTouchSelectorColumn *column,
   g_return_if_fail (text_column >= -1);
 
   column->priv->text_column = text_column;
-  hildon_live_search_set_text_column (HILDON_LIVE_SEARCH (column->priv->livesearch),
-				      text_column);
+
+  if (column->priv->livesearch) {
+    hildon_live_search_set_filter_func (HILDON_LIVE_SEARCH (column->priv->livesearch),
+					visible_func,
+					GINT_TO_POINTER (text_column),
+					NULL);
+  }
 
   g_object_notify (G_OBJECT (column), "text-column");
 }
