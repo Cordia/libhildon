@@ -377,6 +377,8 @@ on_hide_cb (GtkWidget *widget,
         g_signal_handlers_block_by_func (priv->entry, on_entry_changed, live_search);
         gtk_entry_set_text (GTK_ENTRY (priv->entry), "");
         g_signal_handlers_unblock_by_func (priv->entry, on_entry_changed, live_search);
+
+        gtk_widget_grab_focus (GTK_WIDGET (priv->treeview));
 }
 
 /* GObject methods */
