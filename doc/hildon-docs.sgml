@@ -127,6 +127,7 @@
       <xi:include href="xml/hildon-touch-selector-entry.xml"/>
       <xi:include href="xml/hildon-date-selector.xml"/>
       <xi:include href="xml/hildon-time-selector.xml"/>
+      <xi:include href="xml/hildon-live-search.xml"/>
     </chapter>
 
     <chapter>

@@ -24,6 +24,14 @@
  *
  * This widget provides a user interface for manipulating
  * #GtkTreeModelFilter instances.
+ *
+ * To set a #GtkTreeFilterModel to filter with, use
+ * hildon_live_search_set_filter(). By default, #HildonLiveSearch
+ * filters on the child model of the filter model set using a case
+ * sensitive prefix comparison on the model's column specified by
+ * #HildonLiveSearch:text-column. If a more refined filtering is
+ * necessary, you can use hildon_live_search_set_filter_func() to
+ * specify a #HildonLiveSearchFilterFunc to use.
  */
 
 #include "config.h"
@@ -282,20 +290,21 @@ on_entry_changed (GtkEntry *entry,
 /**
  * hildon_live_search_append_text:
  * @livesearch: An #HildonLiveSearch widget
- * @utf8: The text to append. This text is copied internally, and @utf8 can be freed later by the caller.
+ * @text: Text to append. @text is copied internally
+ * can be freed later by the caller.
  *
  * Appends a string to the entry text in the live search widget.
  **/
 void
 hildon_live_search_append_text (HildonLiveSearch *livesearch,
-                                const char *utf8)
+                                const char *text)
 {
         HildonLiveSearchPrivate *priv;
         GtkEditable *editable;
         int pos, start, end;
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
-        g_return_if_fail (NULL != utf8);
+        g_return_if_fail (NULL != text);
 
         priv = GET_PRIVATE (livesearch);
 
@@ -307,7 +316,7 @@ hildon_live_search_append_text (HildonLiveSearch *livesearch,
                 gtk_editable_delete_text (editable, start, end);
         }
         pos = gtk_editable_get_position (editable);
-        gtk_editable_insert_text (editable, utf8, strlen (utf8), &pos);
+        gtk_editable_insert_text (editable, text, strlen (text), &pos);
         gtk_editable_set_position (editable, pos + 1);
 }
 
@@ -318,8 +327,7 @@ hildon_live_search_append_text (HildonLiveSearch *livesearch,
  * Retrieves the text contents of the #HildonLiveSearch widget.
  *
  * Returns: a pointer to the text contents of the widget as a
- * string. This string points to an internal widget buffer and must not
- * be freed, modified or stored.
+ * string. This string should not be freed, modified, or stored.
  **/
 const char *
 hildon_live_search_get_text (HildonLiveSearch *livesearch)
@@ -463,6 +471,13 @@ hildon_live_search_class_init (HildonLiveSearchClass *klass)
         object_class->set_property = hildon_live_search_set_property;
         object_class->dispose = hildon_live_search_dispose;
 
+	/**
+	 * HildonLiveSearch:filter:
+	 *
+	 * The #GtkTreeModelFilter to filter.
+	 *
+	 * Since: 2.2.4
+	 */
         g_object_class_install_property (object_class,
                                          PROP_FILTER,
                                          g_param_spec_object ("filter",
@@ -474,6 +489,14 @@ hildon_live_search_class_init (HildonLiveSearchClass *klass)
                                                               G_PARAM_STATIC_NAME |
                                                               G_PARAM_STATIC_BLURB));
 
+	/**
+	 * HildonLiveSearch:text-column:
+	 *
+	 * A %G_TYPE_STRING column in the child model of #HildonLiveSearch:filter,
+	 * to be used by the default filtering function of #HildonLiveSearch.
+	 *
+	 * Since: 2.2.4
+	 */
         g_object_class_install_property (object_class,
                                          PROP_TEXT_COLUMN,
                                          g_param_spec_int ("text-column",
@@ -585,6 +608,9 @@ hildon_live_search_init (HildonLiveSearch *self)
  * Creates and returns a new #HildonLiveSearch widget.
  *
  * Returns: The newly created live search widget.
+ *
+ * Since: 2.2.4
+ *
  **/
 GtkWidget *
 hildon_live_search_new (void)
@@ -627,7 +653,9 @@ visible_func (GtkTreeModel *model,
  * @livesearch: An #HildonLiveSearch widget
  * @filter: a #GtkTreeModelFilter, or %NULL
  *
- * Sets the filter for @livesearch.
+ * Sets a filter for @livesearch.
+ *
+ * Since: 2.2.4
  */
 void
 hildon_live_search_set_filter (HildonLiveSearch  *livesearch,
@@ -668,10 +696,12 @@ hildon_live_search_set_filter (HildonLiveSearch  *livesearch,
  * Sets the column to be used by the default filtering method.
  * This column must be of type %G_TYPE_STRING.
  *
- * Calling this method will filtering of the model, so use with
- * moderation. Note that you can only use either
+ * Calling this method will trigger filtering of the model, so use
+ * with moderation. Note that you can only use either
  * #HildonLiveSearch:text-column or
  * hildon_live_search_set_filter_func().
+ *
+ * Since: 2.2.4
  *
  **/
 void
@@ -711,10 +741,12 @@ on_hook_widget_destroy (GtkObject *object,
  * @hook_widget: A widget on which we listen for key events
  * @kb_focus: The widget which we grab focus on
  *
- * This function must be called after an #HildonLiveSearch widget is
+ * This function must be called after a #HildonLiveSearch widget is
  * constructed to set the hook widget and the focus widget for
  * @livesearch. After that, the #HildonLiveSearch widget can be
  * packed into a container and used.
+ *
+ * Since: 2.2.4
  **/
 void
 hildon_live_search_widget_hook (HildonLiveSearch *livesearch,
@@ -747,6 +779,8 @@ hildon_live_search_widget_hook (HildonLiveSearch *livesearch,
  *
  * This function unsets the hook and focus widgets which were set
  * earlier using hildon_live_search_widget_hook().
+ *
+ * Since: 2.2.4
  **/
 void
 hildon_live_search_widget_unhook (HildonLiveSearch *livesearch)
@@ -804,6 +838,9 @@ hildon_live_search_save_state (HildonLiveSearch *livesearch,
  * @key_file: The key file to read from
  *
  * Restores a live search widget's text from a #GKeyFile.
+ *
+ * Since: 2.2.4
+ *
  **/
 void
 hildon_live_search_restore_state (HildonLiveSearch *livesearch,
@@ -836,6 +873,9 @@ hildon_live_search_restore_state (HildonLiveSearch *livesearch,
  * gtk_tree_model_filter_set_visible_func() is used.
  *
  * If this function is unset, #HildonLiveSearch:text-column is used.
+ *
+ * Since 2.2.4
+ *
  **/
 void
 hildon_live_search_set_filter_func (HildonLiveSearch *livesearch,

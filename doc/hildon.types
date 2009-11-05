@@ -43,6 +43,7 @@
 #include                                        <hildon/hildon-text-view.h>
 #include                                        <hildon/hildon-button.h>
 #include                                        <hildon/hildon-touch-selector.h>
+#include                                        <hildon/hildon-live-search.h>
 #include                                        <hildon/hildon-touch-selector-column.h>
 #include                                        <hildon/hildon-touch-selector-entry.h>
 #include                                        <hildon/hildon-time-selector.h>
@@ -93,6 +94,7 @@ hildon_entry_get_type
 hildon_text_view_get_type
 hildon_button_get_type
 hildon_touch_selector_get_type
+hildon_live_search_get_type
 hildon_touch_selector_column_get_type
 hildon_touch_selector_entry_get_type
 hildon_time_selector_get_type

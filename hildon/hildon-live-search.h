@@ -50,12 +50,6 @@ G_BEGIN_DECLS
 typedef struct _HildonLiveSearch HildonLiveSearch;
 typedef struct _HildonLiveSearchClass HildonLiveSearchClass;
 
-/**
- * HildonLiveSearch:
- *
- * All the fields of this structure are private to the object's
- * implementation and should never be accessed directly.
- */
 struct _HildonLiveSearch {
         /*< private >*/
         GtkToolbar parent;
@@ -73,7 +67,7 @@ hildon_live_search_new           (void);
 
 void
 hildon_live_search_append_text   (HildonLiveSearch *livesearch,
-                                  const char           *utf8);
+                                  const char           *text);
 
 const char *
 hildon_live_search_get_text      (HildonLiveSearch *livesearch);
@@ -84,7 +78,7 @@ hildon_live_search_set_filter    (HildonLiveSearch   *livesearch,
 
 void
 hildon_live_search_widget_hook   (HildonLiveSearch *livesearch,
-                                  GtkWidget        *widget,
+                                  GtkWidget        *hook_widget,
                                   GtkTreeView      *kb_focus);
 
 void
@@ -102,6 +96,20 @@ void
 hildon_live_search_set_text_column (HildonLiveSearch *livesearch,
                                     gint text_column);
 
+
+
+/**
+ * HildonLiveSearchFilterFunc:
+ * @model: The child model of the #GtkTreeModelFilter in the live search widget
+ * @iter: a #GtkTreeIter pointing to the row in @model whose visibility is to be determined
+ * @text: the text in the @HildonLiveSearch entry that is triggering this method call
+ * @data: user data given to hildon_live_search_set_filter_func()
+ *
+ * Returns: whether the row indicated by @iter should be visible
+ *
+ * Since: 2.2.4
+ *
+ **/
 typedef gboolean (* HildonLiveSearchFilterFunc) (GtkTreeModel *model,
                                                  GtkTreeIter  *iter,
                                                  gchar        *text,

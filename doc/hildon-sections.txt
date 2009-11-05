@@ -952,6 +952,33 @@ HILDON_FONT_SELECTION_DIALOG_GET_CLASS
 HildonFontSelectionDialogClass
 </SECTION>
 
+
+<SECTION>
+<FILE>hildon-live-search</FILE>
+<TITLE>HildonLiveSearch</TITLE>
+HildonLiveSearch
+HildonLiveSearchFilterFunc
+hildon_live_search_append_text
+hildon_live_search_get_text
+hildon_live_search_new
+hildon_live_search_restore_state
+hildon_live_search_save_state
+hildon_live_search_set_filter
+hildon_live_search_set_filter_func
+hildon_live_search_set_text_column
+hildon_live_search_widget_hook
+hildon_live_search_widget_unhook
+<SUBSECTION Standard>
+HildonLiveSearchClass
+hildon_live_search_get_type
+HILDON_IS_LIVE_SEARCH
+HILDON_IS_LIVE_SEARCH_CLASS
+HILDON_LIVE_SEARCH
+HILDON_LIVE_SEARCH_CLASS
+HILDON_LIVE_SEARCH_GET_CLASS
+HILDON_TYPE_LIVE_SEARCH
+</SECTION>
+
 <SECTION>
 <FILE>hildon-touch-selector</FILE>
 HildonTouchSelectorPrintFunc
