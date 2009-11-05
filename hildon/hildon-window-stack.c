@@ -297,9 +297,6 @@ _hildon_window_stack_do_push                    (HildonWindowStack     *stack,
 
         /* Make the window part of the same group as its parent */
         if (parent) {
-            if (GTK_WIDGET_REALIZED (win)) {
-                gtk_widget_unrealize (GTK_WIDGET (win));
-            }
             gtk_window_set_transient_for (GTK_WINDOW (win), GTK_WINDOW (parent));
         } else {
             gtk_window_group_add_window (stack->priv->group, GTK_WINDOW (win));
@@ -514,16 +511,53 @@ hildon_window_stack_pop_and_push_list           (HildonWindowStack  *stack,
                                                  GList             **popped_windows,
                                                  GList              *list)
 {
+    gint i, topmost_index;
+    GList *l;
     GList *popped = NULL;
+    GList *pushed = NULL;
+    HildonStackableWindowPrivate *priv;
 
     g_return_if_fail (HILDON_IS_WINDOW_STACK (stack));
     g_return_if_fail (nwindows > 0);
     g_return_if_fail (g_list_length (stack->priv->list) >= nwindows);
 
-    /* Pop windows then push new windows */
-    hildon_window_stack_pop (stack, nwindows, &popped);
-    hildon_window_stack_push_list (stack, list);
+    /* Store the index of the topmost window */
+    priv = HILDON_STACKABLE_WINDOW_GET_PRIVATE (hildon_window_stack_peek (stack));
+    topmost_index = priv->stack_position;
 
+    /* Pop windows */
+    for (i = 0; i < nwindows; i++) {
+        GtkWidget *win = _hildon_window_stack_do_pop (stack);
+        popped = g_list_prepend (popped, win);
+    }
+
+    /* Push windows */
+    for (l = list; l != NULL; l = g_list_next (l)) {
+        HildonStackableWindow *win = HILDON_STACKABLE_WINDOW (l->data);
+        if (win) {
+            _hildon_window_stack_do_push (stack, win);
+            pushed = g_list_prepend (pushed, win);
+        } else {
+            g_warning ("Trying to stack a non-stackable window!");
+        }
+    }
+
+    if (pushed != NULL) {
+        /* The WM will be confused if the old topmost window and the new
+         * one have the same index, so make sure that they're different */
+        priv = HILDON_STACKABLE_WINDOW_GET_PRIVATE (hildon_window_stack_peek (stack));
+        if (priv->stack_position == topmost_index) {
+            priv->stack_position++;
+        }
+    }
+
+    /* Show windows in reverse order (topmost first) */
+    g_list_foreach (pushed, (GFunc) gtk_widget_show, NULL);
+
+    /* Hide windows in reverse order (topmost last) */
+    g_list_foreach (popped, (GFunc) gtk_widget_hide, NULL);
+
+    g_list_free (pushed);
     if (popped_windows) {
         *popped_windows = popped;
     } else {
