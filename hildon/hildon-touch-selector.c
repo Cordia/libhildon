@@ -177,6 +177,7 @@
 #include "hildon-pannable-area.h"
 #include "hildon-touch-selector.h"
 #include "hildon-touch-selector-private.h"
+#include "hildon-live-search.h"
 
 #define HILDON_TOUCH_SELECTOR_GET_PRIVATE(obj)                          \
   (G_TYPE_INSTANCE_GET_PRIVATE ((obj), HILDON_TYPE_TOUCH_SELECTOR, HildonTouchSelectorPrivate))
@@ -201,6 +202,7 @@ struct _HildonTouchSelectorColumnPrivate
   gulong realize_handler;
   GtkTreePath *initial_path;
   GtkTreeModel *filter;
+  GtkWidget *livesearch;
 
   GtkWidget *panarea;           /* the pannable widget */
   GtkTreeRowReference *last_activated;
@@ -211,6 +213,7 @@ struct _HildonTouchSelectorPrivate
   GSList *columns;              /* the selection columns */
   GtkWidget *hbox;              /* the container for the selector's columns */
   gboolean initial_scroll;      /* whether initial fancy scrolling to selection */
+  gboolean has_live_search;
 
   gboolean changed_blocked;
 
@@ -225,7 +228,8 @@ enum
 {
   PROP_HAS_MULTIPLE_SELECTION = 1,
   PROP_INITIAL_SCROLL,
-  PROP_HILDON_UI_MODE
+  PROP_HILDON_UI_MODE,
+  PROP_LIVE_SEARCH
 };
 
 enum
@@ -443,6 +447,16 @@ hildon_touch_selector_class_init (HildonTouchSelectorClass * class)
                                                       HILDON_TYPE_UI_MODE,
                                                       HILDON_UI_MODE_EDIT,
                                                       G_PARAM_READWRITE));
+
+  g_object_class_install_property (G_OBJECT_CLASS (gobject_class),
+                                   PROP_LIVE_SEARCH,
+                                   g_param_spec_boolean ("live-search",
+                                                         "Live search",
+                                                         "Whether the widget should have built-in"
+                                                         "live search capabilities",
+                                                         TRUE,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+
   /* style properties */
   /* We need to ensure fremantle mode for the treeview in order to work
      properly. This is not about the appearance, this is about behaviour */
@@ -491,6 +505,9 @@ hildon_touch_selector_set_property (GObject *object, guint prop_id,
   case PROP_HILDON_UI_MODE:
     hildon_touch_selector_set_hildon_ui_mode (HILDON_TOUCH_SELECTOR (object),
                                               g_value_get_enum (value));
+    break;
+  case PROP_LIVE_SEARCH:
+    priv->has_live_search = g_value_get_boolean (value);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -815,7 +832,9 @@ _create_new_column (HildonTouchSelector * selector,
 #endif /* MAEMO_GTK */
 
   gtk_tree_view_set_enable_search (tv, FALSE);
-  GTK_WIDGET_UNSET_FLAGS (GTK_WIDGET (tv), GTK_CAN_FOCUS);
+  if (!selector->priv->has_live_search) {
+    GTK_WIDGET_UNSET_FLAGS (GTK_WIDGET (tv), GTK_CAN_FOCUS);
+  }
 
   filter = gtk_tree_model_filter_new (model, NULL);
   gtk_tree_view_set_model (tv, filter);
@@ -839,6 +858,7 @@ _create_new_column (HildonTouchSelector * selector,
   new_column->priv->tree_view = tv;
   new_column->priv->panarea = panarea;
   new_column->priv->filter = filter;
+  new_column->priv->livesearch = NULL;
 
   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv));
   gtk_tree_selection_set_mode (selection, GTK_SELECTION_BROWSE);
@@ -955,6 +975,8 @@ hildon_touch_selector_column_set_text_column (HildonTouchSelectorColumn *column,
   g_return_if_fail (text_column >= -1);
 
   column->priv->text_column = text_column;
+  hildon_live_search_set_text_column (HILDON_LIVE_SEARCH (column->priv->livesearch),
+				      text_column);
 
   g_object_notify (G_OBJECT (column), "text-column");
 }
@@ -1372,11 +1394,29 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
 
     selector->priv->columns = g_slist_append (selector->priv->columns,
                                               new_column);
-    gtk_box_pack_start (GTK_BOX (selector->priv->hbox),
+
+    GtkWidget *vbox = gtk_vbox_new (FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox),
                         new_column->priv->panarea,
+                        TRUE, TRUE, 0);
+    gtk_box_pack_start (GTK_BOX (selector->priv->hbox),
+                        vbox,
                         TRUE, TRUE, 6);
 
-    gtk_widget_show_all (new_column->priv->panarea);
+    if (selector->priv->has_live_search) {
+      new_column->priv->livesearch = hildon_live_search_new ();
+      hildon_live_search_set_filter (HILDON_LIVE_SEARCH (new_column->priv->livesearch),
+				     GTK_TREE_MODEL_FILTER (new_column->priv->filter));
+      gtk_box_pack_start (GTK_BOX (vbox),
+			  new_column->priv->livesearch,
+			  FALSE, FALSE, 0);
+      hildon_live_search_widget_hook (HILDON_LIVE_SEARCH (new_column->priv->livesearch),
+				      GTK_WIDGET (vbox),
+				      new_column->priv->tree_view);
+      gtk_widget_hide (GTK_WIDGET (new_column->priv->livesearch));
+    }
+
+    gtk_widget_show_all (vbox);
 
     if (selector->priv->initial_scroll) {
       _hildon_touch_selector_center_on_selected_items (selector, new_column);
