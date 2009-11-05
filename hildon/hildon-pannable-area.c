@@ -2693,11 +2693,11 @@ hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
       }
     }
 
-
     priv->last_time = event->time;
     priv->last_type = 2;
+  }
 
-    if (priv->child) {
+  if (priv->child && priv->event_window == ((GdkEvent*) event)->any.window) {
       /* Send motion notify to child */
       event = (GdkEventMotion *) gdk_event_copy ((GdkEvent *) event);
       /* remove the reference we added with the copy */
@@ -2707,8 +2707,6 @@ hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
       ((GdkEvent*) event)->any.window = g_object_ref (priv->child);
       gdk_event_put ((GdkEvent *) event);
       gdk_event_free ((GdkEvent *) event);
-    }
-
   }
 
   gdk_window_get_pointer (widget->window, NULL, NULL, 0);
