@@ -1232,7 +1232,6 @@ void
 hildon_touch_selector_append_text (HildonTouchSelector * selector,
                                    const gchar * text)
 {
-  GtkTreeIter iter;
   GtkTreeModel *model;
 
   g_return_if_fail (HILDON_IS_TOUCH_SELECTOR (selector));
@@ -1242,8 +1241,8 @@ hildon_touch_selector_append_text (HildonTouchSelector * selector,
 
   g_return_if_fail (GTK_IS_LIST_STORE (model));
 
-  gtk_list_store_append (GTK_LIST_STORE (model), &iter);
-  gtk_list_store_set (GTK_LIST_STORE (model), &iter, 0, text, -1);
+  gtk_list_store_insert_with_values (GTK_LIST_STORE (model),
+                                     NULL, G_MAXINT, 0, text, -1);
 }
 
 /**
@@ -1260,7 +1259,6 @@ void
 hildon_touch_selector_prepend_text (HildonTouchSelector * selector,
                                     const gchar * text)
 {
-  GtkTreeIter iter;
   GtkTreeModel *model;
 
   g_return_if_fail (HILDON_IS_TOUCH_SELECTOR (selector));
@@ -1270,8 +1268,8 @@ hildon_touch_selector_prepend_text (HildonTouchSelector * selector,
 
   g_return_if_fail (GTK_IS_LIST_STORE (model));
 
-  gtk_list_store_prepend (GTK_LIST_STORE (model), &iter);
-  gtk_list_store_set (GTK_LIST_STORE (model), &iter, 0, text, -1);
+  gtk_list_store_insert_with_values (GTK_LIST_STORE (model),
+                                     NULL, 0, 0, text, -1);
 }
 
 /**
@@ -1289,7 +1287,6 @@ void
 hildon_touch_selector_insert_text (HildonTouchSelector * selector,
                                    gint position, const gchar * text)
 {
-  GtkTreeIter iter;
   GtkTreeModel *model;
 
   g_return_if_fail (HILDON_IS_TOUCH_SELECTOR (selector));
@@ -1300,8 +1297,8 @@ hildon_touch_selector_insert_text (HildonTouchSelector * selector,
 
   g_return_if_fail (GTK_IS_LIST_STORE (model));
 
-  gtk_list_store_insert (GTK_LIST_STORE (model), &iter, position);
-  gtk_list_store_set (GTK_LIST_STORE (model), &iter, 0, text, -1);
+  gtk_list_store_insert_with_values (GTK_LIST_STORE (model),
+                                     NULL, position, 0, text, -1);
 }
 
 /**
