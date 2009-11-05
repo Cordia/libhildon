@@ -2140,12 +2140,13 @@ _hildon_touch_selector_set_model (HildonTouchSelector * selector,
     g_object_unref (current_column->priv->model);
   }
 
-  if (current_column->priv->filter) {
-    g_object_unref (current_column->priv->filter);
-    current_column->priv->filter = gtk_tree_model_filter_new (model, NULL);
-  }
   current_column->priv->model = g_object_ref (model);
 
+  if (current_column->priv->filter) {
+    g_object_unref (current_column->priv->filter);
+  }
+
+  current_column->priv->filter = gtk_tree_model_filter_new (model, NULL);
   gtk_tree_view_set_model (current_column->priv->tree_view,
                            current_column->priv->filter);
 
