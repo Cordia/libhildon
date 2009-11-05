@@ -104,6 +104,21 @@ hildon_touch_selector_entry_set_property (GObject *object, guint property_id,
   }
 }
 
+static GObject *
+hildon_touch_selector_entry_constructor (GType type,
+					 guint n_construct_properties,
+					 GObjectConstructParam *construct_properties)
+{
+  GObject *object;
+
+  object = G_OBJECT_CLASS (hildon_touch_selector_entry_parent_class)->constructor
+    (type, n_construct_properties, construct_properties);
+
+  g_object_set (object, "live-search", FALSE, NULL);
+
+  return object;
+}
+
 static void
 hildon_touch_selector_entry_class_init (HildonTouchSelectorEntryClass *klass)
 {
@@ -115,6 +130,7 @@ hildon_touch_selector_entry_class_init (HildonTouchSelectorEntryClass *klass)
   selector_class->set_model = hildon_touch_selector_entry_set_model;
   selector_class->has_multiple_selection = hildon_touch_selector_entry_has_multiple_selection;
 
+  object_class->constructor  = hildon_touch_selector_entry_constructor;
   object_class->get_property = hildon_touch_selector_entry_get_property;
   object_class->set_property = hildon_touch_selector_entry_set_property;
 

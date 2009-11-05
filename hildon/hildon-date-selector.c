@@ -350,6 +350,8 @@ hildon_date_selector_constructor (GType                  type,
 
   selector = HILDON_DATE_SELECTOR (object);
 
+  g_object_set (object, "live-search", FALSE, NULL);
+
   hildon_date_selector_construct_ui (selector);
 
   g_signal_connect (object, "changed", G_CALLBACK (_manage_selector_change_cb), NULL);

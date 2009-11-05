@@ -210,6 +210,8 @@ hildon_time_selector_constructor (GType type,
 
   selector = HILDON_TIME_SELECTOR (object);
 
+  g_object_set (object, "live-search", FALSE, NULL);
+
   selector->priv->hours_model = _create_hours_model (selector);
 
   column = hildon_touch_selector_append_text_column (HILDON_TOUCH_SELECTOR (selector),
