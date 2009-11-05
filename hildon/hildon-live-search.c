@@ -343,6 +343,7 @@ on_key_press_event (GtkWidget *widget,
                     HildonLiveSearch *live_search)
 {
         HildonLiveSearchPrivate *priv;
+        GdkEvent *new_event;
 
         g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (live_search), FALSE);
         priv = GET_PRIVATE (live_search);
@@ -351,6 +352,10 @@ on_key_press_event (GtkWidget *widget,
          * This assume that the toolbar is a child of the hook widget. */
         gtk_widget_realize (priv->entry);
         gtk_widget_grab_focus (priv->entry);
+
+        new_event = gdk_event_copy ((GdkEvent *)event);
+        gtk_widget_event (priv->entry, new_event);
+        gdk_event_free (new_event);
 
         return FALSE;
 }
