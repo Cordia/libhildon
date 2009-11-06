@@ -20,7 +20,8 @@
 
 /**
  * SECTION:hildon-live-search
- * @short_description: A widget for manipulating contact filters.
+ * @short_description: A widget for manipulating #GtkTreeModelFilter
+ * instances.
  *
  * This widget provides a user interface for manipulating
  * #GtkTreeModelFilter instances.
