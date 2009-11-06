@@ -154,7 +154,6 @@ struct _HildonPannableAreaPrivate {
   gboolean center_on_child_focus;
   gboolean center_on_child_focus_pending;
 
-  gboolean selection_mode;
   gboolean selection_movement;
 };
 
@@ -754,7 +753,6 @@ hildon_pannable_area_init (HildonPannableArea * area)
   priv->x_offset = 0;
   priv->y_offset = 0;
   priv->center_on_child_focus_pending = FALSE;
-  priv->selection_mode = TRUE;
   priv->selection_movement = FALSE;
 
   gtk_style_lookup_color (GTK_WIDGET (area)->style,
@@ -1963,15 +1961,10 @@ hildon_pannable_area_button_press_cb (GtkWidget * widget,
   HildonPannableArea *area = HILDON_PANNABLE_AREA (widget);
   HildonPannableAreaPrivate *priv = area->priv;
 
-
-  if ((priv->selection_mode) &&
+  priv->selection_movement =
+      (event->state & GDK_SHIFT_MASK) &&
       (event->time == priv->last_time) &&
-      (priv->last_type == 1) &&
-      (event->type == GDK_2BUTTON_PRESS)) {
-    priv->selection_movement = TRUE;
-  } else {
-    priv->selection_movement = FALSE;
-  }
+      (priv->last_type == 1);
 
   if ((!priv->enabled) || (event->button != 1) || (priv->selection_movement) ||
       ((event->time == priv->last_time) &&
@@ -2663,7 +2656,7 @@ hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
     return TRUE;
   }
 
-  if ((!priv->selection_mode) || (!priv->selection_movement)) {
+  if (!priv->selection_movement) {
 
     if (priv->last_type == 1) {
       priv->first_drag = TRUE;
@@ -2753,7 +2746,7 @@ hildon_pannable_area_button_release_cb (GtkWidget * widget,
        || (!priv->button_pressed) || (!priv->enabled) || (event->button != 1))
     return TRUE;
 
-  if ((!priv->selection_mode) || (!priv->selection_movement)) {
+  if (!priv->selection_movement) {
     /* if last event was a motion-notify we have to check the movement
        and launch the animation */
     if (priv->last_type == 2) {
