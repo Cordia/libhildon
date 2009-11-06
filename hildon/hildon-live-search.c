@@ -377,16 +377,7 @@ on_hide_cb (GtkWidget *widget,
 
         priv = GET_PRIVATE (live_search);
 
-        if (priv->prefix) {
-                g_free (priv->prefix);
-                priv->prefix = NULL;
-        }
-
-        /* Remove text from the entry without calling on_entry_changed */
-        g_signal_handlers_block_by_func (priv->entry, on_entry_changed, live_search);
         gtk_entry_set_text (GTK_ENTRY (priv->entry), "");
-        g_signal_handlers_unblock_by_func (priv->entry, on_entry_changed, live_search);
-
         gtk_widget_grab_focus (GTK_WIDGET (priv->treeview));
 }
 
