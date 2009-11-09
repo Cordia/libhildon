@@ -1770,26 +1770,27 @@ hildon_touch_selector_get_active                (HildonTouchSelector *selector,
   GtkTreeSelection *selection = NULL;
   HildonTouchSelectorColumn *current_column = NULL;
   HildonTouchSelectorSelectionMode mode;
-  GtkTreeModel *model;
   GtkTreeIter iter;
-  GtkTreePath *path;
-  gint index;
+  gint index = -1;
 
   g_return_val_if_fail (HILDON_IS_TOUCH_SELECTOR (selector), -1);
   g_return_val_if_fail (column < hildon_touch_selector_get_num_columns (selector), -1);
+
   mode = hildon_touch_selector_get_column_selection_mode (selector);
   g_return_val_if_fail (mode == HILDON_TOUCH_SELECTOR_SELECTION_MODE_SINGLE, -1);
 
   current_column = g_slist_nth_data (selector->priv->columns, column);
 
   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (current_column->priv->tree_view));
-  g_return_val_if_fail (gtk_tree_selection_get_selected (selection, NULL, &iter), -1);
 
-  model = gtk_tree_view_get_model (GTK_TREE_VIEW (current_column->priv->tree_view));
-  path = gtk_tree_model_get_path (model, &iter);
-  index = (gtk_tree_path_get_indices (path))[0];
-
-  gtk_tree_path_free (path);
+  if (gtk_tree_selection_get_selected (selection, NULL, &iter)) {
+    GtkTreePath *path;
+    GtkTreeModel *model;
+    model = gtk_tree_view_get_model (GTK_TREE_VIEW (current_column->priv->tree_view));
+    path = gtk_tree_model_get_path (model, &iter);
+    index = (gtk_tree_path_get_indices (path))[0];
+    gtk_tree_path_free (path);
+  }
 
   return index;
 }
