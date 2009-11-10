@@ -454,12 +454,15 @@ _on_dialog_response                             (GtkDialog *dialog,
                                                  gint response_id,
                                                  gpointer data)
 {
+  HildonPickerDialog *picker = HILDON_PICKER_DIALOG (dialog);
   if (response_id == GTK_RESPONSE_OK) {
-    if (selection_completed (HILDON_PICKER_DIALOG (dialog)) == FALSE) {
+    if (selection_completed (picker) == FALSE) {
       g_signal_stop_emission_by_name (dialog, "response");
     }
   } else if (response_id == GTK_RESPONSE_DELETE_EVENT) {
-    _restore_current_selection (HILDON_PICKER_DIALOG (dialog));
+    if (requires_done_button (picker)) {
+      _restore_current_selection (picker);
+    }
   }
 }
 
