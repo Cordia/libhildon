@@ -48,8 +48,6 @@ G_DEFINE_TYPE (HildonLiveSearch, hildon_live_search,
         (G_TYPE_INSTANCE_GET_PRIVATE ((o), HILDON_TYPE_LIVE_SEARCH, \
                                       HildonLiveSearchPrivate))
 
-typedef struct _HildonLiveSearchPrivate HildonLiveSearchPrivate;
-
 struct _HildonLiveSearchPrivate
 {
         GtkTreeModelFilter *filter;
@@ -258,7 +256,7 @@ on_entry_changed (GtkEntry *entry,
         char *old_prefix;
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (user_data));
-        priv = GET_PRIVATE (user_data);
+        priv = HILDON_LIVE_SEARCH (user_data)->priv;
 
         text = gtk_entry_get_text (GTK_ENTRY (entry));
         len = g_utf8_strlen (text, -1);
@@ -300,16 +298,13 @@ void
 hildon_live_search_append_text (HildonLiveSearch *livesearch,
                                 const char *text)
 {
-        HildonLiveSearchPrivate *priv;
         GtkEditable *editable;
         int pos, start, end;
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         g_return_if_fail (NULL != text);
 
-        priv = GET_PRIVATE (livesearch);
-
-        editable = GTK_EDITABLE (priv->entry);
+        editable = GTK_EDITABLE (livesearch->priv->entry);
 
         if (gtk_editable_get_selection_bounds (editable,
                                                &start,
@@ -333,13 +328,9 @@ hildon_live_search_append_text (HildonLiveSearch *livesearch,
 const char *
 hildon_live_search_get_text (HildonLiveSearch *livesearch)
 {
-        HildonLiveSearchPrivate *priv;
-
         g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (livesearch), NULL);
 
-        priv = GET_PRIVATE (livesearch);
-
-        return gtk_entry_get_text (GTK_ENTRY (priv->entry));
+        return gtk_entry_get_text (GTK_ENTRY (livesearch->priv->entry));
 }
 
 /*
@@ -355,7 +346,7 @@ on_key_press_event (GtkWidget *widget,
         GdkEvent *new_event;
 
         g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (live_search), FALSE);
-        priv = GET_PRIVATE (live_search);
+        priv = live_search->priv;
 
         /* If the entry is realized and has focus, it is enough to catch events.
          * This assume that the toolbar is a child of the hook widget. */
@@ -373,12 +364,8 @@ static void
 on_hide_cb (GtkWidget *widget,
             HildonLiveSearch *live_search)
 {
-        HildonLiveSearchPrivate *priv;
-
-        priv = GET_PRIVATE (live_search);
-
-        gtk_entry_set_text (GTK_ENTRY (priv->entry), "");
-        gtk_widget_grab_focus (GTK_WIDGET (priv->treeview));
+        gtk_entry_set_text (GTK_ENTRY (live_search->priv->entry), "");
+        gtk_widget_grab_focus (GTK_WIDGET (live_search->priv->treeview));
 }
 
 /* GObject methods */
@@ -390,14 +377,13 @@ hildon_live_search_get_property (GObject    *object,
                                  GParamSpec *pspec)
 {
         HildonLiveSearch *livesearch = HILDON_LIVE_SEARCH (object);
-        HildonLiveSearchPrivate *priv = GET_PRIVATE (livesearch);
 
         switch (property_id) {
         case PROP_FILTER:
-                g_value_set_object (value, priv->filter);
+                g_value_set_object (value, livesearch->priv->filter);
                 break;
         case PROP_TEXT_COLUMN:
-                g_value_set_int (value, priv->text_column);
+                g_value_set_int (value, livesearch->priv->text_column);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -429,7 +415,7 @@ hildon_live_search_set_property (GObject      *object,
 static void
 hildon_live_search_dispose (GObject *object)
 {
-        HildonLiveSearchPrivate *priv = GET_PRIVATE (object);
+        HildonLiveSearchPrivate *priv = HILDON_LIVE_SEARCH (object)->priv;
 
         hildon_live_search_widget_unhook (HILDON_LIVE_SEARCH (object));
 
@@ -526,7 +512,7 @@ hildon_live_search_init (HildonLiveSearch *self)
         GtkWidget *entry_hbox;
         HildonGtkInputMode imode;
 
-        priv = GET_PRIVATE (self);
+        self->priv = priv = GET_PRIVATE (self);
 
         gtk_toolbar_set_style (GTK_TOOLBAR (self), GTK_TOOLBAR_ICONS);
         gtk_container_set_border_width (GTK_CONTAINER (self), 0);
@@ -658,7 +644,7 @@ hildon_live_search_set_filter (HildonLiveSearch  *livesearch,
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         g_return_if_fail (filter == NULL || GTK_IS_TREE_MODEL_FILTER (filter));
 
-        priv = GET_PRIVATE (livesearch);
+        priv = livesearch->priv;
 
         if (priv->filter) {
                 g_object_unref (priv->filter);
@@ -701,7 +687,7 @@ hildon_live_search_set_text_column (HildonLiveSearch *livesearch,
                                     gint text_column)
 {
         HildonLiveSearchPrivate *priv;
-        priv = GET_PRIVATE (livesearch);
+        priv = livesearch->priv;
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         g_return_if_fail (-1 <= text_column);
@@ -720,11 +706,7 @@ static void
 on_hook_widget_destroy (GtkObject *object,
                         gpointer user_data)
 {
-        HildonLiveSearchPrivate *priv;
-
-        priv = GET_PRIVATE (user_data);
-
-        priv->destroy_id = 0;
+        HILDON_LIVE_SEARCH (user_data)->priv->destroy_id = 0;
 }
 
 /**
@@ -748,7 +730,7 @@ hildon_live_search_widget_hook (HildonLiveSearch *livesearch,
         HildonLiveSearchPrivate *priv;
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
-        priv = GET_PRIVATE (livesearch);
+        priv = livesearch->priv;
 
         g_return_if_fail (priv->event_widget == NULL);
 
@@ -780,7 +762,7 @@ hildon_live_search_widget_unhook (HildonLiveSearch *livesearch)
         HildonLiveSearchPrivate *priv;
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
-        priv = GET_PRIVATE (livesearch);
+        priv = livesearch->priv;
 
         if (priv->event_widget == NULL)
                 return;
@@ -809,13 +791,11 @@ void
 hildon_live_search_save_state (HildonLiveSearch *livesearch,
                                GKeyFile *key_file)
 {
-        HildonLiveSearchPrivate *priv;
         const char *text;
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
-        priv = GET_PRIVATE (livesearch);
 
-        text = gtk_entry_get_text (GTK_ENTRY (priv->entry));
+        text = gtk_entry_get_text (GTK_ENTRY (livesearch->priv->entry));
         if (text) {
                 g_key_file_set_string (key_file,
                                        "LiveSearch",
@@ -838,18 +818,16 @@ void
 hildon_live_search_restore_state (HildonLiveSearch *livesearch,
                                   GKeyFile *key_file)
 {
-        HildonLiveSearchPrivate *priv;
         char *text;
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
-        priv = GET_PRIVATE (livesearch);
 
         text = g_key_file_get_string (key_file,
                                       "LiveSearch",
                                       "Text",
                                       NULL);
         if (text) {
-                gtk_entry_set_text (GTK_ENTRY (priv->entry), text);
+                gtk_entry_set_text (GTK_ENTRY (livesearch->priv->entry), text);
         }
 }
 
@@ -880,7 +858,7 @@ hildon_live_search_set_filter_func (HildonLiveSearch *livesearch,
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         g_return_if_fail (func != NULL);
 
-        priv = GET_PRIVATE (livesearch);
+        priv = livesearch->priv;
 
         g_return_if_fail (priv->visible_func == NULL);
         g_return_if_fail (priv->text_column == -1);

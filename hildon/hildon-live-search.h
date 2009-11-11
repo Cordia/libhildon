@@ -49,10 +49,12 @@ G_BEGIN_DECLS
 
 typedef struct _HildonLiveSearch HildonLiveSearch;
 typedef struct _HildonLiveSearchClass HildonLiveSearchClass;
+typedef struct _HildonLiveSearchPrivate HildonLiveSearchPrivate;
 
 struct _HildonLiveSearch {
         /*< private >*/
         GtkToolbar parent;
+        HildonLiveSearchPrivate *priv;
 };
 
 struct _HildonLiveSearchClass {
