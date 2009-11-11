@@ -831,6 +831,7 @@ hildon_live_search_restore_state (HildonLiveSearch *livesearch,
                                       NULL);
         if (text) {
                 gtk_entry_set_text (GTK_ENTRY (livesearch->priv->entry), text);
+                g_free (text);
         }
 }
 
