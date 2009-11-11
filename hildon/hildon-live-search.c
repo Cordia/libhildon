@@ -293,6 +293,8 @@ on_entry_changed (GtkEntry *entry,
  * can be freed later by the caller.
  *
  * Appends a string to the entry text in the live search widget.
+ *
+ * Since: 2.2.4
  **/
 void
 hildon_live_search_append_text (HildonLiveSearch *livesearch,
@@ -324,6 +326,8 @@ hildon_live_search_append_text (HildonLiveSearch *livesearch,
  *
  * Returns: a pointer to the text contents of the widget as a
  * string. This string should not be freed, modified, or stored.
+ *
+ * Since: 2.2.4
  **/
 const char *
 hildon_live_search_get_text (HildonLiveSearch *livesearch)
@@ -588,7 +592,6 @@ hildon_live_search_init (HildonLiveSearch *self)
  * Returns: The newly created live search widget.
  *
  * Since: 2.2.4
- *
  **/
 GtkWidget *
 hildon_live_search_new (void)
@@ -680,7 +683,6 @@ hildon_live_search_set_filter (HildonLiveSearch  *livesearch,
  * hildon_live_search_set_filter_func().
  *
  * Since: 2.2.4
- *
  **/
 void
 hildon_live_search_set_text_column (HildonLiveSearch *livesearch,
@@ -786,6 +788,8 @@ hildon_live_search_widget_unhook (HildonLiveSearch *livesearch)
  * @key_file: The key file to save to
  *
  * Saves the live search text to a #GKeyFile.
+ *
+ * Since: 2.2.4
  **/
 void
 hildon_live_search_save_state (HildonLiveSearch *livesearch,
@@ -812,7 +816,6 @@ hildon_live_search_save_state (HildonLiveSearch *livesearch,
  * Restores a live search widget's text from a #GKeyFile.
  *
  * Since: 2.2.4
- *
  **/
 void
 hildon_live_search_restore_state (HildonLiveSearch *livesearch,
@@ -844,8 +847,7 @@ hildon_live_search_restore_state (HildonLiveSearch *livesearch,
  *
  * If this function is unset, #HildonLiveSearch:text-column is used.
  *
- * Since 2.2.4
- *
+ * Since: 2.2.4
  **/
 void
 hildon_live_search_set_filter_func (HildonLiveSearch *livesearch,
