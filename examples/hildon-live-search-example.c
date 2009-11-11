@@ -68,6 +68,7 @@ create_model                                    (void)
 {
     int i;
     GtkListStore *store;
+    GtkTreeModel *filter;
 
     store = gtk_list_store_new (1, G_TYPE_STRING);
 
@@ -75,7 +76,10 @@ create_model                                    (void)
         gtk_list_store_insert_with_values (store, NULL, i, 0, countries[i], -1);
     }
 
-    return gtk_tree_model_filter_new (GTK_TREE_MODEL (store), NULL);
+    filter = gtk_tree_model_filter_new (GTK_TREE_MODEL (store), NULL);
+    g_object_unref (store);
+
+    return filter;
 }
 
 static GtkWidget *
