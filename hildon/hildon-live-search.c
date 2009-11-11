@@ -865,13 +865,6 @@ hildon_live_search_set_filter_func (HildonLiveSearch *livesearch,
         g_return_if_fail (priv->visible_func == NULL);
         g_return_if_fail (priv->text_column == -1);
 
-        if (priv->visible_func) {
-                GDestroyNotify d = priv->visible_destroy;
-
-                priv->visible_destroy = NULL;
-                d (priv->visible_data);
-        }
-
         priv->visible_func = func;
         priv->visible_data = data;
         priv->visible_destroy = destroy;
