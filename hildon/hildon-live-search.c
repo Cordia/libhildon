@@ -58,7 +58,8 @@ struct _HildonLiveSearchPrivate
     GHashTable *selection_map;
 
     gulong key_press_id;
-    gulong destroy_id;
+    gulong event_widget_destroy_id;
+    gulong treeview_destroy_id;
 
     gchar *prefix;
     gint text_column;
@@ -707,10 +708,10 @@ hildon_live_search_set_text_column              (HildonLiveSearch *livesearch,
 }
 
 static void
-on_hook_widget_destroy                          (GtkObject *object,
+on_widget_destroy                               (GtkObject *object,
                                                  gpointer   user_data)
 {
-    HILDON_LIVE_SEARCH (user_data)->priv->destroy_id = 0;
+    hildon_live_search_widget_unhook (HILDON_LIVE_SEARCH (user_data));
 }
 
 /**
@@ -748,9 +749,13 @@ hildon_live_search_widget_hook                  (HildonLiveSearch *livesearch,
         g_signal_connect (hook_widget, "key-press-event",
                           G_CALLBACK (on_key_press_event), livesearch);
 
-    priv->destroy_id =
+    priv->event_widget_destroy_id =
         g_signal_connect (hook_widget, "destroy",
-                          G_CALLBACK (on_hook_widget_destroy), livesearch);
+                          G_CALLBACK (on_widget_destroy), livesearch);
+
+    priv->treeview_destroy_id =
+        g_signal_connect (kb_focus, "destroy",
+                          G_CALLBACK (on_widget_destroy), livesearch);
 }
 
 /**
@@ -773,24 +778,26 @@ hildon_live_search_widget_unhook                (HildonLiveSearch *livesearch)
     if (priv->event_widget == NULL)
         return;
 
-    if (priv->key_press_id) {
-        g_signal_handler_disconnect (priv->event_widget, priv->key_press_id);
-        priv->key_press_id = 0;
-    }
-    if (priv->destroy_id) {
-        g_signal_handler_disconnect (priv->event_widget, priv->destroy_id);
-        priv->destroy_id = 0;
-    }
+    /* All these variables are set together on hildon_live_search_widget_hook(),
+     * so event_widget != NULL implies that all these are non-NULL too */
+    g_return_if_fail (priv->treeview != NULL);
+    g_return_if_fail (priv->key_press_id != 0);
+    g_return_if_fail (priv->event_widget_destroy_id != 0);
+    g_return_if_fail (priv->treeview_destroy_id != 0);
 
-    if (priv->event_widget) {
-        g_object_unref (priv->event_widget);
-        priv->event_widget = NULL;
-    }
+    g_signal_handler_disconnect (priv->event_widget, priv->key_press_id);
+    g_signal_handler_disconnect (priv->event_widget, priv->event_widget_destroy_id);
+    g_signal_handler_disconnect (priv->treeview, priv->treeview_destroy_id);
 
-    if (priv->treeview) {
-        g_object_unref (priv->treeview);
-        priv->treeview = NULL;
-    }
+    g_object_unref (priv->treeview);
+    g_object_unref (priv->event_widget);
+
+    priv->key_press_id = 0;
+    priv->event_widget_destroy_id = 0;
+    priv->treeview_destroy_id = 0;
+
+    priv->treeview = NULL;
+    priv->event_widget = NULL;
 }
 
 /**
