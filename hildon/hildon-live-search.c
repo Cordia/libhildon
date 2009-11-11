@@ -649,15 +649,16 @@ hildon_live_search_set_filter (HildonLiveSearch  *livesearch,
 
         priv = livesearch->priv;
 
-        if (priv->filter) {
+        if (filter == priv->filter)
+                return;
+
+        if (filter)
+                g_object_ref (filter);
+
+        if (priv->filter)
                 g_object_unref (priv->filter);
-                priv->filter = NULL;
-        }
 
-        if (filter) {
-                priv->filter = g_object_ref (filter);
-        }
-
+        priv->filter = filter;
         priv->text_column = -1;
 
         gtk_tree_model_filter_set_visible_func (filter,
