@@ -741,17 +741,16 @@ hildon_live_search_widget_hook                  (HildonLiveSearch *livesearch,
 
     g_return_if_fail (priv->event_widget == NULL);
 
-    priv->event_widget = hook_widget;
-    priv->treeview = kb_focus;
+    priv->event_widget = g_object_ref (hook_widget);
+    priv->treeview = g_object_ref (kb_focus);
 
     priv->key_press_id =
         g_signal_connect (hook_widget, "key-press-event",
                           G_CALLBACK (on_key_press_event), livesearch);
 
     priv->destroy_id =
-        g_signal_connect (G_OBJECT (hook_widget), "destroy",
-                          G_CALLBACK (on_hook_widget_destroy),
-                          livesearch);
+        g_signal_connect (hook_widget, "destroy",
+                          G_CALLBACK (on_hook_widget_destroy), livesearch);
 }
 
 /**
@@ -783,8 +782,15 @@ hildon_live_search_widget_unhook                (HildonLiveSearch *livesearch)
         priv->destroy_id = 0;
     }
 
-    priv->event_widget = NULL;
-    priv->treeview = NULL;
+    if (priv->event_widget) {
+        g_object_unref (priv->event_widget);
+        priv->event_widget = NULL;
+    }
+
+    if (priv->treeview) {
+        g_object_unref (priv->treeview);
+        priv->treeview = NULL;
+    }
 }
 
 /**
