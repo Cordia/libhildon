@@ -86,7 +86,8 @@ libhildon_@API_VERSION_MAJOR@_la_SOURCES = \
 		hildon-check-button.c 			\
 		hildon-gtk.c				\
 		hildon-dialog.c				\
-		hildon-main.c
+		hildon-main.c				\
+		hildon-live-search.c
 
 libhildon_@API_VERSION_MAJOR@_built_public_headers  = \
 		hildon-enum-types.h			\
@@ -155,7 +156,8 @@ libhildon_@API_VERSION_MAJOR@_public_headers = \
 		hildon-check-button.h			\
 		hildon-gtk.h				\
 		hildon-version.h			\
-		hildon-main.h
+		hildon-main.h				\
+		hildon-live-search.h
 
 libhildon_@API_VERSION_MAJOR@_include_HEADERS = \
 		$(libhildon_@API_VERSION_MAJOR@_public_headers)		\
