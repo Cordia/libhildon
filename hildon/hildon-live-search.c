@@ -359,7 +359,7 @@ on_key_press_event                              (GtkWidget        *widget,
     gtk_widget_event (priv->entry, new_event);
     gdk_event_free (new_event);
 
-    return FALSE;
+    return TRUE;
 }
 
 static void
