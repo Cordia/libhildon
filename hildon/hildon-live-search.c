@@ -689,10 +689,12 @@ hildon_live_search_set_text_column (HildonLiveSearch *livesearch,
                                     gint text_column)
 {
         HildonLiveSearchPrivate *priv;
-        priv = livesearch->priv;
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
         g_return_if_fail (-1 <= text_column);
+
+        priv = livesearch->priv;
+
         g_return_if_fail (text_column < gtk_tree_model_get_n_columns (gtk_tree_model_filter_get_model (priv->filter)));
         g_return_if_fail (priv->visible_func == NULL);
 
@@ -732,6 +734,9 @@ hildon_live_search_widget_hook (HildonLiveSearch *livesearch,
         HildonLiveSearchPrivate *priv;
 
         g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
+        g_return_if_fail (GTK_IS_WIDGET (hook_widget));
+        g_return_if_fail (GTK_IS_TREE_VIEW (kb_focus));
+
         priv = livesearch->priv;
 
         g_return_if_fail (priv->event_widget == NULL);
