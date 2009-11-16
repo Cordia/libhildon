@@ -71,8 +71,9 @@
  * <title>Creating a HildonTouchSelector</title>
  * <programlisting>
  * void
- * selection_changed (HildonTouchSelector * selector,
- *                    gpointer *user_data)
+ * selection_changed (HildonTouchSelector *selector,
+ *                    gint                 column,
+ *                    gpointer             user_data)
  * {
  *   gchar *current_selection = NULL;
  * <!-- -->
