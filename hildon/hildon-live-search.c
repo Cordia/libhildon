@@ -659,12 +659,13 @@ hildon_live_search_set_filter                   (HildonLiveSearch   *livesearch,
         g_object_unref (priv->filter);
 
     priv->filter = filter;
-    priv->text_column = -1;
 
-    gtk_tree_model_filter_set_visible_func (filter,
-                                            visible_func,
-                                            priv,
-                                            NULL);
+    if (priv->text_column != -1 || priv->visible_func) {
+        gtk_tree_model_filter_set_visible_func (filter,
+                                                visible_func,
+                                                priv,
+                                                NULL);
+    }
 
     g_object_notify (G_OBJECT (livesearch), "filter");
 }
@@ -703,6 +704,11 @@ hildon_live_search_set_text_column              (HildonLiveSearch *livesearch,
         return;
 
     priv->text_column = text_column;
+
+    gtk_tree_model_filter_set_visible_func (priv->filter,
+                                            visible_func,
+                                            priv,
+                                            NULL);
 
     gtk_tree_model_filter_refilter (priv->filter);
 }
@@ -887,4 +893,9 @@ hildon_live_search_set_filter_func              (HildonLiveSearch           *liv
     priv->visible_func = func;
     priv->visible_data = data;
     priv->visible_destroy = destroy;
+
+    gtk_tree_model_filter_set_visible_func (priv->filter,
+                                            visible_func,
+                                            priv,
+                                            NULL);
 }
