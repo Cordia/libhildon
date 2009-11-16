@@ -83,6 +83,5 @@
 #include                                        "hildon-gtk.h"
 #include                                        "hildon-dialog.h"
 #include                                        "hildon-main.h"
-#include                                        "hildon-live-search.h"
 
 #endif
