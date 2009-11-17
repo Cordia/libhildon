@@ -640,10 +640,9 @@ banner_do_set_text                              (HildonBanner *banner,
 static void 
 force_to_wrap_truncated                         (HildonBanner *banner)
 {
-    GtkLabel *label;
     PangoLayout *layout;
-    int width_max;
-    int width = -1;
+    int lines;
+    int width;
     int height = -1;
     PangoRectangle logical;
     GtkRequisition requisition;
@@ -651,40 +650,26 @@ force_to_wrap_truncated                         (HildonBanner *banner)
 
     g_return_if_fail (priv);
 
-    label = GTK_LABEL (priv->label);
-
-    layout = gtk_label_get_layout (label);
-
-    pango_layout_get_extents (layout, NULL, &logical);
-    width = PANGO_PIXELS (logical.width);
-
-    width_max = priv->is_timed ? HILDON_BANNER_LABEL_MAX_TIMED
+    width = priv->is_timed ? HILDON_BANNER_LABEL_MAX_TIMED
         : HILDON_BANNER_LABEL_MAX_PROGRESS;
 
-    /* If the width of the label is going to exceed the maximum allowed
-     * width, enforce the maximum allowed width now.
+    /* Force the label to compute its layout using the maximum
+     * available width rather than its default one.
      */
-    if (width >= width_max || pango_layout_is_wrapped (layout)) {
-        width = width_max;
-    }
+    gtk_widget_set_size_request (priv->label, width, height);
+    gtk_widget_size_request (priv->label, &requisition);
 
-    /* Make the label update its layout; and update our layout pointer
-     * because the layout will be cleared and refreshed.
-     */
-    gtk_widget_set_size_request (GTK_WIDGET (label), width, height);
-    gtk_widget_size_request (GTK_WIDGET (label), &requisition);
+    layout = gtk_label_get_layout (GTK_LABEL (priv->label));
+    pango_layout_get_extents (layout, NULL, &logical);
 
-    layout = gtk_label_get_layout (label);
+    /* Now get the actual width needed by the pango layout */
+    width = PANGO_PIXELS (logical.width);
 
     /* If the layout has now been wrapped and exceeds 3 lines, we truncate
      * the rest of the label according to spec.
      */
-    if (pango_layout_is_wrapped (layout) && pango_layout_get_line_count (layout) > 3) {
-        int lines;
-
-        pango_layout_get_extents (layout, NULL, &logical);
-        lines = pango_layout_get_line_count (layout);
-
+    lines = pango_layout_get_line_count (layout);
+    if (pango_layout_is_wrapped (layout) && lines > 3) {
         /* This calculation assumes that the same font is used
          * throughout the banner -- this is usually the case on maemo
          *
@@ -693,8 +678,8 @@ force_to_wrap_truncated                         (HildonBanner *banner)
         height = (PANGO_PIXELS (logical.height) * 3) / lines + 1;
     }
 
-    /* Set the new width/height if applicable */
-    gtk_widget_set_size_request (GTK_WIDGET (label), width, height);
+    /* Set the final width/height */
+    gtk_widget_set_size_request (priv->label, width, height);
 }
 
 static void
