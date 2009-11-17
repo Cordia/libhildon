@@ -113,26 +113,26 @@ hildon_live_search_set_text_column              (HildonLiveSearch *livesearch,
 
 
 /**
- * HildonLiveSearchFilterFunc:
+ * HildonLiveSearchVisibleFunc:
  * @model: The child model of the #GtkTreeModelFilter in the live search widget
  * @iter: a #GtkTreeIter pointing to the row in @model whose visibility is to be determined
  * @text: the text in the @HildonLiveSearch entry that is triggering this method call
- * @data: user data given to hildon_live_search_set_filter_func()
+ * @data: user data given to hildon_live_search_set_visible_func()
  *
  * Returns: whether the row indicated by @iter should be visible
  *
  * Since: 2.2.4
  **/
-typedef gboolean (* HildonLiveSearchFilterFunc) (GtkTreeModel *model,
-                                                 GtkTreeIter  *iter,
-                                                 gchar        *text,
-                                                 gpointer      data);
+typedef gboolean (* HildonLiveSearchVisibleFunc) (GtkTreeModel *model,
+                                                  GtkTreeIter  *iter,
+                                                  gchar        *text,
+                                                  gpointer      data);
 
 void
-hildon_live_search_set_filter_func              (HildonLiveSearch           *livesearch,
-                                                 HildonLiveSearchFilterFunc  func,
-                                                 gpointer                    data,
-                                                 GDestroyNotify              destroy);
+hildon_live_search_set_visible_func              (HildonLiveSearch           *livesearch,
+                                                  HildonLiveSearchVisibleFunc func,
+                                                  gpointer                    data,
+                                                  GDestroyNotify              destroy);
 
 G_END_DECLS
 

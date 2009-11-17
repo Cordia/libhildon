@@ -31,8 +31,9 @@
  * filters on the child model of the filter model set using a case
  * sensitive prefix comparison on the model's column specified by
  * #HildonLiveSearch:text-column. If a more refined filtering is
- * necessary, you can use hildon_live_search_set_filter_func() to
- * specify a #HildonLiveSearchFilterFunc to use.
+ * necessary, you can use hildon_live_search_set_visible_func() to
+ * specify a #HildonLiveSearchVisibleFunc to use.
+ *
  */
 
 #include                                        "hildon-live-search.h"
@@ -64,7 +65,7 @@ struct _HildonLiveSearchPrivate
     gchar *prefix;
     gint text_column;
 
-    HildonLiveSearchFilterFunc visible_func;
+    HildonLiveSearchVisibleFunc visible_func;
     gpointer visible_data;
     GDestroyNotify visible_destroy;
 };
@@ -702,7 +703,7 @@ hildon_live_search_get_filter (HildonLiveSearch *livesearch)
  * Calling this method will trigger filtering of the model, so use
  * with moderation. Note that you can only use either
  * #HildonLiveSearch:text-column or
- * hildon_live_search_set_filter_func().
+ * hildon_live_search_set_visible_func().
  *
  * Since: 2.2.4
  **/
@@ -880,9 +881,9 @@ hildon_live_search_restore_state                (HildonLiveSearch *livesearch,
 }
 
 /**
- * hildon_live_search_set_filter_func:
+ * hildon_live_search_set_visible_func:
  * @livesearch: a HildonLiveSearch
- * @func: a #HildonLiveSearchFilterFunc
+ * @func: a #HildonLiveSearchVisibleFunc
  * @data: user data to pass to @func or %NULL
  * @destroy: Destroy notifier of @data, or %NULL.
  *
@@ -890,13 +891,16 @@ hildon_live_search_restore_state                (HildonLiveSearch *livesearch,
  * visible when the text in the entry changes. Internally,
  * gtk_tree_model_filter_set_visible_func() is used.
  *
+ * This is convenience API to replace #GtkTreeModelFilter's visible function
+ * by one that gives the current text in the entry.
+ *
  * If this function is unset, #HildonLiveSearch:text-column is used.
  *
  * Since: 2.2.4
  **/
 void
-hildon_live_search_set_filter_func              (HildonLiveSearch           *livesearch,
-                                                 HildonLiveSearchFilterFunc  func,
+hildon_live_search_set_visible_func             (HildonLiveSearch           *livesearch,
+                                                 HildonLiveSearchVisibleFunc func,
                                                  gpointer                    data,
                                                  GDestroyNotify              destroy)
 {

@@ -55,7 +55,7 @@ create_live_search                              (GtkTreeModelFilter *filter)
 
     live = HILDON_LIVE_SEARCH (hildon_live_search_new ());
     hildon_live_search_set_filter (live, filter);
-    hildon_live_search_set_filter_func (live, filter_func, NULL, NULL);
+    hildon_live_search_set_visible_func (live, filter_func, NULL, NULL);
 
     /* Instead of hildon_live_search_set_filter_func(), we could have used
      * hildon_live_search_set_text_column (live, 0); */

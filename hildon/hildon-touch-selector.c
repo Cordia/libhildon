@@ -1089,10 +1089,10 @@ hildon_touch_selector_column_set_text_column (HildonTouchSelectorColumn *column,
   column->priv->text_column = text_column;
 
   if (column->priv->livesearch) {
-    hildon_live_search_set_filter_func (HILDON_LIVE_SEARCH (column->priv->livesearch),
-					visible_func,
-					GINT_TO_POINTER (text_column),
-					NULL);
+    hildon_live_search_set_visible_func (HILDON_LIVE_SEARCH (column->priv->livesearch),
+                                         visible_func,
+                                         GINT_TO_POINTER (text_column),
+                                         NULL);
   }
 
   g_object_notify (G_OBJECT (column), "text-column");
