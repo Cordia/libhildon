@@ -79,6 +79,14 @@ enum
     PROP_TEXT_COLUMN
 };
 
+enum
+{
+  REFILTER,
+  LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL] = { 0 };
+
 static gboolean
 visible_func                                    (GtkTreeModel *model,
                                                  GtkTreeIter  *iter,
@@ -107,6 +115,18 @@ key_equal_func                                  (gconstpointer v1,
 {
     return gtk_tree_path_compare ((GtkTreePath *)v1,
                                   (GtkTreePath *)v2) == 0;
+}
+
+
+static void
+refilter (HildonLiveSearch *livesearch)
+{
+    HildonLiveSearchPrivate *priv = livesearch->priv;
+    gboolean handled = FALSE;
+
+    g_signal_emit (livesearch, signals[REFILTER], 0, &handled);
+    if (!handled)
+        gtk_tree_model_filter_refilter (priv->filter);
 }
 
 /**
@@ -251,13 +271,14 @@ static void
 on_entry_changed                                (GtkEntry *entry,
                                                  gpointer  user_data)
 {
+    HildonLiveSearch *livesearch = user_data;
     HildonLiveSearchPrivate *priv;
     const char *text;
     glong len;
     char *old_prefix;
 
-    g_return_if_fail (HILDON_IS_LIVE_SEARCH (user_data));
-    priv = HILDON_LIVE_SEARCH (user_data)->priv;
+    g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
+    priv = livesearch->priv;
 
     text = gtk_entry_get_text (GTK_ENTRY (entry));
     len = g_utf8_strlen (text, -1);
@@ -274,14 +295,14 @@ on_entry_changed                                (GtkEntry *entry,
 
     selection_map_update_map_from_selection (priv);
     priv->prefix = g_strdup (text);
-    gtk_tree_model_filter_refilter (priv->filter);
+    refilter (livesearch);
     selection_map_update_selection_from_map (priv);
 
     if (len < 1) {
         selection_map_destroy (priv);
-        gtk_widget_hide (GTK_WIDGET (user_data));
+        gtk_widget_hide (GTK_WIDGET (livesearch));
     } else {
-        gtk_widget_show (GTK_WIDGET (user_data));
+        gtk_widget_show (GTK_WIDGET (livesearch));
     }
 
     g_free (old_prefix);
@@ -487,6 +508,29 @@ hildon_live_search_class_init                   (HildonLiveSearchClass *klass)
                                                        -1, G_MAXINT, -1,
                                                        G_PARAM_READWRITE |
                                                        G_PARAM_STATIC_STRINGS));
+
+  /**
+   * HildonLiveSearch::refilter:
+   * @livesearch: the object which received the signal
+   *
+   * The "refilter" signal is emitted when the text in the entry changed and a
+   * refilter is needed.
+   *
+   * If this signal is not stopped, gtk_tree_model_filter_refilter() will be
+   * called on the filter model. Otherwise the handler is responsible to
+   * refilter it.
+   *
+   * Returns: %TRUE to stop other handlers from being invoked for the event.
+   * %FALSE to propagate the event further.
+   *
+   * Since: 2.2.4
+   */
+  signals[REFILTER] =
+    g_signal_new ("refilter",
+                  HILDON_TYPE_LIVE_SEARCH,
+                  G_SIGNAL_RUN_LAST, 0,
+                  g_signal_accumulator_true_handled, NULL,
+                  _hildon_marshal_BOOLEAN__VOID, G_TYPE_BOOLEAN, 0);
 }
 
 static void
@@ -731,7 +775,7 @@ hildon_live_search_set_text_column              (HildonLiveSearch *livesearch,
                                             priv,
                                             NULL);
 
-    gtk_tree_model_filter_refilter (priv->filter);
+    refilter (livesearch);
 }
 
 static void
