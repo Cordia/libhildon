@@ -3357,12 +3357,7 @@ hildon_pannable_area_jump_to (HildonPannableArea *area,
   if (vv != priv->vadjust->value)
     gtk_adjustment_value_changed (priv->vadjust);
 
-  priv->scroll_indicator_alpha = 1.0;
-
-  if (priv->scroll_indicator_timeout) {
-    g_source_remove (priv->scroll_indicator_timeout);
-    priv->scroll_indicator_timeout = 0;
-  }
+  hildon_pannable_area_launch_fade_timeout (area, 1.0);
 
   if (priv->idle_id) {
     priv->vel_x = 0.0;
