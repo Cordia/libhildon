@@ -87,6 +87,9 @@ void
 hildon_live_search_set_filter                   (HildonLiveSearch   *livesearch,
                                                  GtkTreeModelFilter *filter);
 
+GtkTreeModelFilter *
+hildon_live_search_get_filter                   (HildonLiveSearch   *livesearch);
+
 void
 hildon_live_search_widget_hook                  (HildonLiveSearch *livesearch,
                                                  GtkWidget        *hook_widget,

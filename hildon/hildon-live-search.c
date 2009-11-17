@@ -671,6 +671,26 @@ hildon_live_search_set_filter                   (HildonLiveSearch   *livesearch,
 }
 
 /**
+ * hildon_live_search_get_filter:
+ * @livesearch: An #HildonLiveSearch widget
+ *
+ * Returns: The #GtkTreeModelFilter set with hildon_live_search_set_filter()
+ *
+ * Since: 2.2.4
+ */
+GtkTreeModelFilter *
+hildon_live_search_get_filter (HildonLiveSearch *livesearch)
+{
+    HildonLiveSearchPrivate *priv;
+
+    g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
+
+    priv = livesearch->priv;
+
+    return priv->filter;
+}
+
+/**
  * hildon_live_search_set_text_column:
  * @livesearch: a #HildonLiveSearch
  * @text_column: the column in the model of @livesearch to get the strings
