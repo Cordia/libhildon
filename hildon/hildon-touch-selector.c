@@ -1509,6 +1509,16 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
     new_column = _create_new_column (selector, model, &emit_changed, cell_renderer, args);
     va_end (args);
 
+    /* If we already have one column, disable live search */
+    if (selector->priv->has_live_search &&
+        selector->priv->columns != NULL &&
+        selector->priv->columns->next == NULL) {
+      selector->priv->has_live_search = FALSE;
+      HildonTouchSelectorColumn *col = (HildonTouchSelectorColumn *) selector->priv->columns->data;
+      hildon_live_search_widget_unhook (HILDON_LIVE_SEARCH (col->priv->livesearch));
+      gtk_widget_destroy (col->priv->livesearch);
+    }
+
     selector->priv->columns = g_slist_append (selector->priv->columns,
                                               new_column);
 
