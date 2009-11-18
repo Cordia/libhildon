@@ -537,9 +537,9 @@ hildon_window_stack_pop_and_push_list           (HildonWindowStack  *stack,
     for (i = 0; i < nwindows; i++) {
         GtkWidget *win = _hildon_window_stack_do_pop (stack);
         popped = g_list_prepend (popped, win);
-        /* Hide now windows that are popped and then pushed back
-           (topmost last). This way all the windows that has a changed
-           stack index will be unmapped and mapped again. */
+        /* Hide now windows that are popped and then pushed back.
+           This way all the windows that has a changed stack index
+           will be unmapped and mapped again. */
         if (g_list_find (list, win) != NULL) {
             gtk_widget_hide (win);
         }
