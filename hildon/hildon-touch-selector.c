@@ -1050,10 +1050,10 @@ e_util_utf8_strstrcasedecomp (const gchar *haystack, const gchar *needle)
 }
 
 static gboolean
-visible_func (GtkTreeModel *model,
-	      GtkTreeIter *iter,
-	      gchar *prefix,
-	      gpointer userdata)
+hildon_live_search_visible_func (GtkTreeModel *model,
+                                 GtkTreeIter *iter,
+                                 gchar *prefix,
+                                 gpointer userdata)
 {
 	gboolean visible;
 	gchar *string;
@@ -1090,7 +1090,7 @@ hildon_touch_selector_column_set_text_column (HildonTouchSelectorColumn *column,
 
   if (column->priv->livesearch) {
     hildon_live_search_set_visible_func (HILDON_LIVE_SEARCH (column->priv->livesearch),
-                                         visible_func,
+                                         hildon_live_search_visible_func,
                                          GINT_TO_POINTER (text_column),
                                          NULL);
   }
