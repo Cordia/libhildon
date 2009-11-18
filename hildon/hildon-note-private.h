@@ -41,6 +41,7 @@ struct                                          _HildonNotePrivate
     GtkWidget *box;
     GtkWidget *event_box;
     GdkWindow *transfer_window;
+    GtkWidget *align;
 
     HildonNoteType note_n;
     GtkWidget *progressbar;

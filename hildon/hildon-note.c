@@ -450,6 +450,9 @@ hildon_note_init                                (HildonNote *dialog)
     priv->icon = NULL;
     priv->stock_icon = NULL;
     priv->idle_handler = 0;
+    priv->align = gtk_alignment_new (0.5, 0.5, 1.0, 1.0);
+
+    gtk_container_add (GTK_CONTAINER (priv->event_box), priv->align);
 
     gtk_event_box_set_visible_window (GTK_EVENT_BOX (priv->event_box), FALSE);
     gtk_event_box_set_above_child (GTK_EVENT_BOX (priv->event_box), TRUE);
@@ -810,12 +813,19 @@ hildon_note_rebuild                             (HildonNote *note)
     gtk_widget_set_no_show_all (dialog->action_area, is_info_note);
 
     /* Pack label vertically. Spacing is only necessary for the progressbar note. */
-    priv->box = gtk_vbox_new (FALSE, priv->progressbar ? HILDON_MARGIN_DOUBLE : 0);
-    gtk_container_add (GTK_CONTAINER (priv->event_box), priv->box);
+    priv->box = gtk_vbox_new (FALSE, 0);
+    gtk_container_add (GTK_CONTAINER (priv->align), priv->box);
     gtk_box_pack_start (GTK_BOX (priv->box), priv->label, TRUE, TRUE, 0);
 
-    if (priv->progressbar)
+    if (priv->progressbar) {
+        gtk_misc_set_alignment (GTK_MISC (priv->label), 0.0, 0.5);
+        gtk_alignment_set_padding (GTK_ALIGNMENT (priv->align),
+                                   HILDON_MARGIN_DOUBLE, 0, 0, 0);
         gtk_box_pack_start (GTK_BOX (priv->box), priv->progressbar, FALSE, FALSE, 0);
+    } else {
+        gtk_misc_set_alignment (GTK_MISC (priv->label), 0.5, 0.5);
+        gtk_alignment_set_padding (GTK_ALIGNMENT (priv->align), 0, 0, 0, 0);
+    }
 
 #ifdef MAEMO_GTK
     hildon_note_set_padding (note);
