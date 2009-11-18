@@ -215,6 +215,7 @@ struct _HildonTouchSelectorPrivate
   GtkWidget *hbox;              /* the container for the selector's columns */
   gboolean initial_scroll;      /* whether initial fancy scrolling to selection */
   gboolean has_live_search;
+  GSList *norm_tokens;
 
   gboolean changed_blocked;
 
@@ -527,6 +528,7 @@ hildon_touch_selector_init (HildonTouchSelector * selector)
 
   selector->priv->columns = NULL;
 
+  selector->priv->norm_tokens = NULL;
   selector->priv->print_func = NULL;
   selector->priv->print_user_data = NULL;
   selector->priv->print_destroy_func = NULL;
@@ -546,9 +548,16 @@ static void
 hildon_touch_selector_dispose (GObject * object)
 {
   GObjectClass *gobject_class;
+  HildonTouchSelector *selector = HILDON_TOUCH_SELECTOR (object);
 
-  hildon_touch_selector_set_print_func_full (HILDON_TOUCH_SELECTOR (object),
+  hildon_touch_selector_set_print_func_full (selector,
                                              NULL, NULL, NULL);
+
+  if (selector->priv->norm_tokens != NULL) {
+      g_slist_foreach (selector->priv->norm_tokens, (GFunc) g_free, NULL);
+      g_slist_free (selector->priv->norm_tokens);
+      selector->priv->norm_tokens = NULL;
+  }
 
   gobject_class = G_OBJECT_CLASS (hildon_touch_selector_parent_class);
 
@@ -955,6 +964,7 @@ hildon_touch_selector_column_init (HildonTouchSelectorColumn *column)
   column->priv->realize_handler = 0;
   column->priv->initial_path = NULL;
 }
+
 static gunichar
 stripped_char (gunichar ch)
 {
@@ -995,31 +1005,17 @@ e_util_unicode_get_utf8 (const gchar *text, gunichar *out)
 }
 
 static const gchar *
-e_util_utf8_strstrcasedecomp (const gchar *haystack, const gchar *needle)
+e_util_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, const gunichar *nuni)
 {
-        gunichar *nuni;
         gunichar unival;
-        gint nlen;
+        gint nlen = 0;
         const gchar *o, *p;
 
         if (haystack == NULL) return NULL;
-        if (needle == NULL) return NULL;
-        if (strlen (needle) == 0) return haystack;
+        if (nuni == NULL) return NULL;
         if (strlen (haystack) == 0) return NULL;
+        while (*(nuni + nlen) != 0) nlen++;
 
-        nuni = g_alloca (sizeof (gunichar) * strlen (needle));
-
-        nlen = 0;
-        for (p = e_util_unicode_get_utf8 (needle, &unival); p && unival; p = e_util_unicode_get_utf8 (p, &unival)) {
-                gunichar sc;
-                sc = stripped_char (unival);
-                if (sc) {
-                       nuni[nlen++] = sc;
-                }
-        }
-        /* NULL means there was illegal utf-8 sequence */
-        if (!p) return NULL;
-        /* If everything is correct, we have decomposed, lowercase, stripped needle */
         if (nlen < 1) return haystack;
 
         o = haystack;
@@ -1049,22 +1045,93 @@ e_util_utf8_strstrcasedecomp (const gchar *haystack, const gchar *needle)
         return NULL;
 }
 
+static gunichar *
+strip_string (const gchar *string)
+{
+    gunichar *nuni;
+    gint nlen;
+    gunichar unival;
+    const gchar *p;
+
+    if (strlen (string) == 0) return NULL;
+
+     nuni = g_malloc (sizeof (gunichar) * (strlen (string) + 1));
+
+    nlen = 0;
+    for (p = e_util_unicode_get_utf8 (string, &unival);
+         p && unival;
+         p = e_util_unicode_get_utf8 (p, &unival)) {
+        gunichar sc;
+        sc = stripped_char (unival);
+        if (sc) {
+            nuni[nlen++] = sc;
+        }
+    }
+
+    /* NULL means there was illegal utf-8 sequence */
+    if (!p) nlen = 0;
+
+    nuni[nlen] = 0;
+
+    return nuni;
+}
+
 static gboolean
 hildon_live_search_visible_func (GtkTreeModel *model,
                                  GtkTreeIter *iter,
                                  gchar *prefix,
                                  gpointer userdata)
 {
-	gboolean visible;
+	gboolean visible = TRUE;
 	gchar *string;
-	gint text_column = GPOINTER_TO_INT (userdata);
+        GSList *list_iter;
+        HildonTouchSelectorColumn *col;
+        HildonTouchSelector *selector;
+
+        col = HILDON_TOUCH_SELECTOR_COLUMN (userdata);
+        selector = col->priv->parent;
+	gint text_column = GPOINTER_TO_INT (col->priv->text_column);
 
 	gtk_tree_model_get (model, iter, text_column, &string, -1);
-	visible = (string != NULL &&
-		   e_util_utf8_strstrcasedecomp (string, prefix) != NULL);
+        list_iter = selector->priv->norm_tokens;
+        while (visible && list_iter) {
+                visible = (string != NULL &&
+                           e_util_utf8_strstrcasedecomp_needle_stripped (string,
+                                                                         (gunichar *)list_iter->data) != NULL);
+                list_iter = list_iter->next;
+        }
+
 	g_free (string);
 
 	return visible;
+}
+
+static gboolean
+on_live_search_refilter (HildonLiveSearch *livesearch,
+                         gpointer userdata)
+{
+    HildonTouchSelector *selector = HILDON_TOUCH_SELECTOR (userdata);
+
+    gchar **tokens = g_strsplit (hildon_live_search_get_text (livesearch), " ", -1);
+    gunichar *token;
+    gint i;
+
+    if (selector->priv->norm_tokens != NULL) {
+        g_slist_foreach (selector->priv->norm_tokens, (GFunc) g_free, NULL);
+        g_slist_free (selector->priv->norm_tokens);
+        selector->priv->norm_tokens = NULL;
+    }
+
+    for (i = 0; tokens [i] != NULL; i++) {
+        token = strip_string (tokens[i]);
+        if (token != NULL)
+            selector->priv->norm_tokens = g_slist_prepend (selector->priv->norm_tokens,
+                                                           token);
+    }
+
+    g_strfreev (tokens);
+
+    return FALSE;
 }
 
 /**
@@ -1091,7 +1158,7 @@ hildon_touch_selector_column_set_text_column (HildonTouchSelectorColumn *column,
   if (column->priv->livesearch) {
     hildon_live_search_set_visible_func (HILDON_LIVE_SEARCH (column->priv->livesearch),
                                          hildon_live_search_visible_func,
-                                         GINT_TO_POINTER (text_column),
+                                         column,
                                          NULL);
   }
 
@@ -1534,6 +1601,8 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
       new_column->priv->livesearch = hildon_live_search_new ();
       hildon_live_search_set_filter (HILDON_LIVE_SEARCH (new_column->priv->livesearch),
 				     GTK_TREE_MODEL_FILTER (new_column->priv->filter));
+      g_signal_connect (new_column->priv->livesearch, "refilter",
+                        G_CALLBACK (on_live_search_refilter), selector);
       gtk_box_pack_start (GTK_BOX (vbox),
 			  new_column->priv->livesearch,
 			  FALSE, FALSE, 0);
