@@ -1418,17 +1418,14 @@ hildon_touch_selector_new_text (void)
 {
   GtkWidget *selector;
   GtkListStore *store;
-  HildonTouchSelectorColumn *column = NULL;
 
   selector = hildon_touch_selector_new ();
   store = gtk_list_store_new (1, G_TYPE_STRING);
 
-  column = hildon_touch_selector_append_text_column (HILDON_TOUCH_SELECTOR (selector),
-                                                     GTK_TREE_MODEL (store), TRUE);
+  hildon_touch_selector_append_text_column (HILDON_TOUCH_SELECTOR (selector),
+                                            GTK_TREE_MODEL (store), TRUE);
 
   g_object_unref (store);
-
-  hildon_touch_selector_column_set_text_column (column, 0);
 
   return selector;
 }
@@ -1656,6 +1653,7 @@ hildon_touch_selector_append_text_column (HildonTouchSelector * selector,
 {
   gfloat xalign = center ? 0.5 : 0.0;
   GtkCellRenderer *renderer;
+  HildonTouchSelectorColumn *column = NULL;
 
   g_return_val_if_fail (HILDON_IS_TOUCH_SELECTOR (selector), NULL);
   g_return_val_if_fail (GTK_IS_TREE_MODEL (model), NULL);
@@ -1667,8 +1665,11 @@ hildon_touch_selector_append_text_column (HildonTouchSelector * selector,
                 "xalign", xalign,
                 NULL);
 
-  return hildon_touch_selector_append_column (selector, model, renderer,
-                                              "text", 0, NULL);
+  column = hildon_touch_selector_append_column (selector, model, renderer,
+                                                "text", 0, NULL);
+  hildon_touch_selector_column_set_text_column (column, 0);
+
+  return column;
 }
 
 /**
