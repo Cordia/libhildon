@@ -466,7 +466,7 @@ hildon_touch_selector_entry_get_text_from_model (HildonTouchSelectorEntry * sele
   text_column = hildon_touch_selector_entry_get_text_column (selector);
   selected_rows = hildon_touch_selector_get_selected_rows (HILDON_TOUCH_SELECTOR (selector), 0);
 
-  if (selected_rows == NULL) {
+  if (text_column == -1 || selected_rows == NULL) {
     return NULL;
   }
 
