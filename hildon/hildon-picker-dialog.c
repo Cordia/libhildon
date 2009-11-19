@@ -420,6 +420,9 @@ selection_completed (HildonPickerDialog *dialog)
 
   priv = HILDON_PICKER_DIALOG_GET_PRIVATE (dialog);
 
+  if (HILDON_IS_TOUCH_SELECTOR_ENTRY (priv->selector))
+    return TRUE;
+
   mode = hildon_touch_selector_get_hildon_ui_mode (HILDON_TOUCH_SELECTOR (priv->selector));
   if (mode == HILDON_UI_MODE_NORMAL) {
     return TRUE;
