@@ -453,7 +453,7 @@ entry_on_text_changed (GtkEditable * editable,
    In the meantime, leaving it here.
  */
 static gchar *
-hildon_touch_selector_get_text_from_model (HildonTouchSelectorEntry * selector)
+hildon_touch_selector_entry_get_text_from_model (HildonTouchSelectorEntry * selector)
 {
   GtkTreeModel *model;
   GtkTreeIter iter;
@@ -492,7 +492,7 @@ hildon_touch_selector_entry_changed (HildonTouchSelector * selector,
 
   priv = HILDON_TOUCH_SELECTOR_ENTRY_GET_PRIVATE (selector);
 
-  text = hildon_touch_selector_get_text_from_model (HILDON_TOUCH_SELECTOR_ENTRY (selector));
+  text = hildon_touch_selector_entry_get_text_from_model (HILDON_TOUCH_SELECTOR_ENTRY (selector));
   if (text != NULL) {
     gtk_entry_set_text (GTK_ENTRY (priv->entry), text);
     gtk_editable_select_region (GTK_EDITABLE (priv->entry), 0, -1);
