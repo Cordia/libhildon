@@ -196,13 +196,11 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
     for (working = gtk_tree_model_get_iter_first (base_model, &iter);
          working;
          working = gtk_tree_model_iter_next (base_model, &iter)) {
-        if (visible_func (base_model, &iter, priv)) {
-            GtkTreePath *path, *filter_path;
+        GtkTreePath *path, *filter_path;
+        path = gtk_tree_model_get_path (base_model, &iter);
+        filter_path = gtk_tree_model_filter_convert_child_path_to_path (priv->filter, path);
 
-            path = gtk_tree_model_get_path (base_model, &iter);
-            filter_path = gtk_tree_model_filter_convert_child_path_to_path
-                (priv->filter, path);
-
+        if (filter_path) {
             if (gtk_tree_selection_path_is_selected
                 (selection, filter_path)) {
                 g_hash_table_replace
@@ -216,6 +214,8 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
                      GINT_TO_POINTER (FALSE));
             }
             gtk_tree_path_free (filter_path);
+        } else {
+            gtk_tree_path_free (path);
         }
     }
 }
@@ -241,19 +241,16 @@ selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
     for (working = gtk_tree_model_get_iter_first (base_model, &iter);
          working;
          working = gtk_tree_model_iter_next (base_model, &iter)) {
-        if (visible_func (base_model, &iter, priv)) {
-            GtkTreePath *path;
-            GtkTreePath *filter_path;
+        GtkTreePath *path, *filter_path;
+        path = gtk_tree_model_get_path (base_model, &iter);
+        filter_path = gtk_tree_model_filter_convert_child_path_to_path (priv->filter, path);
+
+        if (filter_path) {
             gboolean selected;
 
-            path = gtk_tree_model_get_path (base_model,
-                                            &iter);
             selected = GPOINTER_TO_INT
                 (g_hash_table_lookup
                  (priv->selection_map, path));
-
-            filter_path = gtk_tree_model_filter_convert_child_path_to_path
-                (priv->filter, path);
 
             if (selected) {
                 gtk_tree_selection_select_path
