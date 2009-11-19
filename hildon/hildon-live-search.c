@@ -728,7 +728,7 @@ hildon_live_search_get_filter (HildonLiveSearch *livesearch)
 {
     HildonLiveSearchPrivate *priv;
 
-    g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
+    g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (livesearch), NULL);
 
     priv = livesearch->priv;
 
