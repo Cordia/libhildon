@@ -261,6 +261,7 @@ selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
             }
             gtk_tree_path_free (filter_path);
         }
+        gtk_tree_path_free (path);
     }
 }
 
