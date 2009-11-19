@@ -593,8 +593,8 @@ _restore_current_selection (HildonPickerDialog *dialog)
     hildon_touch_selector_unselect_all (selector, i);
     for (selected_iter = selected; selected_iter; selected_iter = g_list_next (selected_iter)) {
       current_path = (GtkTreePath *) selected_iter->data;
-      gtk_tree_model_get_iter (model, &tree_iter, current_path);
-      hildon_touch_selector_select_iter (selector, i, &tree_iter, FALSE);
+      if (gtk_tree_model_get_iter (model, &tree_iter, current_path))
+          hildon_touch_selector_select_iter (selector, i, &tree_iter, FALSE);
     }
   }
   if (HILDON_IS_TOUCH_SELECTOR_ENTRY (selector) && dialog->priv->current_text != NULL) {
