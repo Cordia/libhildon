@@ -1973,9 +1973,9 @@ hildon_pannable_area_button_press_cb (GtkWidget * widget,
     priv->selection_movement = FALSE;
   }
 
-  if ((!priv->enabled) || (event->button != 1) ||
+  if ((!priv->enabled) || (event->button != 1) || (priv->selection_movement) ||
       ((event->time == priv->last_time) &&
-       (priv->last_type == 1) && (priv->selection_movement)) ||
+       (priv->last_type == 1)) ||
       (gtk_bin_get_child (GTK_BIN (widget)) == NULL))
     return TRUE;
 
