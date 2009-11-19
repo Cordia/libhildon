@@ -2127,8 +2127,13 @@ hildon_touch_selector_select_iter (HildonTouchSelector * selector,
 
   tv = current_column->priv->tree_view;
   selection = gtk_tree_view_get_selection (tv);
-  gtk_tree_model_filter_convert_child_iter_to_iter (GTK_TREE_MODEL_FILTER (current_column->priv->filter),
-						    &filter_iter, iter);
+
+  /* The given iter might be not visible, due to the
+     GtkTreeModelFilter we use. If so, don't change the selection. */
+  if (gtk_tree_model_filter_convert_child_iter_to_iter (GTK_TREE_MODEL_FILTER (current_column->priv->filter),
+                                                        &filter_iter, iter) == FALSE)
+          return;
+
   filter_path = gtk_tree_model_get_path (current_column->priv->filter, &filter_iter);
 
   gtk_tree_selection_select_iter (selection, &filter_iter);
