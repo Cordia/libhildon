@@ -590,7 +590,8 @@ _restore_current_selection (HildonPickerDialog *dialog)
   for (iter = current_selection, i = 0; iter; iter = g_slist_next (iter), i++) {
     selected = (GList *) (iter->data);
     model = hildon_touch_selector_get_model (selector, i);
-    hildon_touch_selector_unselect_all (selector, i);
+    if (selected)
+        hildon_touch_selector_unselect_all (selector, i);
     for (selected_iter = selected; selected_iter; selected_iter = g_list_next (selected_iter)) {
       current_path = (GtkTreePath *) selected_iter->data;
       if (gtk_tree_model_get_iter (model, &tree_iter, current_path))
