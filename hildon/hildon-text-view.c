@@ -66,6 +66,7 @@ struct                                          _HildonTextViewPrivate
 {
     gdouble x;                                                      /* tap x position */
     gdouble y;                                                      /* tap y position */
+    gboolean selection_movement;                                    /* selection in progress */
 };
 
 
@@ -171,6 +172,31 @@ hildon_text_view_button_press_event             (GtkWidget        *widget,
         priv->x = event->x;
         priv->y = event->y;
 
+        if (event->state & GDK_SHIFT_MASK) {
+            GtkTextBuffer *buffer;
+            GtkTextWindowType window_type;
+            GtkTextIter iter;
+            gint x, y;
+            GtkTextView *text_view = GTK_TEXT_VIEW (widget);
+
+            priv->selection_movement = TRUE;
+
+            window_type = gtk_text_view_get_window_type (text_view,
+                                                         event->window);
+            gtk_text_view_window_to_buffer_coords (text_view,
+                                                   window_type,
+                                                   event->x, event->y,
+                                                   &x, &y);
+            gtk_text_view_get_iter_at_location (text_view, &iter, x, y);
+            buffer = gtk_text_view_get_buffer (text_view);
+            if (gtk_text_buffer_get_char_count (buffer)) {
+                gtk_text_buffer_place_cursor (buffer, &iter);
+            }
+
+            return GTK_WIDGET_CLASS (hildon_text_view_parent_class)->
+                button_press_event (widget, event);
+        }
+
         return TRUE;
     }
 
@@ -192,7 +218,8 @@ hildon_text_view_button_release_event           (GtkWidget        *widget,
         return TRUE;
     }
 
-    if (event->button == 1 && event->type == GDK_BUTTON_RELEASE) {
+    if (event->button == 1 && event->type == GDK_BUTTON_RELEASE &&
+        !priv->selection_movement) {
         if (fabs (priv->x - event->x) < HILDON_TEXT_VIEW_DRAG_THRESHOLD &&
             fabs (priv->y - event->y) < HILDON_TEXT_VIEW_DRAG_THRESHOLD) {
             GtkTextWindowType window_type;
@@ -213,6 +240,20 @@ hildon_text_view_button_release_event           (GtkWidget        *widget,
             return TRUE;
         }
     }
+
+    if (priv->selection_movement) {
+        gboolean result;
+
+        result = GTK_WIDGET_CLASS (hildon_text_view_parent_class)->
+            button_release_event (widget, event);
+
+        if (result) {
+            priv->selection_movement = FALSE;
+        }
+
+        return result;
+    }
+
     return FALSE;
 }
 
@@ -230,4 +271,7 @@ hildon_text_view_class_init                     (HildonTextViewClass *klass)
 static void
 hildon_text_view_init                           (HildonTextView *self)
 {
+    HildonTextViewPrivate *priv = HILDON_TEXT_VIEW_GET_PRIVATE (self);
+
+    priv->selection_movement = FALSE;
 }
