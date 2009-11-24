@@ -1065,7 +1065,7 @@ xclient_message_type_check                      (XClientMessageEvent *cm,
  * and the Hildon input method copy paste messages
  */
 static GdkFilterReturn
-hildon_window_do_event_filter                   (GdkXEvent *xevent,
+hildon_window_event_filter                      (GdkXEvent *xevent, 
                                                  GdkEvent *event, 
                                                  gpointer data)
 {
@@ -1117,18 +1117,6 @@ hildon_window_do_event_filter                   (GdkXEvent *xevent,
     }
 
     return GDK_FILTER_CONTINUE;
-}
-
-static GdkFilterReturn
-hildon_window_event_filter                      (GdkXEvent *xevent,
-                                                 GdkEvent  *event,
-                                                 gpointer   data)
-{
-    GdkFilterReturn retvalue;
-    gdk_threads_enter ();
-    retvalue = hildon_window_do_event_filter (xevent, event, data);
-    gdk_threads_leave ();
-    return retvalue;
 }
 
 /*
