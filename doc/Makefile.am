@@ -53,7 +53,7 @@ IGNORE_HFILES 					= hildon-calendar-popup-private.h	\
 
 INCLUDES 					= $(GTK_CFLAGS) -I$(top_srcdir)
 
-MKDB_OPTIONS					=--sgml-mode --output-format=xml
+MKDB_OPTIONS					=--sgml-mode --output-format=xml --default-includes=hildon/hildon.h
 
 GTKDOC_CFLAGS 					= $(HILDON_OBJ_CFLAGS)
 
