@@ -1082,7 +1082,9 @@ e_util_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, const gunic
 
   o = haystack;
 
-  for (p = get_next (o, &sc, TRUE); p && sc; p = get_next (p, &sc, TRUE)) {
+  for (p = get_next (o, &sc, g_unichar_isalpha (nuni[0]));
+       p && sc;
+       p = get_next (p, &sc, g_unichar_isalpha (nuni[0]))) {
     if (sc) {
       /* We have valid stripped gchar */
       if (sc == nuni[0]) {
