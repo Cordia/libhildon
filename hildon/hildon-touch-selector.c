@@ -570,7 +570,7 @@ clean_column                                    (HildonTouchSelectorColumn *col,
                                                  HildonTouchSelector *selector)
 {
   g_signal_handlers_disconnect_by_func (col->priv->model,
-					on_row_changed, selector);
+                                        on_row_changed, selector);
 
   if (col->priv->last_activated != NULL) {
     gtk_tree_row_reference_free (col->priv->last_activated);
@@ -756,8 +756,8 @@ _default_print_func (HildonTouchSelector * selector, gpointer user_data)
       } else {
         aux = g_strconcat (result, ":", current_string, NULL);
         g_free (result);
-	g_free (current_string);
-	current_string = NULL;
+        g_free (current_string);
+        current_string = NULL;
         result = aux;
       }
     }
@@ -808,7 +808,7 @@ _row_tapped_cb (GtkTreeView * tree_view, GtkTreePath * path, gpointer user_data)
 static HildonTouchSelectorColumn *
 _create_new_column (HildonTouchSelector * selector,
                     GtkTreeModel * model,
-		    gboolean *emit_changed,
+                    gboolean *emit_changed,
                     GtkCellRenderer * renderer, va_list args)
 {
   HildonTouchSelectorColumn *new_column = NULL;
@@ -896,8 +896,8 @@ _create_new_column (HildonTouchSelector * selector,
 
 /* ------------------------ HildonTouchSelectorColumn implementation ---------------------- */
 G_DEFINE_TYPE_WITH_CODE (HildonTouchSelectorColumn, hildon_touch_selector_column, G_TYPE_OBJECT,
-			 G_IMPLEMENT_INTERFACE (GTK_TYPE_CELL_LAYOUT,
-						hildon_touch_selector_column_cell_layout_init))
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_CELL_LAYOUT,
+                                                hildon_touch_selector_column_cell_layout_init))
 
 enum
 {
@@ -968,112 +968,112 @@ hildon_touch_selector_column_init (HildonTouchSelectorColumn *column)
 static gunichar
 stripped_char (gunichar ch)
 {
-        gunichar *decomp, retval;
-        GUnicodeType utype;
-        gsize dlen;
+  gunichar *decomp, retval;
+  GUnicodeType utype;
+  gsize dlen;
 
-        utype = g_unichar_type (ch);
+  utype = g_unichar_type (ch);
 
-        switch (utype) {
-        case G_UNICODE_CONTROL:
-        case G_UNICODE_FORMAT:
-        case G_UNICODE_UNASSIGNED:
-        case G_UNICODE_COMBINING_MARK:
-                /* Ignore those */
-                return 0;
-               break;
-        default:
-                /* Convert to lowercase, fall through */
-                ch = g_unichar_tolower (ch);
-        case G_UNICODE_LOWERCASE_LETTER:
-                if ((decomp = g_unicode_canonical_decomposition (ch, &dlen))) {
-                        retval = decomp[0];
-                        g_free (decomp);
-                        return retval;
-                }
-                break;
-        }
+  switch (utype) {
+  case G_UNICODE_CONTROL:
+  case G_UNICODE_FORMAT:
+  case G_UNICODE_UNASSIGNED:
+  case G_UNICODE_COMBINING_MARK:
+    /* Ignore those */
+    return 0;
+    break;
+  default:
+    /* Convert to lowercase, fall through */
+    ch = g_unichar_tolower (ch);
+  case G_UNICODE_LOWERCASE_LETTER:
+    if ((decomp = g_unicode_canonical_decomposition (ch, &dlen))) {
+      retval = decomp[0];
+      g_free (decomp);
+      return retval;
+    }
+    break;
+  }
 
-        return 0;
+  return 0;
 }
 
 static gchar *
 e_util_unicode_get_utf8 (const gchar *text, gunichar *out)
 {
-        *out = g_utf8_get_char (text);
-        return (*out == (gunichar)-1) ? NULL : g_utf8_next_char (text);
+  *out = g_utf8_get_char (text);
+  return (*out == (gunichar)-1) ? NULL : g_utf8_next_char (text);
 }
 
 static const gchar *
 e_util_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, const gunichar *nuni)
 {
-        gunichar unival;
-        gint nlen = 0;
-        const gchar *o, *p;
+  gunichar unival;
+  gint nlen = 0;
+  const gchar *o, *p;
 
-        if (haystack == NULL) return NULL;
-        if (nuni == NULL) return NULL;
-        if (strlen (haystack) == 0) return NULL;
-        while (*(nuni + nlen) != 0) nlen++;
+  if (haystack == NULL) return NULL;
+  if (nuni == NULL) return NULL;
+  if (strlen (haystack) == 0) return NULL;
+  while (*(nuni + nlen) != 0) nlen++;
 
-        if (nlen < 1) return haystack;
+  if (nlen < 1) return haystack;
 
-        o = haystack;
-        for (p = e_util_unicode_get_utf8 (o, &unival); p && unival; p = e_util_unicode_get_utf8 (p, &unival)) {
-                gunichar sc;
-                sc = stripped_char (unival);
-                if (sc) {
-                        /* We have valid stripped gchar */
-                        if (sc == nuni[0]) {
-                                const gchar *q = p;
-                                gint npos = 1;
-                                while (npos < nlen) {
-                                        q = e_util_unicode_get_utf8 (q, &unival);
-                                        if (!q || !unival) return NULL;
-                                        sc = stripped_char (unival);
-                                        if ((!sc) || (sc != nuni[npos])) break;
-                                        npos++;
-                                }
-                                if (npos == nlen) {
-                                        return o;
-                                }
-                        }
-                }
-                o = p;
+  o = haystack;
+  for (p = e_util_unicode_get_utf8 (o, &unival); p && unival; p = e_util_unicode_get_utf8 (p, &unival)) {
+    gunichar sc;
+    sc = stripped_char (unival);
+    if (sc) {
+      /* We have valid stripped gchar */
+      if (sc == nuni[0]) {
+        const gchar *q = p;
+        gint npos = 1;
+        while (npos < nlen) {
+          q = e_util_unicode_get_utf8 (q, &unival);
+          if (!q || !unival) return NULL;
+          sc = stripped_char (unival);
+          if ((!sc) || (sc != nuni[npos])) break;
+          npos++;
         }
+        if (npos == nlen) {
+          return o;
+        }
+      }
+    }
+    o = p;
+  }
 
-        return NULL;
+  return NULL;
 }
 
 static gunichar *
 strip_string (const gchar *string)
 {
-    gunichar *nuni;
-    gint nlen;
-    gunichar unival;
-    const gchar *p;
+  gunichar *nuni;
+  gint nlen;
+  gunichar unival;
+  const gchar *p;
 
-    if (strlen (string) == 0) return NULL;
+  if (strlen (string) == 0) return NULL;
 
-     nuni = g_malloc (sizeof (gunichar) * (strlen (string) + 1));
+  nuni = g_malloc (sizeof (gunichar) * (strlen (string) + 1));
 
-    nlen = 0;
-    for (p = e_util_unicode_get_utf8 (string, &unival);
-         p && unival;
-         p = e_util_unicode_get_utf8 (p, &unival)) {
-        gunichar sc;
-        sc = stripped_char (unival);
-        if (sc) {
-            nuni[nlen++] = sc;
-        }
-    }
+  nlen = 0;
+  for (p = e_util_unicode_get_utf8 (string, &unival);
+       p && unival;
+       p = e_util_unicode_get_utf8 (p, &unival)) {
+      gunichar sc;
+      sc = stripped_char (unival);
+      if (sc) {
+          nuni[nlen++] = sc;
+      }
+  }
 
-    /* NULL means there was illegal utf-8 sequence */
-    if (!p) nlen = 0;
+  /* NULL means there was illegal utf-8 sequence */
+  if (!p) nlen = 0;
 
-    nuni[nlen] = 0;
+  nuni[nlen] = 0;
 
-    return nuni;
+  return nuni;
 }
 
 static gboolean
@@ -1082,28 +1082,28 @@ hildon_live_search_visible_func (GtkTreeModel *model,
                                  gchar *prefix,
                                  gpointer userdata)
 {
-	gboolean visible = TRUE;
-	gchar *string;
-        GSList *list_iter;
-        HildonTouchSelectorColumn *col;
-        HildonTouchSelector *selector;
+  gboolean visible = TRUE;
+  gchar *string;
+  GSList *list_iter;
+  HildonTouchSelectorColumn *col;
+  HildonTouchSelector *selector;
 
-        col = HILDON_TOUCH_SELECTOR_COLUMN (userdata);
-        selector = col->priv->parent;
-	gint text_column = GPOINTER_TO_INT (col->priv->text_column);
+  col = HILDON_TOUCH_SELECTOR_COLUMN (userdata);
+  selector = col->priv->parent;
+  gint text_column = GPOINTER_TO_INT (col->priv->text_column);
 
-	gtk_tree_model_get (model, iter, text_column, &string, -1);
-        list_iter = selector->priv->norm_tokens;
-        while (visible && list_iter) {
-                visible = (string != NULL &&
-                           e_util_utf8_strstrcasedecomp_needle_stripped (string,
-                                                                         (gunichar *)list_iter->data) != NULL);
-                list_iter = list_iter->next;
-        }
+  gtk_tree_model_get (model, iter, text_column, &string, -1);
+  list_iter = selector->priv->norm_tokens;
+  while (visible && list_iter) {
+    visible = (string != NULL &&
+               e_util_utf8_strstrcasedecomp_needle_stripped (string,
+                                                             (gunichar *)list_iter->data) != NULL);
+    list_iter = list_iter->next;
+  }
 
-	g_free (string);
+  g_free (string);
 
-	return visible;
+  return visible;
 }
 
 static gboolean
@@ -1597,15 +1597,15 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
     if (selector->priv->has_live_search) {
       new_column->priv->livesearch = hildon_live_search_new ();
       hildon_live_search_set_filter (HILDON_LIVE_SEARCH (new_column->priv->livesearch),
-				     GTK_TREE_MODEL_FILTER (new_column->priv->filter));
+                                     GTK_TREE_MODEL_FILTER (new_column->priv->filter));
       g_signal_connect (new_column->priv->livesearch, "refilter",
                         G_CALLBACK (on_live_search_refilter), selector);
       gtk_box_pack_start (GTK_BOX (vbox),
-			  new_column->priv->livesearch,
-			  FALSE, FALSE, 0);
+                          new_column->priv->livesearch,
+                          FALSE, FALSE, 0);
       hildon_live_search_widget_hook (HILDON_LIVE_SEARCH (new_column->priv->livesearch),
-				      GTK_WIDGET (vbox),
-				      new_column->priv->tree_view);
+                                      GTK_WIDGET (vbox),
+                                      new_column->priv->tree_view);
       gtk_widget_hide (GTK_WIDGET (new_column->priv->livesearch));
     }
 
