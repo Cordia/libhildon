@@ -172,6 +172,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <glib.h>
 
 #include "hildon-gtk.h"
 
@@ -1011,6 +1012,39 @@ e_util_unicode_get_utf8 (const gchar *text, gunichar *out)
 }
 
 /**
+ * get_next:
+ * @p: a pointer to the string to search.
+ * @out: a place to store the next valid
+ * @separators: whether to search only for alphanumeric strings
+ * and skip any word separator.
+ *
+ * Gets the next character that is valid in our search scope, and
+ * store it into @out. The next char, after @out is returned.
+ *
+ * Returns: the next point in the string @p where to continue the
+ * string iteration.
+ **/
+static const gchar *
+get_next (const gchar *p, gunichar *out, gboolean separators)
+{
+  const gchar *q;
+  gunichar utf8;
+
+  if (separators) {
+    do {
+       q = p;
+       p = e_util_unicode_get_utf8 (q, &utf8);
+       *out = stripped_char (utf8);
+    } while (p && *out && !g_unichar_isalnum (*out));
+  } else {
+    p = e_util_unicode_get_utf8 (p, &utf8);
+    *out = stripped_char (utf8);
+  }
+
+  return p;
+}
+
+/**
  * e_util_utf8_strstrcasedecomp_needle_stripped:
  * @haystack: a haystack where to search
  * @nuni: a needle to search for, already stripped with strip_string()
@@ -1023,6 +1057,12 @@ e_util_unicode_get_utf8 (const gchar *text, gunichar *out)
  * This is done for performance reasons, since this search is done
  * several times for the same string @nuni, it is undesired to strip
  * it more than once.
+ *
+ * Also, the search is done as a prefix search, starting in the first
+ * alphanumeric character after any non-alphanumeric one. Searching
+ * for "aba" in "Abasto" will match, searching in "Moraba" will not,
+ * and searching in "A tool (abacus)" will do.
+ *
  * Returns: the first instance of @nuni in @haystack
  **/
 static const gchar *
@@ -1031,6 +1071,7 @@ e_util_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, const gunic
   gunichar unival;
   gint nlen = 0;
   const gchar *o, *p;
+  gunichar sc;
 
   if (haystack == NULL) return NULL;
   if (nuni == NULL) return NULL;
@@ -1040,9 +1081,8 @@ e_util_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, const gunic
   if (nlen < 1) return haystack;
 
   o = haystack;
-  for (p = e_util_unicode_get_utf8 (o, &unival); p && unival; p = e_util_unicode_get_utf8 (p, &unival)) {
-    gunichar sc;
-    sc = stripped_char (unival);
+
+  for (p = get_next (o, &sc, TRUE); p && sc; p = get_next (p, &sc, TRUE)) {
     if (sc) {
       /* We have valid stripped gchar */
       if (sc == nuni[0]) {
@@ -1060,6 +1100,13 @@ e_util_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, const gunic
         }
       }
     }
+    while (p) {
+      sc = g_utf8_get_char (p);
+      if (!g_unichar_isalnum (sc))
+        break;
+      p = g_utf8_next_char (p);
+    }
+
     o = p;
   }
 
