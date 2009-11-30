@@ -965,6 +965,12 @@ hildon_touch_selector_column_init (HildonTouchSelectorColumn *column)
   column->priv->initial_path = NULL;
 }
 
+/**
+ * stripped_char:
+ *
+ * Returns a stripped version of @ch, removing any case, accentuation
+ * mark, or any special mark on it.
+ **/
 static gunichar
 stripped_char (gunichar ch)
 {
@@ -1004,6 +1010,21 @@ e_util_unicode_get_utf8 (const gchar *text, gunichar *out)
   return (*out == (gunichar)-1) ? NULL : g_utf8_next_char (text);
 }
 
+/**
+ * e_util_utf8_strstrcasedecomp_needle_stripped:
+ * @haystack: a haystack where to search
+ * @nuni: a needle to search for, already stripped with strip_string()
+ *
+ * Heavily modified version of e_util_utf8_strstrcasedecomp(). As its
+ * original version, it finds the first occurrence of @nuni in
+ * @haystack.  However, instead of stripping @nuni, it expect it to be
+ * already stripped.
+ *
+ * This is done for performance reasons, since this search is done
+ * several times for the same string @nuni, it is undesired to strip
+ * it more than once.
+ * Returns: the first instance of @nuni in @haystack
+ **/
 static const gchar *
 e_util_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, const gunichar *nuni)
 {
@@ -1045,6 +1066,16 @@ e_util_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, const gunic
   return NULL;
 }
 
+/**
+ * strip_string:
+ * @string: a string to be stripped off.
+ *
+ * Strips all capitalization and accentuation marks from a string.
+ * The returned unicode string is 0 terminated.
+ *
+ * Returns: an unicode, lowercase, and without accentuation marks
+ * version of @string, or %NULL if @string is an empty string.
+ **/
 static gunichar *
 strip_string (const gchar *string)
 {
