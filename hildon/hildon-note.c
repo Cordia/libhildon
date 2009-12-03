@@ -471,6 +471,7 @@ hildon_note_init                                (HildonNote *dialog)
     g_object_ref_sink (priv->label);
 
     gtk_dialog_set_has_separator (GTK_DIALOG (dialog), FALSE);
+    gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
 
     /* We use special hint to turn the note into information notification. */
     gtk_window_set_type_hint (GTK_WINDOW (dialog), GDK_WINDOW_TYPE_HINT_NOTIFICATION);
