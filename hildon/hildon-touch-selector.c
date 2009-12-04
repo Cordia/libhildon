@@ -207,6 +207,7 @@ struct _HildonTouchSelectorColumnPrivate
   GtkWidget *livesearch;
 
   GtkWidget *panarea;           /* the pannable widget */
+  GtkWidget *vbox;
   GtkTreeRowReference *last_activated;
 };
 
@@ -1666,12 +1667,12 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
     selector->priv->columns = g_slist_append (selector->priv->columns,
                                               new_column);
 
-    GtkWidget *vbox = gtk_vbox_new (FALSE, 0);
-    gtk_box_pack_start (GTK_BOX (vbox),
+    new_column->priv->vbox = gtk_vbox_new (FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (new_column->priv->vbox),
                         new_column->priv->panarea,
                         TRUE, TRUE, 0);
     gtk_box_pack_start (GTK_BOX (selector->priv->hbox),
-                        vbox,
+                        new_column->priv->vbox,
                         TRUE, TRUE, 6);
 
     if (selector->priv->has_live_search) {
@@ -1680,16 +1681,16 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
                                      GTK_TREE_MODEL_FILTER (new_column->priv->filter));
       g_signal_connect (new_column->priv->livesearch, "refilter",
                         G_CALLBACK (on_live_search_refilter), selector);
-      gtk_box_pack_start (GTK_BOX (vbox),
+      gtk_box_pack_start (GTK_BOX (new_column->priv->vbox),
                           new_column->priv->livesearch,
                           FALSE, FALSE, 0);
       hildon_live_search_widget_hook (HILDON_LIVE_SEARCH (new_column->priv->livesearch),
-                                      GTK_WIDGET (vbox),
+                                      GTK_WIDGET (new_column->priv->vbox),
                                       new_column->priv->tree_view);
       gtk_widget_hide (GTK_WIDGET (new_column->priv->livesearch));
     }
 
-    gtk_widget_show_all (vbox);
+    gtk_widget_show_all (new_column->priv->vbox);
 
     if (selector->priv->initial_scroll) {
       _hildon_touch_selector_center_on_selected_items (selector, new_column);
@@ -1776,7 +1777,7 @@ hildon_touch_selector_remove_column (HildonTouchSelector * selector, gint column
   priv = HILDON_TOUCH_SELECTOR_GET_PRIVATE (selector);
   current_column = g_slist_nth_data (priv->columns, column);
 
-  gtk_container_remove (GTK_CONTAINER (priv->hbox), current_column->priv->panarea);
+  gtk_container_remove (GTK_CONTAINER (priv->hbox), current_column->priv->vbox);
   priv->columns = g_slist_remove (priv->columns, current_column);
   g_object_unref (current_column);
 
