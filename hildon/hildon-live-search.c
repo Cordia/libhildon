@@ -953,8 +953,11 @@ hildon_live_search_set_visible_func             (HildonLiveSearch           *liv
 
     priv = livesearch->priv;
 
-    g_return_if_fail (priv->visible_func == NULL);
     g_return_if_fail (priv->text_column == -1);
+
+    if (priv->visible_destroy) {
+        priv->visible_destroy (priv->visible_data);
+    }
 
     priv->visible_func = func;
     priv->visible_data = data;
