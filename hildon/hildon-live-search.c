@@ -68,6 +68,7 @@ struct _HildonLiveSearchPrivate
     HildonLiveSearchVisibleFunc visible_func;
     gpointer visible_data;
     GDestroyNotify visible_destroy;
+    gboolean visible_func_set;
 };
 
 enum
@@ -568,6 +569,7 @@ hildon_live_search_init                         (HildonLiveSearch *self)
     priv->visible_func = NULL;
     priv->visible_data = NULL;
     priv->visible_destroy = NULL;
+    priv->visible_func_set = FALSE;
 
     priv->text_column = -1;
 
@@ -703,11 +705,13 @@ hildon_live_search_set_filter                   (HildonLiveSearch   *livesearch,
 
     priv->filter = filter;
 
-    if (priv->text_column != -1 || priv->visible_func) {
+    if (priv->visible_func_set == FALSE &&
+        (priv->text_column != -1 || priv->visible_func)) {
         gtk_tree_model_filter_set_visible_func (filter,
                                                 visible_func,
                                                 priv,
                                                 NULL);
+        priv->visible_func_set = TRUE;
     }
 
     g_object_notify (G_OBJECT (livesearch), "filter");
@@ -768,10 +772,13 @@ hildon_live_search_set_text_column              (HildonLiveSearch *livesearch,
 
     priv->text_column = text_column;
 
-    gtk_tree_model_filter_set_visible_func (priv->filter,
-                                            visible_func,
-                                            priv,
-                                            NULL);
+    if (priv->visible_func_set == FALSE) {
+        gtk_tree_model_filter_set_visible_func (priv->filter,
+                                                visible_func,
+                                                priv,
+                                                NULL);
+        priv->visible_func_set = TRUE;
+    }
 
     refilter (livesearch);
 }
@@ -963,8 +970,11 @@ hildon_live_search_set_visible_func             (HildonLiveSearch           *liv
     priv->visible_data = data;
     priv->visible_destroy = destroy;
 
-    gtk_tree_model_filter_set_visible_func (priv->filter,
-                                            visible_func,
-                                            priv,
-                                            NULL);
+    if (priv->visible_func_set == FALSE) {
+        gtk_tree_model_filter_set_visible_func (priv->filter,
+                                                visible_func,
+                                                priv,
+                                                NULL);
+        priv->visible_func_set = TRUE;
+    }
 }
