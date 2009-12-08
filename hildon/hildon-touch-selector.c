@@ -289,6 +289,10 @@ on_row_changed                                 (GtkTreeModel *model,
                                                 GtkTreePath *path,
                                                 GtkTreeIter *iter,
                                                 gpointer userdata);
+static void
+on_row_deleted                                 (GtkTreeModel *model,
+                                                GtkTreePath *path,
+                                                gpointer userdata);
 
 static void
 hildon_touch_selector_scroll_to (HildonTouchSelectorColumn *column,
@@ -573,6 +577,8 @@ clean_column                                    (HildonTouchSelectorColumn *col,
 {
   g_signal_handlers_disconnect_by_func (col->priv->model,
                                         on_row_changed, selector);
+  g_signal_handlers_disconnect_by_func (col->priv->model,
+                                        on_row_deleted, selector);
 
   if (col->priv->last_activated != NULL) {
     gtk_tree_row_reference_free (col->priv->last_activated);
@@ -852,6 +858,8 @@ _create_new_column (HildonTouchSelector * selector,
   gtk_tree_view_set_model (tv, filter);
   g_signal_connect (model, "row-changed",
                     G_CALLBACK (on_row_changed), selector);
+  g_signal_connect_after (model, "row-deleted",
+                          G_CALLBACK (on_row_deleted), selector);
   gtk_tree_view_set_rules_hint (tv, TRUE);
 
   gtk_tree_view_append_column (GTK_TREE_VIEW (tv), tree_column);
@@ -2412,6 +2420,38 @@ on_row_changed (GtkTreeModel *model,
 }
 
 static void
+on_row_deleted (GtkTreeModel *model,
+                GtkTreePath *path,
+                gpointer userdata)
+{
+  HildonTouchSelector *selector = HILDON_TOUCH_SELECTOR (userdata);
+  gint column = 0;
+  GSList *col = selector->priv->columns;
+
+  while (col != NULL) {
+    HildonTouchSelectorColumn *current_column;
+    current_column = HILDON_TOUCH_SELECTOR_COLUMN (col->data);
+    if (current_column->priv->model == model) {
+      GtkTreeSelection *sel = gtk_tree_view_get_selection (current_column->priv->tree_view);
+      if (gtk_tree_selection_get_mode (sel) == GTK_SELECTION_BROWSE &&
+          gtk_tree_model_iter_n_children (model, NULL) > 0 &&
+          gtk_tree_selection_count_selected_rows (sel) == 0) {
+        GtkTreeIter iter;
+        GtkTreePath *first;
+
+        gtk_tree_model_get_iter_first (current_column->priv->filter, &iter);
+        first = gtk_tree_model_get_path (current_column->priv->filter, &iter);
+        gtk_tree_selection_select_path (sel, first);
+        gtk_tree_path_free (first);
+      }
+      hildon_touch_selector_emit_value_changed (selector, column);
+    }
+    col = col->next;
+    column ++;
+  }
+}
+
+static void
 _hildon_touch_selector_set_model (HildonTouchSelector * selector,
                                   gint column, GtkTreeModel * model)
 {
@@ -2423,6 +2463,8 @@ _hildon_touch_selector_set_model (HildonTouchSelector * selector,
   if (current_column->priv->model) {
     g_signal_handlers_disconnect_by_func (current_column->priv->model,
                                           on_row_changed, selector);
+    g_signal_handlers_disconnect_by_func (current_column->priv->model,
+                                          on_row_deleted, selector);
     g_object_unref (current_column->priv->model);
   }
 
@@ -2438,6 +2480,8 @@ _hildon_touch_selector_set_model (HildonTouchSelector * selector,
 
   g_signal_connect (model, "row-changed",
                     G_CALLBACK (on_row_changed), selector);
+  g_signal_connect_after (model, "row-deleted",
+                          G_CALLBACK (on_row_deleted), selector);
 }
 
 /**
