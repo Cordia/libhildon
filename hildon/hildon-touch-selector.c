@@ -2168,12 +2168,15 @@ hildon_touch_selector_get_selected (HildonTouchSelector * selector,
     gtk_tree_view_get_selection (GTK_TREE_VIEW (current_column->priv->tree_view));
 
   result = gtk_tree_selection_get_selected (selection, NULL, &filter_iter);
-  if (result == TRUE) {
-    gtk_tree_model_filter_convert_iter_to_child_iter
-            (GTK_TREE_MODEL_FILTER (current_column->priv->filter),
-             iter, &filter_iter);
-  } else if (iter) {
-    memset (iter, 0, sizeof (GtkTreeIter));
+
+  if (iter) {
+    if (result == TRUE) {
+      gtk_tree_model_filter_convert_iter_to_child_iter
+        (GTK_TREE_MODEL_FILTER (current_column->priv->filter),
+         iter, &filter_iter);
+    } else {
+      memset (iter, 0, sizeof (GtkTreeIter));
+    }
   }
 
   return result;
