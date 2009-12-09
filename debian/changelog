@@ -1,3 +1,9 @@
+libhildon (2.3.0-1~unreleased) unstable; urgency=low
+
+  * bumped unreleased
+
+ -- Claudio Saavedra <csaavedra@igalia.com>  Wed, 09 Dec 2009 19:42:47 +0200
+
 libhildon (2.2.0-1~rc6) unstable; urgency=low
 
   * Fix a memory corruption in the fix for 137814.

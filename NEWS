@@ -1,3 +1,54 @@
+[2.3.0 release]
+
+  * Fixes: NB#149035 ("Never" is not deselected when selected other Repeat
+    option(like Mon or Tues or ...) in the edit alarm dialog)
+  * Fix a critical warning in HildonTouchSelector.
+  * Fixes: NB#149039 (controlpanel crashing in a scenario)
+  * Fixes: NB#148188 (The required #include directives are not documented
+    for Hildon)
+  * Fixes: MB#6268 (The required #include directives are not documented
+    for Hildon)
+  * Fixes: NB#147988 (Unable to act on 'Voip and IM accounts' dialog on a
+    certain scenario.)
+  * Improved string matching in the HildonTouchSelector live search.
+  * Improved HildonLiveSearch support in HildonTouchSelector.
+  * Better API for HildonLiveSearch.
+  * Fixes: NB#146250 (Documentation error in hildon-touch-selector.c)
+  * Fixes: NB#119708 (Text in 'Disconnect..." banner is not aligned
+    properly, when changed from portrait to lanscape mode.)
+  * Fixes: NB#134010 (Device not usable after opening the image from
+    external application when image viewer contains edited and unsaved
+    image)
+  * Fixes: NB#147342 (Done button of HildonPickerDialog doesn't work for
+    empty models)
+  * Fixes: NB#147341 (HildonTouchSelectorEntry crashes when a populated
+    model is attached)
+  * Fixes: NB#134010 (Device not usable after opening the image from
+    external application when image viewer contains edited and unsaved
+    image)
+  * Fixes: NB#142952 (Search support for lists)
+  * Fixes: NB#143759 (Setting the same selector twice to a picker button
+    ends with the selector destroyed)
+  * Several memory leak fixes.
+  * Fixes: NB#141240 (New API: hildon_gtk_window_enable_zoom_keys())
+  * Fixes: NB#135750 (Permanent XErrors while switching between windows
+    and task switcher)
+  * Fixes: NB#125548 (HildonProgram notify::is-topmost is not working
+    properly with stacks)
+  * Fixes: NB#140339 (Unnecessary wake-ups in application due to XAtoms)
+  * Fixes: NB#141140 (Rotation stops when banner is present)
+  * Fixes: NB#141367 (Reproducible browser crash)
+  * Fixes: NB#141447 (HildonBanner crashes if a new one is shown
+    during a delete event)
+  * Fixes: NB#134010 (Device not usable after opening the image from
+    external application when image viewer contains edited and unsaved
+    image)
+  * Fixes: NB#141831 (memory leak in hildon-touch-selector)
+  * Fixes: NB#138857 (hildon_gtk_window_take_screenshot doesn't take a
+    screenshot)
+  * Fixes: NB#140140 (Allow custom widgets to be used in banners)
+  * Fixes: NB#140186 (HildonPannableArea goes into an infinite loop)
+
 [2.2.0 release]
 
   * Fixes: NB#132584 (Pannable kinetics in large lists needs tuning)
