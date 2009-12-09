@@ -2257,14 +2257,18 @@ void hildon_touch_selector_unselect_iter (HildonTouchSelector * selector,
 {
   HildonTouchSelectorColumn *current_column = NULL;
   GtkTreeSelection *selection = NULL;
+  GtkTreeIter filter_iter;
 
   g_return_if_fail (HILDON_IS_TOUCH_SELECTOR (selector));
   g_return_if_fail (column < hildon_touch_selector_get_num_columns (selector));
 
   current_column = g_slist_nth_data (selector->priv->columns, column);
   selection = gtk_tree_view_get_selection (current_column->priv->tree_view);
-  gtk_tree_selection_unselect_iter (selection, iter);
+  if (gtk_tree_model_filter_convert_child_iter_to_iter (GTK_TREE_MODEL_FILTER (current_column->priv->filter),
+                                                        &filter_iter, iter) == FALSE)
+    return;
 
+  gtk_tree_selection_unselect_iter (selection, &filter_iter);
   hildon_touch_selector_emit_value_changed (selector, column);
 }
 
