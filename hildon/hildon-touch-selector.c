@@ -1695,7 +1695,6 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
       hildon_live_search_widget_hook (HILDON_LIVE_SEARCH (new_column->priv->livesearch),
                                       GTK_WIDGET (new_column->priv->vbox),
                                       new_column->priv->tree_view);
-      gtk_widget_hide (GTK_WIDGET (new_column->priv->livesearch));
     }
 
     gtk_widget_show_all (new_column->priv->vbox);
