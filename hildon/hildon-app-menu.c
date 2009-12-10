@@ -503,7 +503,7 @@ hildon_app_menu_find_intruder                   (gpointer data)
 
     priv->find_intruder_idle_id = 0;
 
-    /* If there's a window between the menu and its parent window, hide the menu */
+    /* If there's a modal window between the menu and its parent window, hide the menu */
     if (priv->parent_window) {
         gboolean intruder_found = FALSE;
         GdkScreen *screen = gtk_widget_get_screen (widget);
@@ -521,8 +521,8 @@ hildon_app_menu_find_intruder                   (gpointer data)
                      * Yes, this is a hack. See NB#111027 */
                     if (HILDON_IS_BANNER (i->data)) {
                         gtk_widget_hide (i->data);
-                    } else if (!HILDON_IS_ANIMATION_ACTOR (i->data)) {
-                        intruder_found = TRUE;
+                    } else if (GTK_IS_WINDOW (i->data)) {
+                        intruder_found = gtk_window_get_modal (i->data);
                     }
                 }
             }
@@ -547,7 +547,9 @@ hildon_app_menu_map                             (GtkWidget *widget)
     GTK_WIDGET_CLASS (hildon_app_menu_parent_class)->map (widget);
 
     if (priv->find_intruder_idle_id == 0)
-        priv->find_intruder_idle_id = gdk_threads_add_idle (hildon_app_menu_find_intruder, widget);
+        priv->find_intruder_idle_id = gdk_threads_add_timeout_full (
+            G_PRIORITY_DEFAULT_IDLE, 100, hildon_app_menu_find_intruder,
+            g_object_ref (widget), g_object_unref);
 }
 
 static void
