@@ -181,12 +181,9 @@ AM_CONDITIONAL(BUILD_TESTS, test "x$BUILD_TESTS" = "xyes")
 CFLAGS="$CFLAGS ${ASSERT_CFLAGS} -Wall -Wmissing-prototypes -Wmissing-declarations -Wno-format ${FATAL_CFLAGS}"
 # -Wno-format due to way translation string are done
 
-### disable deprecated symbols
-EXTRA_CFLAGS="$DISABLE_DEPRECATED"
+### disable deprecated symbols and enable MAEMO platform extensions
+EXTRA_CFLAGS="$DISABLE_DEPRECATED $MAEMO_CHANGES $MAEMO_GTK"
 AC_SUBST(EXTRA_CFLAGS)
-
-### enable MAEMO platform extensions
-CFLAGS="$CFLAGS $MAEMO_CHANGES $MAEMO_GTK"
 
 # HILDON_OBJ_*
 # default vars for the examples
