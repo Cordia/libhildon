@@ -594,7 +594,7 @@ hildon_live_search_init                         (HildonLiveSearch *self)
                         HILDON_MARGIN_DEFAULT);
 
     gtk_toolbar_insert (GTK_TOOLBAR (self), entry_container, 0);
-    gtk_widget_show_all (entry_container);
+    gtk_widget_show_all (GTK_WIDGET (entry_container));
 
     close = gtk_image_new_from_icon_name ("general_close",
                                           HILDON_ICON_SIZE_FINGER);
@@ -614,7 +614,7 @@ hildon_live_search_init                         (HildonLiveSearch *self)
                        close_button_alignment);
 
     gtk_toolbar_insert (GTK_TOOLBAR (self), close_button_container, -1);
-    gtk_widget_show_all (close_button_container);
+    gtk_widget_show_all (GTK_WIDGET (close_button_container));
 
     g_signal_connect (G_OBJECT (close_button), "clicked",
                       G_CALLBACK (close_button_clicked_cb), self);

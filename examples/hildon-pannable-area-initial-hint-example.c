@@ -76,7 +76,7 @@ create_content ()
 #ifdef MAEMO_GTK
   tv = hildon_gtk_tree_view_new (HILDON_UI_MODE_NORMAL);
 #else
-  tv = GTK_TREE_VIEW (gtk_tree_view_new ());
+  tv = gtk_tree_view_new ();
 #endif /* MAEMO_GTK */
 
   renderer = gtk_cell_renderer_text_new ();
