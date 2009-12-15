@@ -891,8 +891,6 @@ _create_new_column (HildonTouchSelector * selector,
     *emit_changed = TRUE;
   }
 
-  gtk_widget_grab_focus (GTK_WIDGET (tv));
-
   /* connect to the hildon-row-tapped signal connection */
   g_signal_connect (G_OBJECT (tv), "hildon-row-tapped",
                     G_CALLBACK (_row_tapped_cb), new_column);
@@ -1698,6 +1696,9 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
     }
 
     gtk_widget_show_all (new_column->priv->vbox);
+
+    gtk_widget_child_focus (GTK_WIDGET (selector),
+                            GTK_DIR_TAB_FORWARD);
 
     if (selector->priv->initial_scroll) {
       _hildon_touch_selector_center_on_selected_items (selector, new_column);
