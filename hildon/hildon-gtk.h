@@ -103,7 +103,7 @@ void
 hildon_gtk_window_take_screenshot               (GtkWindow *window,
                                                  gboolean   take);
 void
-hildon_gtk_window_take_screenshot_then_wait     (GtkWindow *window,
+hildon_gtk_window_take_screenshot_sync          (GtkWindow *window,
                                                  gboolean   take);
 
 void

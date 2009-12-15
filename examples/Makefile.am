@@ -42,7 +42,7 @@ EXAMPLES				= hildon-window-example				\
 					  hildon-touch-selector-entry-example           \
 					  hildon-progress-indicator-example		\
 					  hildon-remote-texture-example			\
-					  hildon-gtk-window-take-screenshot-then-wait-example
+					  hildon-gtk-window-take-screenshot-sync
 if USE_MAEMO_GTK
 MAEMO_GTK_EXAMPLES                      = hildon-pannable-area-touch-list-example	\
 					  hildon-pannable-area-touch-grid-example
@@ -484,9 +484,9 @@ hildon_remote_texture_example_CFLAGS		= $(HILDON_OBJ_CFLAGS)			\
 hildon_remote_texture_example_SOURCES		= hildon-remote-texture-example.c
 
 # Hildon remote texture
-hildon_gtk_window_take_screenshot_then_wait_example_LDADD	        = $(HILDON_OBJ_LIBS)
-hildon_gtk_window_take_screenshot_then_wait_example_CFLAGS		= $(HILDON_OBJ_CFLAGS)			\
+hildon_gtk_window_take_screenshot_sync_LDADD	        = $(HILDON_OBJ_LIBS)
+hildon_gtk_window_take_screenshot_sync_CFLAGS		= $(HILDON_OBJ_CFLAGS)			\
 					          $(EXTRA_CFLAGS)
-hildon_gtk_window_take_screenshot_then_wait_example_SOURCES		= hildon-gtk-window-take-screenshot-then-wait-example.c
+hildon_gtk_window_take_screenshot_sync_SOURCES		= hildon-gtk-window-take-screenshot-sync.c
 
 endif

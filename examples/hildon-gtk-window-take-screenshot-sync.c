@@ -21,10 +21,10 @@ static unsigned cntfiles(char const *path)
 
 static gboolean cb(gpointer win)
 {
-  extern void hildon_gtk_window_take_screenshot_then_wait(
+  extern void hildon_gtk_window_take_screenshot_sync (
                                       GtkWindow *window, gboolean take);
   void (*fun)(GtkWindow *, gboolean) = Block
-    ? hildon_gtk_window_take_screenshot_then_wait
+    ? hildon_gtk_window_take_screenshot_sync
     : hildon_gtk_window_take_screenshot;
 
   g_warning("CREATE: %u", cntfiles("/home/user/.cache/launch"));

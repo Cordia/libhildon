@@ -516,18 +516,18 @@ screenshot_done (Display *dpy, const XEvent *event, GtkWindow *window)
 }
 
 /**
- * hildon_gtk_window_take_screenshot_and_wait:
+ * hildon_gtk_window_take_screenshot_sync:
  * @window: a #GtkWindow
  * @take: %TRUE to take a screenshot, %FALSE to destroy the existing one.
  *
- * Like hildon_gtk_window_take_screenshot_and_wait() but blocks until the
+ * Like hildon_gtk_window_take_screenshot() but blocks until the
  * operation is complete.
  *
- * Since: 2.2
+ * Since: 2.2.9
  *
  **/
 void
-hildon_gtk_window_take_screenshot_then_wait     (GtkWindow *window,
+hildon_gtk_window_take_screenshot_sync          (GtkWindow *window,
                                                  gboolean   take)
 {
   XEvent foo;
