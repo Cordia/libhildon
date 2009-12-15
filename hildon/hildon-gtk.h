@@ -102,6 +102,9 @@ hildon_gtk_window_set_portrait_flags            (GtkWindow           *window,
 void
 hildon_gtk_window_take_screenshot               (GtkWindow *window,
                                                  gboolean   take);
+void
+hildon_gtk_window_take_screenshot_then_wait     (GtkWindow *window,
+                                                 gboolean   take);
 
 void
 hildon_gtk_window_enable_zoom_keys              (GtkWindow *window,

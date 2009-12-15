@@ -503,6 +503,41 @@ hildon_gtk_window_take_screenshot               (GtkWindow *window,
     XSync (xev.xclient.display, False);
 }
 
+/* XIfEvent() predicate to check for a reply to a
+ * _HILDON_LOADING_SCREENSHOT command. */
+static Bool
+screenshot_done (Display *dpy, const XEvent *event, GtkWindow *window)
+{
+  return event->type == ClientMessage
+    && event->xclient.message_type == XInternAtom (dpy,
+                                           "_HILDON_LOADING_SCREENSHOT",
+                                           False)
+    && event->xclient.window == GDK_WINDOW_XID (GTK_WIDGET (window)->window);
+}
+
+/**
+ * hildon_gtk_window_take_screenshot_and_wait:
+ * @window: a #GtkWindow
+ * @take: %TRUE to take a screenshot, %FALSE to destroy the existing one.
+ *
+ * Like hildon_gtk_window_take_screenshot_and_wait() but blocks until the
+ * operation is complete.
+ *
+ * Since: 2.2
+ *
+ **/
+void
+hildon_gtk_window_take_screenshot_then_wait     (GtkWindow *window,
+                                                 gboolean   take)
+{
+  XEvent foo;
+  GdkWindow *win;
+
+  win = GTK_WIDGET (window)->window;
+  hildon_gtk_window_take_screenshot (window, take);
+  XIfEvent (GDK_DISPLAY_XDISPLAY (gtk_widget_get_display (GTK_WIDGET (window))),
+            &foo, (void *)screenshot_done, (XPointer)window);
+}
 
 /**
  * hildon_gtk_hscale_new:
