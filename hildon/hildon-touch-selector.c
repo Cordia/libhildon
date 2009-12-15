@@ -781,18 +781,20 @@ hildon_touch_selector_row_activated_cb          (GtkTreeView       *tree_view,
                                                  gpointer           user_data)
 {
   HildonTouchSelectorColumn *selector_column = NULL;
-  GtkTreeModel *model = NULL;
+  GtkTreePath *child_path;
 
   g_return_if_fail (HILDON_IS_TOUCH_SELECTOR_COLUMN (user_data));
   selector_column = HILDON_TOUCH_SELECTOR_COLUMN (user_data);
-
-  model = selector_column->priv->model;
 
   if (selector_column->priv->last_activated != NULL) {
     gtk_tree_row_reference_free (selector_column->priv->last_activated);
   }
 
-  selector_column->priv->last_activated = gtk_tree_row_reference_new (model, path);
+  child_path = gtk_tree_model_filter_convert_path_to_child_path (GTK_TREE_MODEL_FILTER (selector_column->priv->filter),
+                                                                 path);
+  selector_column->priv->last_activated = gtk_tree_row_reference_new (selector_column->priv->model,
+                                                                      child_path);
+  gtk_tree_path_free (child_path);
 }
 
 static void
