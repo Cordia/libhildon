@@ -1602,6 +1602,43 @@ hildon_touch_selector_insert_text (HildonTouchSelector * selector,
                                      NULL, position, 0, text, -1);
 }
 
+static void
+hildon_touch_selector_add_live_search (HildonTouchSelector *selector,
+                                       HildonTouchSelectorColumn *column)
+{
+  if (column->priv->livesearch == NULL) {
+    column->priv->livesearch = hildon_live_search_new ();
+    hildon_live_search_set_filter (HILDON_LIVE_SEARCH (column->priv->livesearch),
+                                   GTK_TREE_MODEL_FILTER (column->priv->filter));
+    g_signal_connect (column->priv->livesearch, "refilter",
+                      G_CALLBACK (on_live_search_refilter), selector);
+    gtk_box_pack_start (GTK_BOX (column->priv->vbox),
+                        column->priv->livesearch,
+                        FALSE, FALSE, 0);
+    hildon_live_search_widget_hook (HILDON_LIVE_SEARCH (column->priv->livesearch),
+                                    GTK_WIDGET (column->priv->vbox),
+                                    column->priv->tree_view);
+  }
+}
+
+static void
+hildon_touch_selector_remove_live_search (HildonTouchSelector *selector)
+{
+  HildonTouchSelectorColumn *col;
+
+  if (selector->priv->has_live_search == FALSE)
+    return;
+
+  col = (HildonTouchSelectorColumn *) selector->priv->columns->data;
+
+  if (col->priv->livesearch != NULL) {
+    hildon_live_search_widget_unhook (HILDON_LIVE_SEARCH (col->priv->livesearch));
+    gtk_widget_destroy (col->priv->livesearch);
+  }
+
+  selector->priv->has_live_search = FALSE;
+}
+
 /**
  * hildon_touch_selector_append_column
  * @selector: a #HildonTouchSelector
@@ -1666,10 +1703,7 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
     if (selector->priv->has_live_search &&
         selector->priv->columns != NULL &&
         selector->priv->columns->next == NULL) {
-      selector->priv->has_live_search = FALSE;
-      HildonTouchSelectorColumn *col = (HildonTouchSelectorColumn *) selector->priv->columns->data;
-      hildon_live_search_widget_unhook (HILDON_LIVE_SEARCH (col->priv->livesearch));
-      gtk_widget_destroy (col->priv->livesearch);
+	    hildon_touch_selector_remove_live_search (selector);
     }
 
     selector->priv->columns = g_slist_append (selector->priv->columns,
@@ -1684,17 +1718,7 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
                         TRUE, TRUE, 6);
 
     if (selector->priv->has_live_search) {
-      new_column->priv->livesearch = hildon_live_search_new ();
-      hildon_live_search_set_filter (HILDON_LIVE_SEARCH (new_column->priv->livesearch),
-                                     GTK_TREE_MODEL_FILTER (new_column->priv->filter));
-      g_signal_connect (new_column->priv->livesearch, "refilter",
-                        G_CALLBACK (on_live_search_refilter), selector);
-      gtk_box_pack_start (GTK_BOX (new_column->priv->vbox),
-                          new_column->priv->livesearch,
-                          FALSE, FALSE, 0);
-      hildon_live_search_widget_hook (HILDON_LIVE_SEARCH (new_column->priv->livesearch),
-                                      GTK_WIDGET (new_column->priv->vbox),
-                                      new_column->priv->tree_view);
+      hildon_touch_selector_add_live_search (selector, new_column);
     }
 
     gtk_widget_show_all (new_column->priv->vbox);
