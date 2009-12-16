@@ -145,6 +145,10 @@ _clean_current_selection                        (HildonPickerDialog *dialog);
 static guint
 hildon_picker_dialog_get_max_height             (HildonPickerDialog *dialog);
 
+static void
+on_done_button_clicked_cb                       (GtkButton *button,
+                                                 gpointer data);
+
 /**********************************************************************************/
 
 static void
@@ -251,6 +255,10 @@ hildon_picker_dialog_init (HildonPickerDialog * dialog)
   g_signal_connect (G_OBJECT (dialog),
                     "response", G_CALLBACK (_on_dialog_response),
                     NULL);
+
+  g_signal_connect (G_OBJECT (dialog->priv->button),
+                    "clicked", G_CALLBACK (on_done_button_clicked_cb),
+                    dialog);
 }
 
 
@@ -408,6 +416,28 @@ _select_on_selector_changed_cb (HildonTouchSelector * selector,
 
   gtk_dialog_response (GTK_DIALOG (data), GTK_RESPONSE_OK);
 }
+
+static void
+on_done_button_clicked_cb                       (GtkButton *button,
+                                                 gpointer data)
+{
+  HildonPickerDialog *dialog = NULL;
+  HildonTouchSelector *selector = NULL;
+  HildonEntry *entry = NULL;
+
+  g_return_if_fail (HILDON_IS_PICKER_DIALOG (data));
+
+  dialog = HILDON_PICKER_DIALOG (data);
+  selector = hildon_picker_dialog_get_selector (dialog);
+
+  if (HILDON_IS_TOUCH_SELECTOR_ENTRY (selector)) {
+    entry = hildon_touch_selector_entry_get_entry (HILDON_TOUCH_SELECTOR_ENTRY (selector));
+
+    gtk_editable_select_region (GTK_EDITABLE (entry), 0, -1);
+    gtk_widget_grab_focus (GTK_WIDGET (entry));
+  }
+}
+
 
 static gboolean
 selection_completed (HildonPickerDialog *dialog)
