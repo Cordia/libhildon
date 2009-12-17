@@ -463,7 +463,7 @@ hildon_touch_selector_class_init (HildonTouchSelectorClass * class)
                                                          "Whether the widget should have built-in"
                                                          "live search capabilities",
                                                          TRUE,
-                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
   /* style properties */
   /* We need to ensure fremantle mode for the treeview in order to work
@@ -494,6 +494,10 @@ hildon_touch_selector_get_property (GObject * object,
   case PROP_HILDON_UI_MODE:
     g_value_set_enum (value, priv->hildon_ui_mode);
     break;
+  case PROP_LIVE_SEARCH:
+    g_value_set_boolean (value,
+                         hildon_touch_selector_get_live_search (HILDON_TOUCH_SELECTOR (object)));
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     break;
@@ -515,7 +519,8 @@ hildon_touch_selector_set_property (GObject *object, guint prop_id,
                                               g_value_get_enum (value));
     break;
   case PROP_LIVE_SEARCH:
-    priv->has_live_search = g_value_get_boolean (value);
+    hildon_touch_selector_set_live_search (HILDON_TOUCH_SELECTOR (object),
+                                           g_value_get_boolean (value));
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1607,6 +1612,8 @@ hildon_touch_selector_add_live_search (HildonTouchSelector *selector,
                                        HildonTouchSelectorColumn *column)
 {
   if (column->priv->livesearch == NULL) {
+    gint text_column;
+
     column->priv->livesearch = hildon_live_search_new ();
     hildon_live_search_set_filter (HILDON_LIVE_SEARCH (column->priv->livesearch),
                                    GTK_TREE_MODEL_FILTER (column->priv->filter));
@@ -1618,6 +1625,13 @@ hildon_touch_selector_add_live_search (HildonTouchSelector *selector,
     hildon_live_search_widget_hook (HILDON_LIVE_SEARCH (column->priv->livesearch),
                                     GTK_WIDGET (column->priv->vbox),
                                     column->priv->tree_view);
+    text_column = hildon_touch_selector_column_get_text_column (column);
+    if (text_column > -1) {
+      hildon_live_search_set_visible_func (HILDON_LIVE_SEARCH (column->priv->livesearch),
+                                           hildon_live_search_visible_func,
+                                           column,
+                                           NULL);
+    }
   }
 }
 
@@ -1626,7 +1640,8 @@ hildon_touch_selector_remove_live_search (HildonTouchSelector *selector)
 {
   HildonTouchSelectorColumn *col;
 
-  if (selector->priv->has_live_search == FALSE)
+  if (selector->priv->has_live_search == FALSE ||
+      selector->priv->columns == NULL)
     return;
 
   col = (HildonTouchSelectorColumn *) selector->priv->columns->data;
@@ -1634,6 +1649,7 @@ hildon_touch_selector_remove_live_search (HildonTouchSelector *selector)
   if (col->priv->livesearch != NULL) {
     hildon_live_search_widget_unhook (HILDON_LIVE_SEARCH (col->priv->livesearch));
     gtk_widget_destroy (col->priv->livesearch);
+    col->priv->livesearch = NULL;
   }
 
   selector->priv->has_live_search = FALSE;
@@ -3043,4 +3059,83 @@ hildon_touch_selector_center_on_index (HildonTouchSelector *selector,
                                    current_column->priv->tree_view,
                                    path);
   gtk_tree_path_free (path);
+}
+
+/**
+ * hildon_touch_selector_set_live_search:
+ * @selector: a #HildonTouchSelector
+ * @live_search: whether @selector should have live search capabilities
+ *
+ * Toggles a #HildonLiveSearch widget in @selector. This is enabled by
+ * default in #HildonTouchSelector but disabled for some of its
+ * subclasses like #HildonTouchSelectorEntry, #HildonDateSelector, and
+ * #HildonTimeSelector.  For the former, #HildonLiveSearch makes no
+ * sense. In a multi-column #HildonTouchSelector, #HildonLiveSearch
+ * is not supported, so don't try to enable it in one.
+ *
+ * If more columns are added to @selector, the #HildonLiveSearch
+ * will be removed and the property set to %FALSE.
+ *
+ * Since: 2.2.10
+ **/
+void
+hildon_touch_selector_set_live_search (HildonTouchSelector *selector,
+                                       gboolean live_search)
+{
+  HildonTouchSelectorColumn *col;
+
+  g_return_if_fail (HILDON_IS_TOUCH_SELECTOR (selector));
+
+  if (selector->priv->has_live_search == live_search)
+    return;
+
+  if (live_search) {
+    if (selector->priv->columns &&
+        selector->priv->columns->next == NULL) {
+      /* There is one and only one column already.  */
+      col = (HildonTouchSelectorColumn *) selector->priv->columns->data;
+      /* There is already a livesearch widget. Let's hook it up.  */
+      if (col->priv->livesearch) {
+        hildon_live_search_widget_hook (HILDON_LIVE_SEARCH (col->priv->livesearch),
+                                        GTK_WIDGET (col->priv->vbox),
+                                        col->priv->tree_view);
+      } else {
+        /* There is no livesearch widget yet. Create one.  */
+        hildon_touch_selector_add_live_search (selector, col);
+      }
+    } else if (selector->priv->columns &&
+               selector->priv->columns->next != NULL) {
+      g_critical ("Trying to set HildonTouchSelector::live-search to TRUE "
+                  "in a HildonTouchSelector instance with more than one column.");
+      return;
+    }
+  } else {
+    if (selector->priv->columns &&
+        selector->priv->columns->next == NULL) {
+        col = (HildonTouchSelectorColumn *) selector->priv->columns->data;
+        gtk_widget_hide (col->priv->livesearch);
+        hildon_live_search_widget_unhook (HILDON_LIVE_SEARCH (col->priv->livesearch));
+    }
+  }
+
+  selector->priv->has_live_search = live_search;
+}
+
+/**
+ * hildon_touch_selector_get_live_search:
+ * @selector: a #HildonTouchSelector
+ *
+ * Whether @selector has an embedded #HildonLiveSearch widget
+ *
+ * Returns: %TRUE if there is a #HildonLiveSearch in @selector, %FALSE
+ * otherwise
+ *
+ * Since: 2.2.10
+ **/
+gboolean
+hildon_touch_selector_get_live_search (HildonTouchSelector *selector)
+{
+  g_return_val_if_fail (HILDON_IS_TOUCH_SELECTOR (selector), FALSE);
+
+  return selector->priv->has_live_search;
 }

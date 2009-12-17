@@ -232,6 +232,12 @@ hildon_touch_selector_set_hildon_ui_mode        (HildonTouchSelector *selector,
 GtkTreePath*
 hildon_touch_selector_get_last_activated_row    (HildonTouchSelector *selector,
                                                  gint                 column);
+void
+hildon_touch_selector_set_live_search           (HildonTouchSelector *selector,
+                                                 gboolean live_search);
+
+gboolean
+hildon_touch_selector_get_live_search           (HildonTouchSelector *selector);
 
 G_END_DECLS
 
