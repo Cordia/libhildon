@@ -2113,7 +2113,7 @@ hildon_touch_selector_set_active                (HildonTouchSelector *selector,
   GtkTreeSelection *selection = NULL;
   HildonTouchSelectorColumn *current_column = NULL;
   HildonTouchSelectorSelectionMode mode;
-  GtkTreePath *path;
+  GtkTreePath *path, *filter_path;
 
   g_return_if_fail (HILDON_IS_TOUCH_SELECTOR (selector));
   g_return_if_fail (column < hildon_touch_selector_get_num_columns (selector));
@@ -2124,12 +2124,17 @@ hildon_touch_selector_set_active                (HildonTouchSelector *selector,
 
   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (current_column->priv->tree_view));
   path = gtk_tree_path_new_from_indices (index, -1);
-  gtk_tree_selection_unselect_all (selection);
-  if (index != -1)
-    gtk_tree_selection_select_path (selection, path);
+  filter_path = gtk_tree_model_filter_convert_child_path_to_path (
+      GTK_TREE_MODEL_FILTER (current_column->priv->filter), path);
 
-  hildon_touch_selector_emit_value_changed (selector, column);
+  if (filter_path != NULL) {
+      gtk_tree_selection_unselect_all (selection);
+      if (index != -1)
+          gtk_tree_selection_select_path (selection, filter_path);
 
+      hildon_touch_selector_emit_value_changed (selector, column);
+      gtk_tree_path_free (filter_path);
+  }
   gtk_tree_path_free (path);
 }
 
