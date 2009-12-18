@@ -134,6 +134,9 @@ hildon_live_search_set_visible_func              (HildonLiveSearch           *li
                                                   gpointer                    data,
                                                   GDestroyNotify              destroy);
 
+void
+hildon_live_search_clean_selection_map           (HildonLiveSearch * livesearch);
+
 G_END_DECLS
 
 #endif                                          /* __HILDON_LIVE_SEARCH__ */

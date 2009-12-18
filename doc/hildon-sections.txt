@@ -969,6 +969,7 @@ hildon_live_search_set_visible_func
 hildon_live_search_set_text_column
 hildon_live_search_widget_hook
 hildon_live_search_widget_unhook
+hildon_live_search_clean_selection_map
 <SUBSECTION Standard>
 HildonLiveSearchClass
 HildonLiveSearchPrivate

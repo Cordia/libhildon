@@ -979,3 +979,31 @@ hildon_live_search_set_visible_func             (HildonLiveSearch           *liv
         priv->visible_func_set = TRUE;
     }
 }
+
+/**
+ * hildon_live_search_clean_selection_map:
+ * @livesearch: a #HildonLiveSearch
+ *
+ * Cleans the selection map maintained by
+ * @livesearch. #HildonLiveSearch maintains internally a selection
+ * map, to make sure that selection is invariant to filtering.
+ *
+ * In some cases, you might want to clean this selection mapping, to
+ * ensure that after removing the entered text from @livesearch, the
+ * selection is not restored. This is useful in particular when you
+ * are using @livesearch with a #GtkTreeModel in a #GtkTreeView with
+ * #GtkSelectionMode set to %GTK_SELECTION_SINGLE.
+ *
+ * Since: 2.2.10
+ **/
+void
+hildon_live_search_clean_selection_map (HildonLiveSearch * livesearch)
+{
+    g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
+
+    if (livesearch->priv->selection_map) {
+        selection_map_destroy (livesearch->priv);
+        selection_map_create (livesearch->priv);
+        selection_map_update_map_from_selection (livesearch->priv);
+    }
+}
