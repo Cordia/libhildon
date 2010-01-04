@@ -2123,14 +2123,20 @@ hildon_touch_selector_set_active                (HildonTouchSelector *selector,
   current_column = g_slist_nth_data (selector->priv->columns, column);
 
   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (current_column->priv->tree_view));
+
+  if (index == -1) {
+      gtk_tree_selection_unselect_all (selection);
+      hildon_touch_selector_emit_value_changed (selector, column);
+      return;
+  }
+
   path = gtk_tree_path_new_from_indices (index, -1);
   filter_path = gtk_tree_model_filter_convert_child_path_to_path (
       GTK_TREE_MODEL_FILTER (current_column->priv->filter), path);
 
   if (filter_path != NULL) {
       gtk_tree_selection_unselect_all (selection);
-      if (index != -1)
-          gtk_tree_selection_select_path (selection, filter_path);
+      gtk_tree_selection_select_path (selection, filter_path);
 
       hildon_touch_selector_emit_value_changed (selector, column);
       gtk_tree_path_free (filter_path);
