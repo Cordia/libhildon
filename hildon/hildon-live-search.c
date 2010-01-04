@@ -367,6 +367,7 @@ on_key_press_event                              (GtkWidget        *widget,
 {
     HildonLiveSearchPrivate *priv;
     GdkEvent *new_event;
+    gboolean handled;
 
     g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (live_search), FALSE);
     priv = live_search->priv;
@@ -377,10 +378,10 @@ on_key_press_event                              (GtkWidget        *widget,
     gtk_widget_grab_focus (priv->entry);
 
     new_event = gdk_event_copy ((GdkEvent *)event);
-    gtk_widget_event (priv->entry, new_event);
+    handled = gtk_widget_event (priv->entry, new_event);
     gdk_event_free (new_event);
 
-    return TRUE;
+    return handled;
 }
 
 static void
