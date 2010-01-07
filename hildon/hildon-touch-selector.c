@@ -2008,9 +2008,10 @@ hildon_touch_selector_set_column_selection_mode (HildonTouchSelector * selector,
     gtk_tree_selection_set_mode (selection, treeview_mode);
 
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv));
-    gtk_tree_model_get_iter_first (column->priv->filter, &iter);
     gtk_tree_selection_unselect_all (selection);
-    gtk_tree_selection_select_iter (selection, &iter);
+    if (gtk_tree_model_get_iter_first (column->priv->filter, &iter)) {
+        gtk_tree_selection_select_iter (selection, &iter);
+    }
 
     /* the column changed was the first one */
     hildon_touch_selector_emit_value_changed (selector, 0);
