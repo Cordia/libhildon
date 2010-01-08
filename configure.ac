@@ -240,6 +240,7 @@ Configuration:
 - gtk-doc support....: ${enable_gtk_doc}
 - Build examples.....: ${BUILD_EXAMPLES}
 - Build with asserts.: ${BUILD_WITH_ASSERTS}
+- Build with debug...: ${BUILD_WITH_DEBUG}
 - Build unit tests...: ${BUILD_TESTS}
 - Fatal warnings.....: ${BUILD_WITH_FATAL}
 
