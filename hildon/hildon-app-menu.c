@@ -880,7 +880,10 @@ hildon_app_menu_popup                           (HildonAppMenu *menu,
     g_return_if_fail (GTK_IS_WINDOW (parent_window));
 
     if (hildon_app_menu_has_visible_children (menu)) {
+        GtkWindowGroup *group;
         hildon_app_menu_set_parent_window (menu, parent_window);
+        group = gtk_window_get_group (parent_window);
+        gtk_window_group_add_window (group, GTK_WINDOW (menu));
         gtk_widget_show (GTK_WIDGET (menu));
     }
 
