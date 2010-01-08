@@ -2103,6 +2103,9 @@ hildon_window_set_app_menu                      (HildonWindow  *self,
     g_return_if_fail (!menu || HILDON_IS_APP_MENU (menu));
     priv = HILDON_WINDOW_GET_PRIVATE (self);
 
+    if (menu == priv->app_menu)
+        return;
+
     old_menu = priv->app_menu;
 
     /* Add new menu */
