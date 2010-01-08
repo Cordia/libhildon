@@ -142,6 +142,26 @@ else
     ASSERT_CFLAGS="-DG_DISABLE_ASSERT"
 fi
 
+# build with debug (or not)
+AC_ARG_ENABLE(debug,
+    AC_HELP_STRING([--enable-debug], [turn on debugging]),
+    [
+     case "${enableval}" in
+         yes) BUILD_WITH_DEBUG=yes ;;
+         no)  BUILD_WITH_DEBUG=no ;;
+         *)   AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+     esac],
+     [BUILD_WITH_DEBUG=no])
+
+# just print out our status
+if test x$BUILD_WITH_DEBUG = xyes; then
+    AC_MSG_NOTICE(Will build with debugging info)
+    DEBUG_CFLAGS=""
+else
+    AC_MSG_NOTICE(Will not build with debugging info)
+    DEBUG_CFLAGS="-DG_DISABLE_CAST_CHECKS"
+fi
+
 # build with relaxed flags or not
 AC_ARG_ENABLE(fatal, 
     AC_HELP_STRING([--enable-fatal], [Build with fatal warnings]),
@@ -178,7 +198,7 @@ AM_CONDITIONAL([HILDON_DISABLE_DEPRECATED], test "x$enable_deprecated" = "xno")
 PKG_CHECK_MODULES(CHECK, check , [BUILD_TESTS="yes"], [BUILD_TESTS="no"])
 AM_CONDITIONAL(BUILD_TESTS, test "x$BUILD_TESTS" = "xyes")
 
-CFLAGS="$CFLAGS ${ASSERT_CFLAGS} -Wall -Wmissing-prototypes -Wmissing-declarations -Wno-format ${FATAL_CFLAGS}"
+CFLAGS="$CFLAGS ${ASSERT_CFLAGS} ${DEBUG_CFLAGS} -Wall -Wmissing-prototypes -Wmissing-declarations -Wno-format ${FATAL_CFLAGS}"
 # -Wno-format due to way translation string are done
 
 ### disable deprecated symbols and enable MAEMO platform extensions
