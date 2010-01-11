@@ -52,7 +52,7 @@ struct _HildonLiveSearchPrivate
 {
     GtkTreeModelFilter *filter;
 
-    GtkTreeView *treeview;
+    GtkWidget *kb_focus_widget;
 
     GtkWidget *entry;
     GtkWidget *event_widget;
@@ -60,7 +60,7 @@ struct _HildonLiveSearchPrivate
 
     gulong key_press_id;
     gulong event_widget_destroy_id;
-    gulong treeview_destroy_id;
+    gulong kb_focus_widget_destroy_id;
 
     gchar *prefix;
     gint text_column;
@@ -135,7 +135,7 @@ refilter (HildonLiveSearch *livesearch)
  * @priv: The private pimpl
  *
  * Adds a selection map which is useful when merging selected rows in
- * the treeview, when the live search widget is used.
+ * a treeview, when the live search widget is used.
  **/
 static void
 selection_map_create                            (HildonLiveSearchPrivate *priv)
@@ -192,7 +192,7 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
     GtkTreeIter iter;
 
     base_model = gtk_tree_model_filter_get_model (priv->filter);
-    selection = gtk_tree_view_get_selection (priv->treeview);
+    selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
     for (working = gtk_tree_model_get_iter_first (base_model, &iter);
          working;
@@ -237,7 +237,7 @@ selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
     GtkTreeIter iter;
 
     base_model = gtk_tree_model_filter_get_model (priv->filter);
-    selection = gtk_tree_view_get_selection (priv->treeview);
+    selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
     for (working = gtk_tree_model_get_iter_first (base_model, &iter);
          working;
@@ -287,18 +287,24 @@ on_entry_changed                                (GtkEntry *entry,
     if (len < 1) {
         text = NULL;
     } else {
-        if ((old_prefix == NULL) || (strlen (old_prefix) == 0)) {
+        if (((old_prefix == NULL) || (strlen (old_prefix) == 0)) &&
+            GTK_IS_TREE_VIEW (priv->kb_focus_widget)) {
             selection_map_create (priv);
         }
     }
 
-    selection_map_update_map_from_selection (priv);
+    if (GTK_IS_TREE_VIEW (priv->kb_focus_widget))
+        selection_map_update_map_from_selection (priv);
+
     priv->prefix = g_strdup (text);
     refilter (livesearch);
-    selection_map_update_selection_from_map (priv);
+
+    if (GTK_IS_TREE_VIEW (priv->kb_focus_widget))
+        selection_map_update_selection_from_map (priv);
 
     if (len < 1) {
-        selection_map_destroy (priv);
+        if (GTK_IS_TREE_VIEW (priv->kb_focus_widget))
+            selection_map_destroy (priv);
         gtk_widget_hide (GTK_WIDGET (livesearch));
     } else {
         gtk_widget_show (GTK_WIDGET (livesearch));
@@ -399,7 +405,7 @@ on_hide_cb                                      (GtkWidget        *widget,
                                                  HildonLiveSearch *live_search)
 {
     gtk_entry_set_text (GTK_ENTRY (live_search->priv->entry), "");
-    gtk_widget_grab_focus (GTK_WIDGET (live_search->priv->treeview));
+    gtk_widget_grab_focus (live_search->priv->kb_focus_widget);
 }
 
 /* GObject methods */
@@ -574,7 +580,7 @@ hildon_live_search_init                         (HildonLiveSearch *self)
     gtk_toolbar_set_style (GTK_TOOLBAR (self), GTK_TOOLBAR_ICONS);
     gtk_container_set_border_width (GTK_CONTAINER (self), 0);
 
-    priv->treeview = NULL;
+    priv->kb_focus_widget = NULL;
     priv->prefix = NULL;
 
     priv->visible_func = NULL;
@@ -818,20 +824,20 @@ on_widget_destroy                               (GtkObject *object,
 void
 hildon_live_search_widget_hook                  (HildonLiveSearch *livesearch,
                                                  GtkWidget        *hook_widget,
-                                                 GtkTreeView      *kb_focus)
+                                                 GtkWidget        *kb_focus)
 {
     HildonLiveSearchPrivate *priv;
 
     g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
     g_return_if_fail (GTK_IS_WIDGET (hook_widget));
-    g_return_if_fail (GTK_IS_TREE_VIEW (kb_focus));
+    g_return_if_fail (GTK_IS_WIDGET (kb_focus));
 
     priv = livesearch->priv;
 
     g_return_if_fail (priv->event_widget == NULL);
 
     priv->event_widget = g_object_ref (hook_widget);
-    priv->treeview = g_object_ref (kb_focus);
+    priv->kb_focus_widget = g_object_ref (kb_focus);
 
     priv->key_press_id =
         g_signal_connect (hook_widget, "key-press-event",
@@ -841,7 +847,7 @@ hildon_live_search_widget_hook                  (HildonLiveSearch *livesearch,
         g_signal_connect (hook_widget, "destroy",
                           G_CALLBACK (on_widget_destroy), livesearch);
 
-    priv->treeview_destroy_id =
+    priv->kb_focus_widget_destroy_id =
         g_signal_connect (kb_focus, "destroy",
                           G_CALLBACK (on_widget_destroy), livesearch);
 }
@@ -868,23 +874,23 @@ hildon_live_search_widget_unhook                (HildonLiveSearch *livesearch)
 
     /* All these variables are set together on hildon_live_search_widget_hook(),
      * so event_widget != NULL implies that all these are non-NULL too */
-    g_return_if_fail (priv->treeview != NULL);
+    g_return_if_fail (priv->kb_focus_widget != NULL);
     g_return_if_fail (priv->key_press_id != 0);
     g_return_if_fail (priv->event_widget_destroy_id != 0);
-    g_return_if_fail (priv->treeview_destroy_id != 0);
+    g_return_if_fail (priv->kb_focus_widget_destroy_id != 0);
 
     g_signal_handler_disconnect (priv->event_widget, priv->key_press_id);
     g_signal_handler_disconnect (priv->event_widget, priv->event_widget_destroy_id);
-    g_signal_handler_disconnect (priv->treeview, priv->treeview_destroy_id);
+    g_signal_handler_disconnect (priv->kb_focus_widget, priv->kb_focus_widget_destroy_id);
 
-    g_object_unref (priv->treeview);
+    g_object_unref (priv->kb_focus_widget);
     g_object_unref (priv->event_widget);
 
     priv->key_press_id = 0;
     priv->event_widget_destroy_id = 0;
-    priv->treeview_destroy_id = 0;
+    priv->kb_focus_widget_destroy_id = 0;
 
-    priv->treeview = NULL;
+    priv->kb_focus_widget = NULL;
     priv->event_widget = NULL;
 }
 
@@ -996,7 +1002,8 @@ hildon_live_search_set_visible_func             (HildonLiveSearch           *liv
  * @livesearch: a #HildonLiveSearch
  *
  * Cleans the selection map maintained by
- * @livesearch. #HildonLiveSearch maintains internally a selection
+ * @livesearch. When used together with a #GtkTreeView,
+ * #HildonLiveSearch maintains internally a selection
  * map, to make sure that selection is invariant to filtering.
  *
  * In some cases, you might want to clean this selection mapping, to

@@ -93,7 +93,7 @@ hildon_live_search_get_filter                   (HildonLiveSearch   *livesearch)
 void
 hildon_live_search_widget_hook                  (HildonLiveSearch *livesearch,
                                                  GtkWidget        *hook_widget,
-                                                 GtkTreeView      *kb_focus);
+                                                 GtkWidget        *kb_focus);
 
 void
 hildon_live_search_widget_unhook                (HildonLiveSearch *livesearch);

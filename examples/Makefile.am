@@ -18,6 +18,7 @@ EXAMPLES				= hildon-window-example				\
 					  hildon-edit-toolbar-example			\
 					  hildon-wizard-dialog-example			\
 					  hildon-live-search-example			\
+					  hildon-live-search-grid-example		\
 					  hildon-pannable-area-tree-view-example	\
 					  hildon-pannable-area-tuning-example		\
 					  hildon-pannable-area-scroll-jump-example	\
@@ -114,6 +115,12 @@ hildon_live_search_example_LDADD	= $(HILDON_OBJ_LIBS)
 hildon_live_search_example_CFLAGS	= $(HILDON_OBJ_CFLAGS)			\
 					  $(EXTRA_CFLAGS)
 hildon_live_search_example_SOURCES	= hildon-live-search-example.c
+
+# Hildon live search in a grid
+hildon_live_search_grid_example_LDADD	= $(HILDON_OBJ_LIBS)
+hildon_live_search_grid_example_CFLAGS	= $(HILDON_OBJ_CFLAGS)			\
+					  $(EXTRA_CFLAGS)
+hildon_live_search_grid_example_SOURCES	= hildon-live-search-grid-example.c
 
 # Hildon find toolbar
 hildon_find_toolbar_example_LDADD	= $(HILDON_OBJ_LIBS)
