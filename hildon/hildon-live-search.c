@@ -366,20 +366,30 @@ on_key_press_event                              (GtkWidget        *widget,
                                                  HildonLiveSearch *live_search)
 {
     HildonLiveSearchPrivate *priv;
-    GdkEvent *new_event;
-    gboolean handled;
+    gboolean handled = FALSE;
 
     g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (live_search), FALSE);
     priv = live_search->priv;
 
-    /* If the entry is realized and has focus, it is enough to catch events.
-     * This assume that the toolbar is a child of the hook widget. */
-    gtk_widget_realize (priv->entry);
-    gtk_widget_grab_focus (priv->entry);
+    if (GTK_WIDGET_VISIBLE (priv->treeview)) {
+        /* If the live search is hidden, Ctrl+whatever is always
+         * passed to the treeview */
+        if (GTK_WIDGET_VISIBLE (live_search) || !(event->state & GDK_CONTROL_MASK)) {
+            GdkEvent *new_event;
 
-    new_event = gdk_event_copy ((GdkEvent *)event);
-    handled = gtk_widget_event (priv->entry, new_event);
-    gdk_event_free (new_event);
+            /* If the entry is realized and has focus, it is enough to catch events.
+             * This assumes that the toolbar is a child of the hook widget. */
+            gtk_widget_realize (priv->entry);
+            if (!GTK_WIDGET_HAS_FOCUS (priv->entry))
+                gtk_widget_grab_focus (priv->entry);
+
+            new_event = gdk_event_copy ((GdkEvent *)event);
+            handled = gtk_widget_event (priv->entry, new_event);
+            gdk_event_free (new_event);
+        } else if (!GTK_WIDGET_HAS_FOCUS (priv->treeview)) {
+            gtk_widget_grab_focus (GTK_WIDGET (priv->treeview));
+        }
+    }
 
     return handled;
 }
