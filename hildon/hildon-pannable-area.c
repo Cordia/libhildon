@@ -3151,8 +3151,12 @@ hildon_pannable_area_new_full (gint mode, gboolean enabled,
  * @area: A #HildonPannableArea
  * @child: Child widget to add to the viewport
  *
- * Convenience function used to add a child to a #GtkViewport, and add the
- * viewport to the scrolled window.
+ *
+ * Convenience function used to add a child to a #GtkViewport, and add
+ * the viewport to the scrolled window for childreen without native
+ * scrolling capabilities.
+ *
+ * See gtk_scrolled_window_add_with_viewport() for more information.
  *
  * Since: 2.2
  */
