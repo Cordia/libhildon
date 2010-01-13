@@ -24,6 +24,7 @@
 #include                                        <glib.h>
 #include                                        <gtk/gtk.h>
 #include                                        <hildon/hildon.h>
+#include                                        <stdlib.h>
 
 static GtkWidget *create_selector ();
 static GtkWidget *get_visible_content (GtkWidget * window);
@@ -31,6 +32,8 @@ static GtkWidget *get_visible_content (GtkWidget * window);
 static GtkWindow *parent_window = NULL;
 
 static GtkWidget *label = NULL;
+
+static HildonTouchSelectorSelectionMode mode;
 
 static void
 value_changed (HildonPickerButton * button,
@@ -81,7 +84,7 @@ create_selector ()
   g_object_unref (store_icons);
 
   hildon_touch_selector_set_column_selection_mode (HILDON_TOUCH_SELECTOR (selector),
-                                                   HILDON_TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE);
+                                                   mode);
 
   return selector;
 }
@@ -123,6 +126,10 @@ main (int argc, char **argv)
   program = hildon_program_get_instance ();
   g_set_application_name
     ("hildon-touch-selector cell renderer example program");
+
+  mode = (argc >= 2 && atoi (argv[1]) == 1) ?
+    HILDON_TOUCH_SELECTOR_SELECTION_MODE_SINGLE:
+    HILDON_TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE;
 
   window = hildon_stackable_window_new ();
   parent_window = GTK_WINDOW (window);
