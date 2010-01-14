@@ -377,9 +377,9 @@ on_key_press_event                              (GtkWidget        *widget,
     g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (live_search), FALSE);
     priv = live_search->priv;
 
-    if (GTK_WIDGET_VISIBLE (priv->treeview)) {
+    if (GTK_WIDGET_VISIBLE (priv->kb_focus_widget)) {
         /* If the live search is hidden, Ctrl+whatever is always
-         * passed to the treeview */
+         * passed to the focus widget */
         if (GTK_WIDGET_VISIBLE (live_search) || !(event->state & GDK_CONTROL_MASK)) {
             GdkEvent *new_event;
 
@@ -392,8 +392,8 @@ on_key_press_event                              (GtkWidget        *widget,
             new_event = gdk_event_copy ((GdkEvent *)event);
             handled = gtk_widget_event (priv->entry, new_event);
             gdk_event_free (new_event);
-        } else if (!GTK_WIDGET_HAS_FOCUS (priv->treeview)) {
-            gtk_widget_grab_focus (GTK_WIDGET (priv->treeview));
+        } else if (!GTK_WIDGET_HAS_FOCUS (priv->kb_focus_widget)) {
+            gtk_widget_grab_focus (GTK_WIDGET (priv->kb_focus_widget));
         }
     }
 
