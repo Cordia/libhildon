@@ -297,6 +297,8 @@ static gboolean hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
                                                        GdkEventMotion * event);
 static gboolean hildon_pannable_leave_notify_event (GtkWidget *widget,
                                                     GdkEventCrossing *event);
+static gboolean hildon_pannable_area_key_release_cb (GtkWidget * widget,
+                                                     GdkEventKey * event);
 static gboolean hildon_pannable_area_button_release_cb (GtkWidget * widget,
                                                         GdkEventButton * event);
 static gboolean hildon_pannable_area_scroll_cb (GtkWidget *widget,
@@ -336,6 +338,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
   widget_class->style_set = hildon_pannable_area_style_set;
   widget_class->button_press_event = hildon_pannable_area_button_press_cb;
   widget_class->button_release_event = hildon_pannable_area_button_release_cb;
+  widget_class->key_release_event = hildon_pannable_area_key_release_cb;
   widget_class->motion_notify_event = hildon_pannable_area_motion_notify_cb;
   widget_class->leave_notify_event = hildon_pannable_leave_notify_event;
   widget_class->scroll_event = hildon_pannable_area_scroll_cb;
@@ -2726,6 +2729,20 @@ hildon_pannable_leave_notify_event (GtkWidget *widget,
 
     synth_crossing (priv->child, 0, 0, event->x_root,
                     event->y_root, event->time, FALSE);
+  }
+
+  return FALSE;
+}
+
+static gboolean
+hildon_pannable_area_key_release_cb (GtkWidget * widget,
+                                     GdkEventKey * event)
+{
+  HildonPannableArea *area = HILDON_PANNABLE_AREA (widget);
+
+  if (G_UNLIKELY (area->priv->center_on_child_focus_pending)) {
+    hildon_pannable_area_center_on_child_focus (area);
+    area->priv->center_on_child_focus_pending = FALSE;
   }
 
   return FALSE;
