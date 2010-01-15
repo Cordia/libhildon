@@ -884,9 +884,6 @@ _create_new_column (HildonTouchSelector * selector,
 
   panarea = hildon_pannable_area_new ();
 
-  g_object_set (G_OBJECT (panarea),
-                "initial-hint", FALSE, NULL);
-
   gtk_container_add (GTK_CONTAINER (panarea), GTK_WIDGET (tv));
 
   new_column->priv->model = g_object_ref (model);
