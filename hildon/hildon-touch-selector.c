@@ -1632,7 +1632,7 @@ hildon_touch_selector_add_live_search (HildonTouchSelector *selector,
                         FALSE, FALSE, 0);
     hildon_live_search_widget_hook (HILDON_LIVE_SEARCH (column->priv->livesearch),
                                     GTK_WIDGET (column->priv->vbox),
-                                    column->priv->tree_view);
+                                    GTK_WIDGET (column->priv->tree_view));
     text_column = hildon_touch_selector_column_get_text_column (column);
     if (text_column > -1) {
       hildon_live_search_set_visible_func (HILDON_LIVE_SEARCH (column->priv->livesearch),
@@ -3118,7 +3118,7 @@ hildon_touch_selector_set_live_search (HildonTouchSelector *selector,
       if (col->priv->livesearch) {
         hildon_live_search_widget_hook (HILDON_LIVE_SEARCH (col->priv->livesearch),
                                         GTK_WIDGET (col->priv->vbox),
-                                        col->priv->tree_view);
+                                        GTK_WIDGET (col->priv->tree_view));
       } else {
         /* There is no livesearch widget yet. Create one.  */
         hildon_touch_selector_add_live_search (selector, col);

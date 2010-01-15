@@ -127,7 +127,7 @@ main                                            (int    argc,
     filter = GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (treeview)));
 
     live = create_live_search (filter);
-    hildon_live_search_widget_hook (live, window, GTK_TREE_VIEW (treeview));
+    hildon_live_search_widget_hook (live, window, treeview);
 
     gtk_container_add (GTK_CONTAINER (panarea), treeview);
     gtk_box_pack_start (GTK_BOX (vbox), panarea, TRUE, TRUE, 0);
