@@ -1315,6 +1315,13 @@ hildon_pannable_area_style_set (GtkWidget * widget,
 }
 
 static void
+toplevel_window_unmapped (GtkWidget * widget,
+                          HildonPannableArea * area)
+{
+    area->priv->initial_effect = TRUE;
+}
+
+static void
 hildon_pannable_area_map (GtkWidget * widget)
 {
   HildonPannableAreaPrivate *priv;
@@ -1330,6 +1337,9 @@ hildon_pannable_area_map (GtkWidget * widget)
 
   if (priv->event_window != NULL && priv->enabled)
     gdk_window_show (priv->event_window);
+
+  g_signal_connect (gtk_widget_get_toplevel (widget), "unmap",
+                    G_CALLBACK (toplevel_window_unmapped), widget);
 }
 
 static void
@@ -1338,6 +1348,11 @@ hildon_pannable_area_unmap (GtkWidget * widget)
   HildonPannableAreaPrivate *priv;
 
   priv = HILDON_PANNABLE_AREA (widget)->priv;
+
+  priv->initial_effect = TRUE;
+  g_signal_handlers_disconnect_by_func (gtk_widget_get_toplevel (widget),
+                                        G_CALLBACK (toplevel_window_unmapped),
+                                        widget);
 
   if (priv->event_window != NULL)
     gdk_window_hide (priv->event_window);
