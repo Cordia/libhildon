@@ -657,7 +657,6 @@ hildon_touch_selector_emit_value_changed        (HildonTouchSelector *selector,
      for the element selected. We can't do this API change, in order to avoid
      and ABI break */
   if (!selector->priv->changed_blocked) {
-    g_signal_emit (selector, hildon_touch_selector_signals[CHANGED], 0, column);
     if (hildon_touch_selector_get_column_selection_mode (selector) == HILDON_TOUCH_SELECTOR_SELECTION_MODE_SINGLE &&
         selector->priv->columns) {
       HildonTouchSelectorColumn *col;
@@ -666,6 +665,7 @@ hildon_touch_selector_emit_value_changed        (HildonTouchSelector *selector,
         hildon_live_search_clean_selection_map (HILDON_LIVE_SEARCH (col->priv->livesearch));
       }
     }
+    g_signal_emit (selector, hildon_touch_selector_signals[CHANGED], 0, column);
   }
 }
 
