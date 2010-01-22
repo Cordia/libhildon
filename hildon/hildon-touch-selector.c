@@ -2193,7 +2193,7 @@ hildon_touch_selector_get_active                (HildonTouchSelector *selector,
 /**
  * hildon_touch_selector_get_selected:
  * @selector: a #HildonTouchSelector
- * @column: the column number we want to get the element
+ * @column: the column to get the item from
  * @iter: #GtkTreeIter currently selected
  *
  * Sets @iter to the currently selected node on the nth-column, if selection is
@@ -2204,7 +2204,10 @@ hildon_touch_selector_get_active                (HildonTouchSelector *selector,
  * This function will not work if selection is in
  * %HILDON_TOUCH_SELECTOR_MULTIPLE mode and the column is the first one.
  *
- * See gtk_tree_selection_get_selected() for more information.
+ * To change the currently selected iter, see
+ * hildon_touch_selector_select_iter()
+ *
+ * See also gtk_tree_selection_get_selected() for more information.
  *
  * Returns: %TRUE if @iter was correctly set, %FALSE otherwise
  *
@@ -2250,14 +2253,16 @@ hildon_touch_selector_get_selected (HildonTouchSelector * selector,
 }
 
 /**
- * hildon_touch_selector_select_iter
+ * hildon_touch_selector_select_iter:
  * @selector: a #HildonTouchSelector
- * @column:   the column to selects
+ * @column:   the column to select an item from
  * @iter:     the #GtkTreeIter to be selected
  * @scroll_to: whether to smoothly scroll to the item
  *
  * Sets the currently selected item in the column @column to the one pointed by @iter,
  * optionally smoothly scrolling to it.
+ *
+ * To obtain the currently selected iter, see hildon_touch_selector_get_selected()
  *
  * Since: 2.2
  **/
