@@ -2,6 +2,8 @@
 <FILE>hildon-animation-actor</FILE>
 <TITLE>HildonAnimationActor</TITLE>
 HildonAnimationActor
+HildonAnimationActorAxis
+HildonAnimationActorGravity
 hildon_animation_actor_new
 hildon_animation_actor_send_message
 hildon_animation_actor_set_anchor
@@ -17,18 +19,6 @@ hildon_animation_actor_set_scale
 hildon_animation_actor_set_scalex
 hildon_animation_actor_set_show
 hildon_animation_actor_set_show_full
-HILDON_AA_CENTER_GRAVITY
-HILDON_AA_E_GRAVITY
-HILDON_AA_NE_GRAVITY
-HILDON_AA_NW_GRAVITY
-HILDON_AA_N_GRAVITY
-HILDON_AA_SE_GRAVITY
-HILDON_AA_SW_GRAVITY
-HILDON_AA_S_GRAVITY
-HILDON_AA_W_GRAVITY
-HILDON_AA_X_AXIS
-HILDON_AA_Y_AXIS
-HILDON_AA_Z_AXIS
 <SUBSECTION Standard>
 HILDON_ANIMATION_ACTOR
 HILDON_ANIMATION_ACTOR_CLASS

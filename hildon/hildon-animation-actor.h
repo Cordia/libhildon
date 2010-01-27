@@ -74,19 +74,47 @@ struct                                          _HildonAnimationActor
     GtkWindow parent;
 };
 
-#define HILDON_AA_X_AXIS	    0
-#define HILDON_AA_Y_AXIS	    1
-#define HILDON_AA_Z_AXIS	    2
+/**
+ * HildonAnimationActorAxis:
+ * @HILDON_AA_X_AXIS: Rotate around the X axis.
+ * @HILDON_AA_Y_AXIS: Rotate around the Y axis.
+ * @HILDON_AA_Z_AXIS: Rotate around the Z axis.
+ *
+ * Used to specify the axis to rotate the animation actor around.
+ */
+typedef enum
+{
+    HILDON_AA_X_AXIS,
+    HILDON_AA_Y_AXIS,
+    HILDON_AA_Z_AXIS
+} HildonAnimationActorAxis;
 
-#define HILDON_AA_N_GRAVITY	    1
-#define HILDON_AA_NE_GRAVITY	    2
-#define HILDON_AA_E_GRAVITY	    3
-#define HILDON_AA_SE_GRAVITY	    4
-#define HILDON_AA_S_GRAVITY	    5
-#define HILDON_AA_SW_GRAVITY	    6
-#define HILDON_AA_W_GRAVITY	    7
-#define HILDON_AA_NW_GRAVITY	    8
-#define HILDON_AA_CENTER_GRAVITY    9
+/**
+ * HildonAnimationActorGravity:
+ * @HILDON_AA_N_GRAVITY: translates to (width / 2, 0) coordinate.
+ * @HILDON_AA_NE_GRAVITY: translates to (width, 0) coordinate.
+ * @HILDON_AA_E_GRAVITY: translates to (width, height / 2) coordinate.
+ * @HILDON_AA_SE_GRAVITY: translates to (width, height) coordinate.
+ * @HILDON_AA_S_GRAVITY: translates to (width / 2, height) coordinate.
+ * @HILDON_AA_SW_GRAVITY: translates to (0, height) coordinate.
+ * @HILDON_AA_W_GRAVITY: translates to (0, height / 2) coordinate.
+ * @HILDON_AA_NW_GRAVITY: translates to (0, 0) coordinate.
+ * @HILDON_AA_CENTER_GRAVITY: translates to (width / 2, height / 2) coordinate.
+ *
+ * Used to specify the position of the animation actor within its parent window.
+ */
+typedef enum
+{
+    HILDON_AA_N_GRAVITY = 1,
+    HILDON_AA_NE_GRAVITY,
+    HILDON_AA_E_GRAVITY,
+    HILDON_AA_SE_GRAVITY,
+    HILDON_AA_S_GRAVITY,
+    HILDON_AA_SW_GRAVITY,
+    HILDON_AA_W_GRAVITY,
+    HILDON_AA_NW_GRAVITY,
+    HILDON_AA_CENTER_GRAVITY
+} HildonAnimationActorGravity;
 
 GType
 hildon_animation_actor_get_type                (void) G_GNUC_CONST;
@@ -133,15 +161,15 @@ hildon_animation_actor_set_scale (HildonAnimationActor *self,
                                   double x_scale,
                                   double y_scale);
 void
-hildon_animation_actor_set_rotationx (HildonAnimationActor *self,
-                                      gint   axis,
+hildon_animation_actor_set_rotationx (HildonAnimationActor     *self,
+                                      HildonAnimationActorAxis axis,
                                       gint32 degrees,
                                       gint   x,
                                       gint   y,
                                       gint   z);
 void
-hildon_animation_actor_set_rotation (HildonAnimationActor *self,
-                                     gint   axis,
+hildon_animation_actor_set_rotation (HildonAnimationActor     *self,
+                                     HildonAnimationActorAxis axis,
                                      double degrees,
                                      gint   x,
                                      gint   y,
@@ -152,7 +180,8 @@ hildon_animation_actor_set_anchor (HildonAnimationActor *self,
                                    gint y);
 void
 hildon_animation_actor_set_anchor_from_gravity (HildonAnimationActor *self,
-						guint gravity);
+						HildonAnimationActorGravity gravity);
+
 void
 hildon_animation_actor_set_parent (HildonAnimationActor *self,
 				   GtkWindow *parent);

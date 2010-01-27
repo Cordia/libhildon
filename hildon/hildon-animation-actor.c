@@ -884,8 +884,8 @@ hildon_animation_actor_set_scale (HildonAnimationActor *self,
  * Since: 2.2
  **/
 void
-hildon_animation_actor_set_rotationx (HildonAnimationActor *self,
-                                      gint   axis,
+hildon_animation_actor_set_rotationx (HildonAnimationActor     *self,
+                                      HildonAnimationActorAxis axis,
                                       gint32 degrees,
                                       gint   x,
                                       gint   y,
@@ -956,7 +956,7 @@ hildon_animation_actor_set_rotationx (HildonAnimationActor *self,
  **/
 void
 hildon_animation_actor_set_rotation (HildonAnimationActor *self,
-                                     gint   axis,
+                                     HildonAnimationActorAxis axis,
                                      double degrees,
                                      gint   x,
                                      gint   y,
@@ -1015,17 +1015,7 @@ hildon_animation_actor_set_anchor (HildonAnimationActor *self,
  * the animation actor. The anchor point is the relative position of
  * the actor within its parent window. Instead of being defined in (x,
  * y)-coordinates, the anchor point is defined in the relative
- * "gravity" constant as:
- *
- *   * %HILDON_AA_N_GRAVITY translates to (width / 2, 0) coordinate
- *   * %HILDON_AA_NE_GRAVITY translates to (width, 0) coordinate
- *   * %HILDON_AA_E_GRAVITY translates to (width, height / 2) coordinate
- *   * %HILDON_AA_SE_GRAVITY translates to (width, height) coordinate
- *   * %HILDON_AA_S_GRAVITY translates to (width / 2, height) coordinate
- *   * %HILDON_AA_SW_GRAVITY translates to (0, height) coordinate
- *   * %HILDON_AA_W_GRAVITY translates to (0, height / 2) coordinate
- *   * %HILDON_AA_NW_GRAVITY translates to (0, 0) coordinate
- *   * %HILDON_AA_CENTER_GRAVITY translates to (width / 2, height / 2) coordinate
+ * %gravity constant.
  *
  * If the animation actor WM-counterpart is not ready, the show message
  * will be queued until the WM is ready for it.
@@ -1034,7 +1024,7 @@ hildon_animation_actor_set_anchor (HildonAnimationActor *self,
  **/
 void
 hildon_animation_actor_set_anchor_from_gravity (HildonAnimationActor *self,
-						guint gravity)
+						HildonAnimationActorGravity gravity)
 {
     HildonAnimationActorPrivate
 	               *priv = HILDON_ANIMATION_ACTOR_GET_PRIVATE (self);
