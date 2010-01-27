@@ -23,7 +23,7 @@
  */
 
 /**
- * SECTION:hildon-animation-window
+ * SECTION:hildon-animation-actor
  * @short_description: Animation actor for
  * WM-assisted animation effects in the Hildon framework.
  *
@@ -541,7 +541,7 @@ hildon_animation_actor_send_all_messages (HildonAnimationActor *self)
  * the specified parameters -- id (@message_type) and data (@l0,
  * @l1, @l2, @l3, @l4).
  *
- * This is an internal utility function that application will
+ * This is an internal utility function that applications do
  * not need to call directly.
  *
  * Since: 2.2
@@ -661,7 +661,7 @@ hildon_animation_actor_set_show_full (HildonAnimationActor *self,
  * @show: A boolean flag setting the visibility of the animation actor.
  *
  * This function is a shortcut for hildon_animation_actor_set_show_full(),
- * setting the overall actor visibility without changing it's opacity
+ * setting the overall actor visibility without changing its opacity
  * setting.
  *
  * Since: 2.2
@@ -683,10 +683,10 @@ hildon_animation_actor_set_show (HildonAnimationActor *self,
  * @opacity: Desired opacity setting
  *
  * This function is a shortcut for hildon_animation_actor_set_show_full(),
- * setting actor opacity without changing it's overall visibility.
+ * setting actor opacity without changing its overall visibility.
  *
  * See hildon_animation_actor_set_show_full() for description of the range
- * of values @opacity argument takes.
+ * of values the @opacity argument takes.
  *
  * Since: 2.2
  **/
@@ -717,8 +717,8 @@ hildon_animation_actor_set_opacity (HildonAnimationActor *self,
  *
  * The window depth affects the stacking of animation actors within
  * a parent window and, more generally, the stacking of clutter actors
- * within a stage/container. The default depth is 0 and a parent
- * window's container will have it's window texture stacked at that level.
+ * within a stage/container. The default depth is 0, and a parent
+ * window's container will have its window texture stacked at that level.
  * The stacking at any depth level is sequential -- animation actor B
  * created/parented after animation actor A will obscure the latter
  * if they overlap.
@@ -766,7 +766,7 @@ hildon_animation_actor_set_position_full (HildonAnimationActor *self,
  * @y: Desired window Y coordinate
  *
  * A shortcut for hildon_animation_actor_set_position_full(),
- * changing the window position, but preserving it's depth setting.
+ * changing the window position, but preserving its depth setting.
  *
  * Since: 2.2
  **/
@@ -788,7 +788,7 @@ hildon_animation_actor_set_position (HildonAnimationActor *self,
  * @depth: Desired window depth (Z coordinate)
  *
  * A shortcut for hildon_animation_actor_set_position_full(),
- * changing the window depth, but preserving it's position.
+ * changing the window depth, but preserving its position.
  *
  * Since: 2.2
  **/
@@ -812,7 +812,7 @@ hildon_animation_actor_set_depth (HildonAnimationActor *self,
  * @y_scale: Window's desired scale factor along the Y-axis
  *
  * This function is just like hildon_animation_actor_set_scale(),
- * but the scale factors are given as 16-bit fixed-point number.
+ * but the scale factors are given as a 16-bit fixed-point number.
  *
  * Since: 2.2
  **/
@@ -847,10 +847,10 @@ hildon_animation_actor_set_scalex (HildonAnimationActor *self,
  *
  * Send a message to the window manager setting the scale factors of the
  * animation actor. This will set the scale factors on the animation
- * actor off-screen bitmap as it is rendered to the screen. If the
+ * actor's off-screen bitmap as it is rendered to the screen. If the
  * animation actor is parented to another top-level window, the
  * animation effects rendered by the compositing window manager
- * on that top-level window (like those by task switcher) will
+ * on that top-level window (like those by the task switcher) will
  * also affect the animation actor.
  *
  * If the animation actor WM-counterpart is not ready, the show message
@@ -879,7 +879,7 @@ hildon_animation_actor_set_scale (HildonAnimationActor *self,
  * @z: Center of the rotation, Z coordinate.
  *
  * This function is just like hildon_animation_actor_set_rotation(),
- * but the rotation angle is given as 16-bit fixed-point number.
+ * but the rotation angle is given as a 16-bit fixed-point number.
  *
  * Since: 2.2
  **/
@@ -974,8 +974,8 @@ hildon_animation_actor_set_rotation (HildonAnimationActor *self,
  * @y: The Y coordinate of the anchor point.
  *
  * Send a message to the window manager setting the anchor point for
- * the animation actor. The anchor point is the point to which the
- * actor position within its parent it is relative.
+ * the animation actor. The anchor point is the relative position of the actor
+ * within its parent window.
  *
  * If the animation actor WM-counterpart is not ready, the show message
  * will be queued until the WM is ready for it.
@@ -1012,10 +1012,10 @@ hildon_animation_actor_set_anchor (HildonAnimationActor *self,
  * @gravity: The gravity constant.
  *
  * Send a message to the window manager setting the anchor point for
- * the animation actor. The anchor point is the point to which the
- * actor position within its parent it is relative. Instead of being
- * defined in (x, y)-coordinates, the anchor point is defined in the
- * relative "gravity" constant as:
+ * the animation actor. The anchor point is the relative position of
+ * the actor within its parent window. Instead of being defined in (x,
+ * y)-coordinates, the anchor point is defined in the relative
+ * "gravity" constant as:
  *
  *   * %HILDON_AA_N_GRAVITY translates to (width / 2, 0) coordinate
  *   * %HILDON_AA_NE_GRAVITY translates to (width, 0) coordinate
@@ -1104,15 +1104,15 @@ hildon_animation_actor_map_event (GtkWidget *widget,
  * @self: A #HildonAnimationActor
  * @parent: A #GtkWindow that the actor will be parented to.
  *
- * Send a message to the window manager setting the parent window
+ * Send a message to the window manager, setting the parent window
  * for the animation actor. Parenting an actor will not affect the
- * X window that the HildonAnimationActor represents, but it's off-screen
+ * X window that the HildonAnimationActor represents, but its off-screen
  * bitmap as it is handled by the compositing window manager.
  *
  * Parenting an animation actor will affect its visibility as set
  * by the gtk_widget_show(), gtk_widget_hide() and
  * hildon_animation_actor_set_show(). The animation actor will only be
- * visible when the top-level window it is parented is visible.
+ * visible when the top-level window it is parented to is visible.
  *
  * Passing %NULL as a @parent argument will unparent the animation actor.
  * This will restore the actor's visibility if it was suppressed by
