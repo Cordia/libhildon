@@ -68,12 +68,20 @@ typedef struct                                  _HildonWindow HildonWindow;
 
 typedef struct                                  _HildonWindowClass HildonWindowClass;
 
+#ifndef HILDON_DISABLE_DEPRECATED
+/**
+ * HildonWindowClipboardOperation:
+ *
+ * Deprecated: Hildon 2.2: this value is only meant to be used
+ * internally by Hildon
+ */
 typedef enum
 {
     HILDON_WINDOW_CO_COPY,
     HILDON_WINDOW_CO_CUT,
     HILDON_WINDOW_CO_PASTE
 }                                               HildonWindowClipboardOperation;
+#endif /* HILDON_DISABLE_DEPRECATED */
 
 struct                                          _HildonWindow
 {
