@@ -32,10 +32,17 @@
  * content that is visible at a time. The scroll indicators appear when a dragging
  * motion is started on the pannable area.
  *
- * The scrolling is "kinetic", meaning the motion can be "flicked" and it will
- * continue from the initial motion by gradually slowing down to an eventual stop.
- * The motion can also be stopped immediately by pressing the touchscreen over the
- * pannable area.
+ * The scrolling can be "kinetic", meaning the motion can be "flicked"
+ * and it will continue from the initial motion by gradually slowing
+ * down to an eventual stop. Motion can also be stopped immediately by
+ * pressing the touchscreen over the pannable area. It also has other
+ * mode to make it scroll just following the finger drag without
+ * kinetics. Mode can also be auto, this is, it takes automatically
+ * the best choice for every event of drag or tap. These options can be
+ * selected with the #HildonPannableArea:mode property.
+ *
+ * With #HildonPannableArea:mov-mode property you can switch between
+ * vertical, horizontal and both panning directions.
  */
 
 #undef HILDON_DISABLE_DEPRECATED
@@ -385,7 +392,8 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_MODE,
 				   g_param_spec_enum ("mode",
 						      "Scroll mode",
-						      "Change the finger-scrolling mode.",
+                                      "Changes the finger-scrolling mode among "
+                                      "push, accel and auto.",
 						      HILDON_TYPE_PANNABLE_AREA_MODE,
 						      HILDON_PANNABLE_AREA_MODE_AUTO,
 						      G_PARAM_READWRITE |
