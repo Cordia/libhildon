@@ -1805,6 +1805,8 @@ hildon_touch_selector_append_text_column (HildonTouchSelector * selector,
                                                 "text", 0, NULL);
   hildon_touch_selector_column_set_text_column (column, 0);
 
+  g_object_set (column->priv->panarea, "sps", 28, NULL);
+
   return column;
 }
 
