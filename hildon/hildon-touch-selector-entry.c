@@ -48,6 +48,8 @@
 #include "hildon-touch-selector-entry.h"
 #include "hildon-entry.h"
 
+#include <string.h>
+
 G_DEFINE_TYPE (HildonTouchSelectorEntry, hildon_touch_selector_entry, HILDON_TYPE_TOUCH_SELECTOR)
 
 #define HILDON_TOUCH_SELECTOR_ENTRY_GET_PRIVATE(o) \
@@ -70,21 +72,32 @@ _text_column_modified (GObject *pspec, GParamSpec *gobject, gpointer data);
 struct _HildonTouchSelectorEntryPrivate {
   gulong signal_id;
   GtkWidget *entry;
+  GIConv converter;
+  gboolean smart_match;
 };
 
 enum {
-  PROP_TEXT_COLUMN = 1
+  PROP_TEXT_COLUMN = 1,
+  PROP_SMART_MATCH
 };
 
 static void
 hildon_touch_selector_entry_get_property (GObject *object, guint property_id,
                                           GValue *value, GParamSpec *pspec)
 {
+  HildonTouchSelectorEntryPrivate *priv;
+
+  priv = HILDON_TOUCH_SELECTOR_ENTRY_GET_PRIVATE (object);
+
   switch (property_id) {
   case PROP_TEXT_COLUMN:
     g_value_set_int (value,
                      hildon_touch_selector_entry_get_text_column (HILDON_TOUCH_SELECTOR_ENTRY (object)));
     break;
+  case PROP_SMART_MATCH:
+    g_value_set_boolean (value, priv->smart_match);
+    break;
+
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
   }
@@ -94,10 +107,17 @@ static void
 hildon_touch_selector_entry_set_property (GObject *object, guint property_id,
                                           const GValue *value, GParamSpec *pspec)
 {
+  HildonTouchSelectorEntryPrivate *priv;
+
+  priv = HILDON_TOUCH_SELECTOR_ENTRY_GET_PRIVATE (object);
+
   switch (property_id) {
   case PROP_TEXT_COLUMN:
     hildon_touch_selector_entry_set_text_column (HILDON_TOUCH_SELECTOR_ENTRY (object),
                                                  g_value_get_int (value));
+    break;
+  case PROP_SMART_MATCH:
+    priv->smart_match = g_value_get_boolean (value);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -120,6 +140,15 @@ hildon_touch_selector_entry_constructor (GType type,
 }
 
 static void
+hildon_touch_selector_entry_finalize (GObject *object)
+{
+  HildonTouchSelectorEntryPrivate *priv;
+  priv = HILDON_TOUCH_SELECTOR_ENTRY_GET_PRIVATE (object);
+  g_iconv_close (priv->converter);
+  G_OBJECT_CLASS (hildon_touch_selector_entry_parent_class)->finalize (object);
+}
+
+static void
 hildon_touch_selector_entry_class_init (HildonTouchSelectorEntryClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -133,6 +162,7 @@ hildon_touch_selector_entry_class_init (HildonTouchSelectorEntryClass *klass)
   object_class->constructor  = hildon_touch_selector_entry_constructor;
   object_class->get_property = hildon_touch_selector_entry_get_property;
   object_class->set_property = hildon_touch_selector_entry_set_property;
+  object_class->finalize     = hildon_touch_selector_entry_finalize;
 
   /**
    * HildonTouchSelectorEntry:text-column:
@@ -145,7 +175,7 @@ hildon_touch_selector_entry_class_init (HildonTouchSelectorEntryClass *klass)
    *
    * Deprecated: use HildonTouchSelectorColumn:text-column instead
    *
-   * Since: maemo 2.2
+   * Since: 2.2
    **/
   g_object_class_install_property (G_OBJECT_CLASS (klass),
                                    PROP_TEXT_COLUMN,
@@ -156,6 +186,28 @@ hildon_touch_selector_entry_class_init (HildonTouchSelectorEntryClass *klass)
                                                      G_MAXINT,
                                                      -1,
                                                      G_PARAM_READWRITE));
+  /**
+   * HildonTouchSelectorEntry:smart-match:
+   *
+   * Whether the widget should suggest an element if an approximate match is found.
+   *
+   * By default, #HildonTouchSelectorEntry replaces automatically the
+   * content of the entry if you find an exact case match while you
+   * are writing. But if this property is set to %TRUE, the widget
+   * will suggest an element by selecting it if an approximate
+   * (e.g. case-insensitive) match is found.
+   *
+   * Since: 2.2.12
+   **/
+  g_object_class_install_property (G_OBJECT_CLASS (klass),
+                                   PROP_SMART_MATCH,
+                                   g_param_spec_boolean ("smart-match",
+                                                         "Smart match",
+                                                         "Whether the widget should select "
+                                                         "one of the elements if an "
+                                                         "approximate match is found",
+                                                         TRUE,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 }
 
 static gchar *
@@ -190,6 +242,8 @@ hildon_touch_selector_entry_init (HildonTouchSelectorEntry *self)
   HildonGtkInputMode input_mode;
 
   priv = HILDON_TOUCH_SELECTOR_ENTRY_GET_PRIVATE (self);
+
+  priv->converter = g_iconv_open ("ascii//translit", "utf-8");
 
   priv->entry = hildon_entry_new (HILDON_SIZE_FINGER_HEIGHT);
   gtk_entry_set_activates_default (GTK_ENTRY (priv->entry), TRUE);
@@ -403,11 +457,15 @@ entry_on_text_changed (GtkEditable * editable,
   HildonTouchSelectorEntryPrivate *priv;
   GtkTreeModel *model;
   GtkTreeIter iter;
+  GtkTreeIter iter_suggested;
   GtkEntry *entry;
   const gchar *prefix;
   gchar *text;
   gboolean found = FALSE;
   gint text_column = -1;
+  gchar *ascii_prefix;
+  gint prefix_len;
+  gboolean found_suggestion = FALSE;
 
   entry = GTK_ENTRY (editable);
   selector = HILDON_TOUCH_SELECTOR (userdata);
@@ -428,9 +486,24 @@ entry_on_text_changed (GtkEditable * editable,
     return;
   }
 
+  if (priv->smart_match) {
+    ascii_prefix = g_convert_with_iconv (prefix, -1, priv->converter, NULL, NULL, NULL);
+    prefix_len = strlen (ascii_prefix);
+  }
+
   do {
     gtk_tree_model_get (model, &iter, text_column, &text, -1);
     found = g_str_has_prefix (text, prefix);
+
+    if (!found && !found_suggestion && priv->smart_match) {
+      gchar *ascii_text = g_convert_with_iconv (text, -1, priv->converter, NULL, NULL, NULL);
+      found_suggestion = !g_ascii_strncasecmp (ascii_text, ascii_prefix, prefix_len);
+      if (found_suggestion) {
+        iter_suggested = iter;
+      }
+      g_free (ascii_text);
+    }
+
     g_free (text);
   } while (found != TRUE && gtk_tree_model_iter_next (model, &iter));
 
@@ -441,11 +514,16 @@ entry_on_text_changed (GtkEditable * editable,
        should be notified. */
     if (found) {
       hildon_touch_selector_select_iter (selector, 0, &iter, TRUE);
+    } else if (found_suggestion) {
+      hildon_touch_selector_select_iter (selector, 0, &iter_suggested, TRUE);
     }
     g_signal_emit_by_name (selector, "changed", 0);
   }
   g_signal_handler_unblock (selector, priv->signal_id);
 
+  if (priv->smart_match) {
+    g_free (ascii_prefix);
+  }
 }
 
 /* FIXME: This is actually a very ugly way to retrieve the text. Ideally,
