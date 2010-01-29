@@ -46,6 +46,14 @@
  * To create a note with a text, a progress bar and cancel button,
  * hildon_note_new_cancel_with_progress_bar() can be used.
  *
+ * <note><para>
+ * Note that, unlike other dialogs in Hildon 2.2, cancel/close buttons
+ * in Hildon confirmation notes are never hidden automatically. This
+ * is because this note can <emphasis>not</emphasis> be closed by
+ * tapping outside. The user must explicitly select one of the
+ * available buttons.
+ * </para></note>
+ *
  * <example>
  * <title>HildonNote example</title>
  * <programlisting>
