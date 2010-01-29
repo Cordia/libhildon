@@ -23,15 +23,22 @@
  * @short_description: A selector widget with one column and a text entry
  * @see_also: #HildonTouchSelector, #HildonPickerButton
  *
- * #HildonTouchSelectorEntry is a selector widget with a text entry, similar in
- * behaviour to #GtkComboBoxEntry, that allows user to select an item from a
- * predefined list or to enter a different one in a #HildonEntry. Items can also
- * be searched and selected by typing in the entry. For more specific use cases,
- * the #HildonEntry can be accessed directly with hildon_touch_selector_get_entry().
+ * #HildonTouchSelectorEntry is a selector widget with a text entry,
+ * similar in behaviour to #GtkComboBoxEntry (and for this reason it
+ * only supports one #HildonTouchSelectorColumn), that allows user to
+ * select an item from a predefined list or to enter a different one
+ * in a #HildonEntry. Items can also be searched and selected by
+ * typing in the entry. For more specific use cases, the #HildonEntry
+ * can be accessed directly with hildon_touch_selector_get_entry().
  *
- * The main difference between the #GtkTreeModel used by #HildonTouchSelector
- * and #HildonTouchSelectorEntry, is that the latter must always include a text
- * column. You should set it with hildon_touch_selector_entry_set_text_column().
+ * The main difference between the #GtkTreeModel used by
+ * #HildonTouchSelector and #HildonTouchSelectorEntry, is that the
+ * latter must always include a text column. You should set it with
+ * hildon_touch_selector_entry_set_text_column(). Anyway, there is no
+ * problem if you have several columns in the #GtkTreeModel and show
+ * them with different cell renderers packed in the
+ * #HildonTouchSelectorColumn, but as the entry acts on text, you need
+ * to have that column in the tree view.
  *
  * Normally, you would use #HildonTouchSelectorEntry together with a
  * #HildonPickerDialog activated from a button. For the most common
