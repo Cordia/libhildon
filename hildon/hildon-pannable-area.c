@@ -579,6 +579,19 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 							 G_PARAM_READWRITE |
  							 G_PARAM_CONSTRUCT));
 
+  /**
+   * HildonPannableArea:size-request-policy:
+   *
+   * Controls the size request policy of the widget.
+   *
+   * <warning><para>
+   * HildonPannableArea:size-request-policy is deprecated and should
+   * not be used in newly-written code. See
+   * hildon_pannable_area_set_size_request_policy()
+   * </para></warning>
+   *
+   * Deprecated: since 2.2
+   */
   g_object_class_install_property (object_class,
                                    PROP_SIZE_REQUEST_POLICY,
 				   g_param_spec_enum ("size-request-policy",
@@ -3636,6 +3649,8 @@ hildon_pannable_area_get_vadjustment            (HildonPannableArea *area)
  * #HildonSizeRequestPolicy.
  *
  * Since: 2.2
+ *
+ * Deprecated: See hildon_pannable_area_set_size_request_policy()
  **/
 HildonSizeRequestPolicy
 hildon_pannable_area_get_size_request_policy (HildonPannableArea *area)
@@ -3668,8 +3683,8 @@ hildon_pannable_area_get_size_request_policy (HildonPannableArea *area)
  *
  * Deprecated: This method and the policy request is deprecated, DO
  * NOT use it in future code, the only policy properly supported in
- * gtk+ nowadays is the minimum size. Use #gtk_window_set_default_size
- * or #gtk_window_set_geometry_hints with the proper size in your case
+ * gtk+ nowadays is the minimum size. Use gtk_window_set_default_size()
+ * or gtk_window_set_geometry_hints() with the proper size in your case
  * to define the height of your dialogs.
  **/
 void
