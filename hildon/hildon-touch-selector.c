@@ -34,16 +34,23 @@
  *
  * The contents of each #HildonTouchSelector column are stored in a
  * #GtkTreeModel. To add a new column to a #HildonTouchSelector, use
- * hildon_touch_selector_append_column(). If you want to add a
- * text-only column, without special attributes, use
- * hildon_touch_selector_append_text_column().
+ * hildon_touch_selector_append_column(). Each
+ * #HildonTouchSelectorColumn can contain a #GtkTreeModel with more
+ * than one column and different #GtkCellRenderer<!-- -->s. So we can
+ * have several #HildonTouchSelectorColumn<!-- -->s that would move
+ * independently from each other and each of them, with seveval
+ * columns in the #GtkTreeModel with different #GtkCellRenderer<!--
+ * -->s or even hidden columns that can help you to manage the info
+ * contained in the selected row of the #HildonTouchSelectorColumn. In
+ * case you want to add a text-only column, without special
+ * attributes, use hildon_touch_selector_append_text_column().
  *
- * It is highly recommended that you use only one column
- * #HildonTouchSelector<!-- -->s.
- * If you only need a text only, one column selector, you can create it with
+ * If you only need a touch selector with only one text column (which
+ * is the most common case), you can create it with
  * hildon_touch_selector_new_text() and populate with
- * hildon_touch_selector_append_text(), hildon_touch_selector_prepend_text(),
- * and hildon_touch_selector_insert_text().
+ * hildon_touch_selector_append_text(),
+ * hildon_touch_selector_prepend_text(), and
+ * hildon_touch_selector_insert_text().
  *
  * If you need a selector widget that also accepts user inputs, you
  * can use #HildonTouchSelectorEntry.
