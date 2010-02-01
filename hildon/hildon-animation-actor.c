@@ -291,6 +291,8 @@ hildon_animation_actor_finalize                (GObject *object)
 
 	g_object_unref (priv->parent);
     }
+
+    G_OBJECT_CLASS (hildon_animation_actor_parent_class)->finalize (object);
 }
 
 static void
