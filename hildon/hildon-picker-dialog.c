@@ -376,6 +376,8 @@ hildon_picker_dialog_realize (GtkWidget *widget)
   setup_interaction_mode (HILDON_PICKER_DIALOG (widget));
 
   GTK_WIDGET_CLASS (hildon_picker_dialog_parent_class)->realize (widget);
+
+  hildon_gtk_window_set_portrait_flags (GTK_WINDOW (widget), HILDON_PORTRAIT_MODE_SUPPORT);
 }
 
 /* ------------------------------ PRIVATE METHODS ---------------------------- */
