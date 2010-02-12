@@ -482,7 +482,7 @@ _init_column_order (HildonDateSelector * selector)
 
 
   if ((day_pos == NULL) || (month_pos == NULL) || (year_pos == NULL)) {
-    g_error ("Wrong date format");      /* so default values */
+    g_warning ("Wrong date format");      /* use default values */
 
     selector->priv->day_column = 0;
     selector->priv->month_column = 1;
