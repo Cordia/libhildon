@@ -380,7 +380,10 @@ on_key_press_event                              (GtkWidget        *widget,
     if (GTK_WIDGET_VISIBLE (priv->kb_focus_widget)) {
         /* If the live search is hidden, Ctrl+whatever is always
          * passed to the focus widget */
-        if (GTK_WIDGET_VISIBLE (live_search) || !(event->state & GDK_CONTROL_MASK)) {
+        if (GTK_WIDGET_VISIBLE (live_search) ||
+            !(event->state & GDK_CONTROL_MASK ||
+              event->keyval == GDK_Control_L ||
+              event->keyval == GDK_Control_R)) {
             GdkEvent *new_event;
 
             /* If the entry is realized and has focus, it is enough to catch events.
