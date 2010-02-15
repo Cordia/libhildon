@@ -655,6 +655,13 @@ hildon_touch_selector_unblock_changed           (HildonTouchSelector *selector)
   selector->priv->changed_blocked = FALSE;
 }
 
+void
+hildon_touch_selector_column_disable_focus      (HildonTouchSelectorColumn *col)
+{
+    g_return_if_fail (HILDON_IS_TOUCH_SELECTOR_COLUMN (col));
+    GTK_WIDGET_UNSET_FLAGS (GTK_WIDGET (col->priv->tree_view), GTK_CAN_FOCUS);
+}
+
 static void
 hildon_touch_selector_emit_value_changed        (HildonTouchSelector *selector,
                                                  gint column)

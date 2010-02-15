@@ -31,6 +31,9 @@ hildon_touch_selector_block_changed             (HildonTouchSelector *selector);
 void G_GNUC_INTERNAL
 hildon_touch_selector_unblock_changed           (HildonTouchSelector *selector);
 
+void G_GNUC_INTERNAL
+hildon_touch_selector_column_disable_focus      (HildonTouchSelectorColumn *col);
+
 G_END_DECLS
 
 #endif
