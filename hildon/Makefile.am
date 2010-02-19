@@ -204,7 +204,7 @@ noinst_HEADERS = hildon-calendar-popup-private.h 	\
 $(OBJECTS) $(libhildon_$(API_VERSION_MAJOR)_la_OBJECTS): hildon-enum-types.h hildon-marshalers.c hildon-marshalers.h
 
 hildon-enum-types.h: @REBUILD@ $(libhildon_$(API_VERSION_MAJOR)_public_headers) Makefile
-	(cd $(srcdir) && glib-mkenums 	\
+	$(AM_V_GEN) (cd $(srcdir) && glib-mkenums 	\
 	--fhead "#ifndef __HILDON_ENUM_TYPES_H__\n" 		\
 	--fhead "#define __HILDON_ENUM_TYPES_H__\n" 		\
 	--fhead "\n" 						\
@@ -218,7 +218,7 @@ hildon-enum-types.h: @REBUILD@ $(libhildon_$(API_VERSION_MAJOR)_public_headers) 
 	$(libhildon_$(API_VERSION_MAJOR)_public_headers)) > $@
 
 hildon-enum-types.c: @REBUILD@ $(libhildon_$(API_VERSION_MAJOR)_public_headers) Makefile
-	(cd $(srcdir) && glib-mkenums 				\
+	$(AM_V_GEN) (cd $(srcdir) && glib-mkenums 				\
 	--fhead "#undef HILDON_DISABLE_DEPRECATED\n"               \
 	--fhead "#include \"hildon.h\"\n" 			\
 	--fhead "#include <glib-object.h>" 			\
@@ -229,9 +229,9 @@ hildon-enum-types.c: @REBUILD@ $(libhildon_$(API_VERSION_MAJOR)_public_headers) 
 	$(libhildon_$(API_VERSION_MAJOR)_public_headers)) > $@
 
 hildon-marshalers.h: hildon-marshalers.list
-	glib-genmarshal --prefix _hildon_marshal --header hildon-marshalers.list >hildon-marshalers.h
+	$(AM_V_GEN) glib-genmarshal --prefix _hildon_marshal --header hildon-marshalers.list >hildon-marshalers.h
 
 hildon-marshalers.c: hildon-marshalers.list hildon-marshalers.h
-	echo '#include "hildon-marshalers.h"' >hildon-marshalers.c
-	glib-genmarshal --prefix _hildon_marshal --body hildon-marshalers.list >>hildon-marshalers.c
+	$(AM_V_GEN) echo '#include "hildon-marshalers.h"' >hildon-marshalers.c
+	$(AM_V_at) glib-genmarshal --prefix _hildon_marshal --body hildon-marshalers.list >>hildon-marshalers.c
 
