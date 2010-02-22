@@ -140,10 +140,12 @@ refilter (HildonLiveSearch *livesearch)
 static void
 selection_map_create                            (HildonLiveSearchPrivate *priv)
 {
-    gboolean working;
+    gboolean walking;
     GtkTreeModel *base_model;
-    GtkTreeIter iter;
+    GtkTreeIter iter_child;
     GtkTreePath *path;
+    GtkTreeIter virtual_root;
+    GtkTreePath *virtual_root_path;
 
     g_assert (priv->selection_map == NULL);
 
@@ -152,12 +154,17 @@ selection_map_create                            (HildonLiveSearchPrivate *priv)
     priv->selection_map = g_hash_table_new_full
         (hash_func, key_equal_func, (GDestroyNotify) gtk_tree_path_free, NULL);
 
-    for (working = gtk_tree_model_get_iter_first (base_model, &iter);
-         working;
-         working = gtk_tree_model_iter_next (base_model, &iter)) {
-        path = gtk_tree_model_get_path (base_model, &iter);
+    g_object_get (priv->filter, "virtual-root", &virtual_root_path, NULL);
+    gtk_tree_model_get_iter (base_model, &virtual_root, virtual_root_path);
+    walking = gtk_tree_model_iter_children (base_model, &iter_child,
+        &virtual_root);
+
+    while (walking) {
+        path = gtk_tree_model_get_path (base_model, &iter_child);
         g_hash_table_insert (priv->selection_map,
                              path, GINT_TO_POINTER (FALSE));
+
+        walking = gtk_tree_model_iter_next (base_model, &iter_child);
     }
 }
 
@@ -176,6 +183,25 @@ selection_map_destroy                           (HildonLiveSearchPrivate *priv)
     }
 }
 
+static GtkTreePath *
+convert_child_path_to_path (GtkTreeModel *model,
+                            GtkTreeModel *base_model,
+                            GtkTreePath *path)
+{
+  g_return_val_if_fail (model != NULL, NULL);
+  g_return_val_if_fail (base_model != NULL, NULL);
+  g_return_val_if_fail (path != NULL, NULL);
+
+  if (model == base_model)
+    return gtk_tree_path_copy (path);
+
+  g_assert (gtk_tree_model_sort_get_model (model) == base_model);
+  g_assert (GTK_IS_TREE_MODEL_SORT (model));
+
+  return gtk_tree_model_sort_convert_child_path_to_path
+      (GTK_TREE_MODEL_SORT (model), path);
+}
+
 /**
  * selection_map_update_map_from_selection:
  * @priv: The private pimpl
@@ -186,38 +212,50 @@ selection_map_destroy                           (HildonLiveSearchPrivate *priv)
 static void
 selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
 {
-    gboolean working;
+    gboolean walking;
     GtkTreeModel *base_model;
     GtkTreeSelection *selection;
-    GtkTreeIter iter;
+    GtkTreeIter iter_child;
+    GtkTreeIter virtual_root;
+    GtkTreePath *virtual_root_path;
 
     base_model = gtk_tree_model_filter_get_model (priv->filter);
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
-    for (working = gtk_tree_model_get_iter_first (base_model, &iter);
-         working;
-         working = gtk_tree_model_iter_next (base_model, &iter)) {
-        GtkTreePath *path, *filter_path;
-        path = gtk_tree_model_get_path (base_model, &iter);
-        filter_path = gtk_tree_model_filter_convert_child_path_to_path (priv->filter, path);
+    g_object_get (priv->filter, "virtual-root", &virtual_root_path, NULL);
+    gtk_tree_model_get_iter (base_model, &virtual_root, virtual_root_path);
+    walking = gtk_tree_model_iter_children (base_model, &iter_child,
+        &virtual_root);
+
+    while (walking) {
+        GtkTreePath *base_path, *filter_path;
+        base_path = gtk_tree_model_get_path (base_model, &iter_child);
+        filter_path = gtk_tree_model_filter_convert_child_path_to_path
+          (priv->filter, base_path);
 
         if (filter_path) {
+            GtkTreePath *view_path;
+            view_path = convert_child_path_to_path (
+                gtk_tree_view_get_model (GTK_TREE_VIEW (priv->kb_focus_widget)),
+                GTK_TREE_MODEL (priv->filter), filter_path);
             if (gtk_tree_selection_path_is_selected
-                (selection, filter_path)) {
+                (selection, view_path)) {
                 g_hash_table_replace
                     (priv->selection_map,
-                     path,
+                     base_path,
                      GINT_TO_POINTER (TRUE));
             } else {
                 g_hash_table_replace
                     (priv->selection_map,
-                     path,
+                     base_path,
                      GINT_TO_POINTER (FALSE));
             }
+            gtk_tree_path_free (view_path);
             gtk_tree_path_free (filter_path);
         } else {
-            gtk_tree_path_free (path);
+            gtk_tree_path_free (base_path);
         }
+        walking = gtk_tree_model_iter_next (base_model, &iter_child);
     }
 }
 
@@ -231,38 +269,50 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
 static void
 selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
 {
-    gboolean working;
+    gboolean walking;
     GtkTreeModel *base_model;
     GtkTreeSelection *selection;
-    GtkTreeIter iter;
+    GtkTreeIter iter_child;
+    GtkTreeIter virtual_root;
+    GtkTreePath *virtual_root_path;
 
     base_model = gtk_tree_model_filter_get_model (priv->filter);
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
-    for (working = gtk_tree_model_get_iter_first (base_model, &iter);
-         working;
-         working = gtk_tree_model_iter_next (base_model, &iter)) {
-        GtkTreePath *path, *filter_path;
-        path = gtk_tree_model_get_path (base_model, &iter);
-        filter_path = gtk_tree_model_filter_convert_child_path_to_path (priv->filter, path);
+    g_object_get (priv->filter, "virtual-root", &virtual_root_path, NULL);
+    gtk_tree_model_get_iter (base_model, &virtual_root, virtual_root_path);
+    walking = gtk_tree_model_iter_children (base_model, &iter_child,
+        &virtual_root);
+
+    while (walking) {
+        GtkTreePath *base_path, *filter_path;
+        base_path = gtk_tree_model_get_path (base_model, &iter_child);
+        filter_path = gtk_tree_model_filter_convert_child_path_to_path
+          (priv->filter, base_path);
 
         if (filter_path) {
             gboolean selected;
+            GtkTreePath *view_path;
+            view_path = convert_child_path_to_path (
+                gtk_tree_view_get_model (GTK_TREE_VIEW (priv->kb_focus_widget)),
+                GTK_TREE_MODEL (priv->filter), filter_path);
 
             selected = GPOINTER_TO_INT
                 (g_hash_table_lookup
-                 (priv->selection_map, path));
+                 (priv->selection_map, base_path));
 
             if (selected) {
                 gtk_tree_selection_select_path
-                    (selection, filter_path);
+                    (selection, view_path);
             } else {
                 gtk_tree_selection_unselect_path
-                    (selection, filter_path);
+                    (selection, view_path);
             }
+            gtk_tree_path_free (view_path);
             gtk_tree_path_free (filter_path);
         }
-        gtk_tree_path_free (path);
+        gtk_tree_path_free (base_path);
+        walking = gtk_tree_model_iter_next (base_model, &iter_child);
     }
 }
 
