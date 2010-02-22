@@ -3289,7 +3289,8 @@ hildon_pannable_area_add_with_viewport (HildonPannableArea * area,
  * <example>
  * <programlisting>
  *  GtkTreePath *path;
- *  GdkRectangle *rect;
+ *  GdkRectangle rect;
+ *  gint y;
  *  <!-- -->
  *  path = gtk_tree_model_get_path (model, &amp;iter);
  *  gtk_tree_view_get_background_area (GTK_TREE_VIEW (treeview),
