@@ -31,6 +31,10 @@
  * button can be set using hildon_picker_dialog_set_done_label() and
  * retrieved using hildon_picker_dialog_get_done_label()
  *
+ * #HildonPickerDialog will emit #GtkDialog::response when a selection
+ * is completed, with the response id set to #GTK_RESPONSE_OK (or
+ * #GTK_RESPONSE_DELETE_EVENT if the selection was cancelled).
+ *
  * Note that in most cases developers don't need to deal directly with
  * this widget. #HildonPickerButton is designed to pop up a
  * #HildonPickerDialog and manage the interaction with it.
