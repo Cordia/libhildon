@@ -617,13 +617,6 @@ banner_do_set_text                              (HildonBanner *banner,
 
     priv = HILDON_BANNER_GET_PRIVATE (banner);
 
-    if (priv->main_item) {
-        gtk_container_remove (GTK_CONTAINER (priv->layout), priv->main_item);
-        priv->main_item = NULL;
-        gtk_box_pack_start (GTK_BOX (priv->layout), priv->label, FALSE, FALSE,
-                            0);
-    }
-
     if (is_markup) {
         gtk_label_set_markup (GTK_LABEL (priv->label), text);
     } else {
@@ -972,6 +965,21 @@ reshow_banner                                   (HildonBanner *banner)
     gtk_widget_show_all (GTK_WIDGET (banner));
 }
 
+static void
+unpack_main_widget_pack_label                   (HildonBanner *banner)
+{
+    HildonBannerPrivate *priv = NULL;
+
+    priv = HILDON_BANNER_GET_PRIVATE (banner);
+
+    if (priv->main_item) {
+        gtk_container_remove (GTK_CONTAINER (priv->layout), priv->main_item);
+        priv->main_item = NULL;
+        gtk_box_pack_start (GTK_BOX (priv->layout), priv->label, FALSE, FALSE,
+                            0);
+    }
+}
+
 static GtkWidget*
 hildon_banner_real_show_information             (GtkWidget *widget,
                                                  const gchar *text,
@@ -987,6 +995,7 @@ hildon_banner_real_show_information             (GtkWidget *widget,
     priv = HILDON_BANNER_GET_PRIVATE (banner);
 
     priv->name_suffix = "information";
+    unpack_main_widget_pack_label (banner);
     banner_do_set_text (banner, text, FALSE);
     hildon_banner_bind_style (banner);
 
@@ -1177,6 +1186,7 @@ hildon_banner_show_progress                     (GtkWidget *widget,
     g_assert (priv);
 
     priv->name_suffix = "progress";
+    unpack_main_widget_pack_label (banner);
     banner_do_set_text (banner, text, FALSE);
     hildon_banner_bind_style (banner);
 
