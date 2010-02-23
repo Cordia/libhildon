@@ -84,6 +84,10 @@ const char *
 hildon_live_search_get_text                     (HildonLiveSearch *livesearch);
 
 void
+hildon_live_search_set_text                     (HildonLiveSearch *livesearch,
+                                                 const char       *text);
+
+void
 hildon_live_search_set_filter                   (HildonLiveSearch   *livesearch,
                                                  GtkTreeModelFilter *filter);
 

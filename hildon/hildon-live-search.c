@@ -395,6 +395,27 @@ hildon_live_search_append_text                  (HildonLiveSearch *livesearch,
 }
 
 /**
+ * hildon_live_search_set_text:
+ * @livesearch: An #HildonLiveSearch widget
+ * @text: Text to set. @text is copied internally
+ * can be freed later by the caller.
+ *
+ * Set a string to the entry text in the live search widget.
+ *
+ * Since: 2.2.15
+ **/
+void
+hildon_live_search_set_text                  (HildonLiveSearch *livesearch,
+                                              const char       *text)
+{
+    g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
+    g_return_if_fail (NULL != text);
+
+    gtk_entry_set_text (GTK_ENTRY (livesearch->priv->entry),
+        text);
+}
+
+/**
  * hildon_live_search_get_text:
  * @livesearch: An #HildonLiveSearch widget
  *
