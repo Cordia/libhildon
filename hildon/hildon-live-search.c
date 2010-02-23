@@ -77,7 +77,8 @@ enum
 
     PROP_FILTER,
     PROP_WIDGET,
-    PROP_TEXT_COLUMN
+    PROP_TEXT_COLUMN,
+    PROP_TEXT
 };
 
 enum
@@ -478,6 +479,9 @@ hildon_live_search_get_property                 (GObject    *object,
     case PROP_TEXT_COLUMN:
         g_value_set_int (value, livesearch->priv->text_column);
         break;
+    case PROP_TEXT:
+        g_value_set_string (value, livesearch->priv->prefix);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
     }
@@ -499,6 +503,10 @@ hildon_live_search_set_property                 (GObject      *object,
     case PROP_TEXT_COLUMN:
         hildon_live_search_set_text_column (livesearch,
                                             g_value_get_int (value));
+        break;
+    case PROP_TEXT:
+        gtk_entry_set_text (GTK_ENTRY (livesearch->priv->entry),
+            g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -575,6 +583,22 @@ hildon_live_search_class_init                   (HildonLiveSearchClass *klass)
                                                        "Column to use to filter "
                                                        "elements from the #GtkTreeModelFilter",
                                                        -1, G_MAXINT, -1,
+                                                       G_PARAM_READWRITE |
+                                                       G_PARAM_STATIC_STRINGS));
+
+    /**
+     * HildonLiveSearch:text:
+     *
+     * The text used to filter
+     *
+     * Since: 2.2.15
+     */
+    g_object_class_install_property (object_class,
+                                     PROP_TEXT,
+                                     g_param_spec_string ("text",
+                                                       "Text",
+                                                       "Text to use as a filter",
+                                                       "",
                                                        G_PARAM_READWRITE |
                                                        G_PARAM_STATIC_STRINGS));
 
