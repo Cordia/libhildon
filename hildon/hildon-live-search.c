@@ -409,7 +409,7 @@ hildon_live_search_append_text                  (HildonLiveSearch *livesearch,
  * @text: Text to set. @text is copied internally
  * can be freed later by the caller.
  *
- * Set a string to the entry text in the live search widget.
+ * Sets a string to the entry text in the live search widget.
  *
  * Since: 2.2.15
  **/

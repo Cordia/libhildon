@@ -949,6 +949,7 @@ HildonFontSelectionDialogClass
 HildonLiveSearch
 HildonLiveSearchVisibleFunc
 hildon_live_search_append_text
+hildon_live_search_set_text
 hildon_live_search_get_text
 hildon_live_search_new
 hildon_live_search_restore_state
