@@ -368,6 +368,9 @@ on_entry_changed                                (GtkEntry *entry,
     }
 
     g_free (old_prefix);
+
+    /* Any change in the entry implies a change in HildonLiveSearch:text. */
+    g_object_notify (G_OBJECT (livesearch), "text");
 }
 
 /**
@@ -419,6 +422,9 @@ hildon_live_search_set_text                  (HildonLiveSearch *livesearch,
 
     gtk_entry_set_text (GTK_ENTRY (livesearch->priv->entry),
         text);
+
+    /* GObject::notify::text for HildonLiveSearch:text emitted in the
+       handler for GtkEntry::changed. */
 }
 
 /**
