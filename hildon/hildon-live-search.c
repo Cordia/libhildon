@@ -844,6 +844,10 @@ hildon_live_search_set_filter                   (HildonLiveSearch   *livesearch,
 
     refilter (livesearch);
 
+    if (priv->prefix) {
+        selection_map_create (priv);
+    }
+
     g_object_notify (G_OBJECT (livesearch), "filter");
 }
 
