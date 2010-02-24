@@ -127,7 +127,7 @@ refilter (HildonLiveSearch *livesearch)
     gboolean handled = FALSE;
 
     g_signal_emit (livesearch, signals[REFILTER], 0, &handled);
-    if (!handled)
+    if (!handled && priv->filter)
         gtk_tree_model_filter_refilter (priv->filter);
 }
 
