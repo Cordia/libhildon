@@ -538,8 +538,8 @@ hildon_live_search_set_property                 (GObject      *object,
                                             g_value_get_int (value));
         break;
     case PROP_TEXT:
-        gtk_entry_set_text (GTK_ENTRY (livesearch->priv->entry),
-            g_value_get_string (value));
+        hildon_live_search_set_text (livesearch,
+                                     g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
