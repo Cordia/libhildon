@@ -161,7 +161,7 @@ sort_key_changed                                (GtkWidget *widget,
     g_assert (priv);
 
     gint index = gtk_combo_box_get_active (GTK_COMBO_BOX (widget));
-    g_return_if_fail (index < priv->index_counter && index > 0);
+    g_return_if_fail (index < priv->index_counter && index >= 0);
 
     if (priv->key_reversed [index] != priv->reversed) {
         reconstruct_combo (dialog, TRUE, priv->key_reversed [index]);
