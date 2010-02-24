@@ -156,9 +156,12 @@ selection_map_create                            (HildonLiveSearchPrivate *priv)
         (hash_func, key_equal_func, (GDestroyNotify) gtk_tree_path_free, NULL);
 
     g_object_get (priv->filter, "virtual-root", &virtual_root_path, NULL);
-    gtk_tree_model_get_iter (base_model, &virtual_root, virtual_root_path);
+    if (virtual_root_path) {
+        gtk_tree_model_get_iter (base_model, &virtual_root, virtual_root_path);
+    }
     walking = gtk_tree_model_iter_children (base_model, &iter_child,
-        &virtual_root);
+                                            virtual_root_path ?
+                                            &virtual_root : NULL);
 
     while (walking) {
         path = gtk_tree_model_get_path (base_model, &iter_child);
@@ -224,9 +227,12 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
     g_object_get (priv->filter, "virtual-root", &virtual_root_path, NULL);
-    gtk_tree_model_get_iter (base_model, &virtual_root, virtual_root_path);
+    if (virtual_root_path) {
+        gtk_tree_model_get_iter (base_model, &virtual_root, virtual_root_path);
+    }
     walking = gtk_tree_model_iter_children (base_model, &iter_child,
-        &virtual_root);
+                                            virtual_root_path ?
+                                            &virtual_root : NULL);
 
     while (walking) {
         GtkTreePath *base_path, *filter_path;
@@ -281,9 +287,12 @@ selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
     g_object_get (priv->filter, "virtual-root", &virtual_root_path, NULL);
-    gtk_tree_model_get_iter (base_model, &virtual_root, virtual_root_path);
+    if (virtual_root_path) {
+        gtk_tree_model_get_iter (base_model, &virtual_root, virtual_root_path);
+    }
     walking = gtk_tree_model_iter_children (base_model, &iter_child,
-        &virtual_root);
+                                            virtual_root_path ?
+                                            &virtual_root : NULL);
 
     while (walking) {
         GtkTreePath *base_path, *filter_path;
