@@ -421,7 +421,7 @@ hildon_live_search_set_text                  (HildonLiveSearch *livesearch,
     g_return_if_fail (NULL != text);
 
     gtk_entry_set_text (GTK_ENTRY (livesearch->priv->entry),
-        text);
+                        text);
 
     /* GObject::notify::text for HildonLiveSearch:text emitted in the
        handler for GtkEntry::changed. */
