@@ -842,6 +842,8 @@ hildon_live_search_set_filter                   (HildonLiveSearch   *livesearch,
         priv->visible_func_set = TRUE;
     }
 
+    refilter (livesearch);
+
     g_object_notify (G_OBJECT (livesearch), "filter");
 }
 
@@ -1105,6 +1107,8 @@ hildon_live_search_set_visible_func             (HildonLiveSearch           *liv
                                                 NULL);
         priv->visible_func_set = TRUE;
     }
+
+    refilter (livesearch);
 }
 
 /**
