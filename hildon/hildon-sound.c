@@ -105,7 +105,6 @@ hildon_play_system_sound(const gchar *sample)
     ca_proplist_sets(pl, "module-stream-restore.id", "x-maemo-system-sound");
 
     ret = ca_context_play_full(ca_con, 0, pl, NULL, NULL);
-    g_debug("ca_context_play_full %s\n", ca_strerror(ret));
 
     ca_proplist_destroy(pl);
 }
