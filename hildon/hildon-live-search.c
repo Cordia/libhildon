@@ -119,19 +119,6 @@ key_equal_func                                  (gconstpointer v1,
                                   (GtkTreePath *)v2) == 0;
 }
 
-
-static void
-refilter (HildonLiveSearch *livesearch)
-{
-    HildonLiveSearchPrivate *priv = livesearch->priv;
-    gboolean handled = FALSE;
-
-    g_signal_emit (livesearch, signals[REFILTER], 0, &handled);
-    if (!handled && priv->filter)
-        gtk_tree_model_filter_refilter (priv->filter);
-}
-
-
 static gboolean
 model_get_root (GtkTreeModelFilter *filter,
                 GtkTreeModel *base_model,
@@ -166,6 +153,9 @@ selection_map_create                            (HildonLiveSearchPrivate *priv)
     GtkTreeModel *base_model;
     GtkTreeIter iter_child;
     GtkTreePath *path;
+
+    if (!GTK_IS_TREE_VIEW (priv->kb_focus_widget))
+        return;
 
     g_assert (priv->selection_map == NULL);
 
@@ -234,6 +224,9 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
     GtkTreeSelection *selection;
     GtkTreeIter iter_child;
 
+    if (!GTK_IS_TREE_VIEW (priv->kb_focus_widget))
+        return;
+
     base_model = gtk_tree_model_filter_get_model (priv->filter);
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
@@ -286,6 +279,9 @@ selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
     GtkTreeSelection *selection;
     GtkTreeIter iter_child;
 
+    if (!GTK_IS_TREE_VIEW (priv->kb_focus_widget))
+        return;
+
     base_model = gtk_tree_model_filter_get_model (priv->filter);
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
@@ -324,6 +320,26 @@ selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
 }
 
 static void
+refilter (HildonLiveSearch *livesearch)
+{
+    HildonLiveSearchPrivate *priv = livesearch->priv;
+    gboolean handled = FALSE;
+
+    /* Create/update selection map from current selection */
+    if (priv->selection_map == NULL)
+        selection_map_create (priv);
+    selection_map_update_map_from_selection (priv);
+
+    /* Filter the model */
+    g_signal_emit (livesearch, signals[REFILTER], 0, &handled);
+    if (!handled && priv->filter)
+        gtk_tree_model_filter_refilter (priv->filter);
+
+    /* Restore selection from mapping */
+    selection_map_update_selection_from_map (priv);
+}
+
+static void
 on_entry_changed                                (GtkEntry *entry,
                                                  gpointer  user_data)
 {
@@ -331,43 +347,28 @@ on_entry_changed                                (GtkEntry *entry,
     HildonLiveSearchPrivate *priv;
     const char *text;
     glong len;
-    char *old_prefix;
 
     g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
     priv = livesearch->priv;
 
     text = gtk_entry_get_text (GTK_ENTRY (entry));
     len = g_utf8_strlen (text, -1);
-
-    old_prefix = priv->prefix;
-
     if (len < 1) {
         text = NULL;
-    } else {
-        if (((old_prefix == NULL) || (strlen (old_prefix) == 0)) &&
-            GTK_IS_TREE_VIEW (priv->kb_focus_widget)) {
-            selection_map_create (priv);
-        }
     }
 
-    if (GTK_IS_TREE_VIEW (priv->kb_focus_widget))
-        selection_map_update_map_from_selection (priv);
-
+    g_free (priv->prefix);
     priv->prefix = g_strdup (text);
+
     refilter (livesearch);
 
-    if (GTK_IS_TREE_VIEW (priv->kb_focus_widget))
-        selection_map_update_selection_from_map (priv);
-
-    if (len < 1) {
-        if (GTK_IS_TREE_VIEW (priv->kb_focus_widget))
-            selection_map_destroy (priv);
+    /* Show the livesearch only if there is text in it */
+    if (priv->prefix == NULL) {
+        selection_map_destroy (priv);
         gtk_widget_hide (GTK_WIDGET (livesearch));
     } else {
         gtk_widget_show (GTK_WIDGET (livesearch));
     }
-
-    g_free (old_prefix);
 
     /* Any change in the entry implies a change in HildonLiveSearch:text. */
     g_object_notify (G_OBJECT (livesearch), "text");
@@ -843,10 +844,6 @@ hildon_live_search_set_filter                   (HildonLiveSearch   *livesearch,
     }
 
     refilter (livesearch);
-
-    if (priv->prefix) {
-        selection_map_create (priv);
-    }
 
     g_object_notify (G_OBJECT (livesearch), "filter");
 }
