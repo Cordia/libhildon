@@ -348,6 +348,7 @@ hildon_picker_dialog_size_request               (GtkWidget *widget,
   if (selector) {
     GtkRequisition child_requisition;
     GtkRequisition optimal_requisition;
+    GtkRequisition selector_requisition;
     GtkBin *bin;
     guint max_height;
 
@@ -359,16 +360,20 @@ hildon_picker_dialog_size_request               (GtkWidget *widget,
 
     /* assure the requisition is done */
     gtk_widget_size_request (bin->child, &child_requisition);
+    gtk_widget_get_child_requisition (selector, &selector_requisition);
 
     hildon_touch_selector_optimal_size_request (selector,
                                                 &optimal_requisition);
 
     requisition->width += child_requisition.width;
+    requisition->height += child_requisition.height;
 
     max_height = hildon_picker_dialog_get_max_height (HILDON_PICKER_DIALOG (widget));
 
     requisition->height = MIN (max_height,
-                               requisition->height + optimal_requisition.height);
+                               requisition->height +
+                               optimal_requisition.height -
+                               selector_requisition.height);
   } else
     GTK_WIDGET_CLASS (hildon_picker_dialog_parent_class)->size_request
       (widget, requisition);
