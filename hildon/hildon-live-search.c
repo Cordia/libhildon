@@ -202,7 +202,8 @@ convert_child_path_to_path (GtkTreeModel *model,
   if (model == base_model)
     return gtk_tree_path_copy (path);
 
-  g_assert (gtk_tree_model_sort_get_model (model) == base_model);
+  g_assert (gtk_tree_model_sort_get_model (GTK_TREE_MODEL_SORT(model)) ==
+            base_model);
   g_assert (GTK_IS_TREE_MODEL_SORT (model));
 
   return gtk_tree_model_sort_convert_child_path_to_path
