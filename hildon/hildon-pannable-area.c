@@ -1152,6 +1152,9 @@ hildon_pannable_area_unrealize (GtkWidget * widget)
 
   priv = HILDON_PANNABLE_AREA (widget)->priv;
 
+  if (GTK_WIDGET_MAPPED (widget))
+      hildon_pannable_area_unmap (widget);
+
   hildon_pannable_area_remove_timeouts (widget);
 
   if (priv->event_window != NULL) {
