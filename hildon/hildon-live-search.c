@@ -566,6 +566,13 @@ hildon_live_search_dispose                      (GObject *object)
         priv->prefix = NULL;
     }
 
+    if (priv->visible_func_set == TRUE) {
+        gtk_tree_model_filter_set_visible_func (priv->filter,
+                                                FALSE,
+                                                NULL, NULL);
+        priv->visible_func_set = FALSE;
+    }
+
     if (priv->visible_destroy) {
         priv->visible_destroy (priv->visible_data);
         priv->visible_destroy = NULL;
