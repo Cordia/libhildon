@@ -1332,6 +1332,8 @@ hildon_helper_set_insensitive_message
 hildon_helper_set_insensitive_messagef
 hildon_helper_set_thumb_scrollbar
 hildon_format_file_size_for_display
+hildon_helper_strip_string
+hildon_helper_utf8_strstrcasedecomp_needle_stripped
 </SECTION>
 
 <SECTION>

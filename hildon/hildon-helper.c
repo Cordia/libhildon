@@ -37,6 +37,7 @@
 #include                                        <config.h>
 #endif
 
+#include                                        <string.h>
 #include                                        "hildon-helper.h"
 #include                                        "hildon-banner.h"
 
@@ -540,5 +541,196 @@ hildon_format_file_size_for_display             (goffset size)
 }
 
 
+/**
+ * stripped_char:
+ *
+ * Returns a stripped version of @ch, removing any case, accentuation
+ * mark, or any special mark on it.
+ **/
+static gunichar
+stripped_char (gunichar ch)
+{
+  gunichar *decomp, retval;
+  GUnicodeType utype;
+  gsize dlen;
 
+  utype = g_unichar_type (ch);
 
+  switch (utype) {
+  case G_UNICODE_CONTROL:
+  case G_UNICODE_FORMAT:
+  case G_UNICODE_UNASSIGNED:
+  case G_UNICODE_COMBINING_MARK:
+    /* Ignore those */
+    return 0;
+    break;
+  default:
+    /* Convert to lowercase, fall through */
+    ch = g_unichar_tolower (ch);
+  case G_UNICODE_LOWERCASE_LETTER:
+    if ((decomp = g_unicode_canonical_decomposition (ch, &dlen))) {
+      retval = decomp[0];
+      g_free (decomp);
+      return retval;
+    }
+    break;
+  }
+
+  return 0;
+}
+
+static gchar *
+e_util_unicode_get_utf8 (const gchar *text, gunichar *out)
+{
+  *out = g_utf8_get_char (text);
+  return (*out == (gunichar)-1) ? NULL : g_utf8_next_char (text);
+}
+
+/**
+ * get_next:
+ * @p: a pointer to the string to search.
+ * @out: a place to store the next valid
+ * @separators: whether to search only for alphanumeric strings
+ * and skip any word separator.
+ *
+ * Gets the next character that is valid in our search scope, and
+ * store it into @out. The next char, after @out is returned.
+ *
+ * Returns: the next point in the string @p where to continue the
+ * string iteration.
+ **/
+static const gchar *
+get_next (const gchar *p, gunichar *out, gboolean separators)
+{
+  const gchar *q;
+  gunichar utf8;
+
+  if (separators) {
+    do {
+       q = p;
+       p = e_util_unicode_get_utf8 (q, &utf8);
+       *out = stripped_char (utf8);
+    } while (p && *out && !g_unichar_isalnum (*out));
+  } else {
+    p = e_util_unicode_get_utf8 (p, &utf8);
+    *out = stripped_char (utf8);
+  }
+
+  return p;
+}
+
+/**
+ * hildon_helper_utf8_strstrcasedecomp_needle_stripped:
+ * @haystack: a haystack where to search
+ * @nuni: a needle to search for, already stripped with hildon_helper_strip_string()
+ *
+ * Heavily modified version of e_util_utf8_strstrcasedecomp(). As its
+ * original version, it finds the first occurrence of @nuni in
+ * @haystack.  However, instead of stripping @nuni, it expect it to be
+ * already stripped. See hildon_helper_strip_string().
+ *
+ * This is done for performance reasons, since this search is done
+ * several times for the same string @nuni, it is undesired to strip
+ * it more than once.
+ *
+ * Also, the search is done as a prefix search, starting in the first
+ * alphanumeric character after any non-alphanumeric one. Searching
+ * for "aba" in "Abasto" will match, searching in "Moraba" will not,
+ * and searching in "A tool (abacus)" will do.
+ *
+ * Returns: the first instance of @nuni in @haystack
+ *
+ * Since: 2.2.18
+ **/
+const gchar *
+hildon_helper_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, const gunichar *nuni)
+{
+  gunichar unival;
+  gint nlen = 0;
+  const gchar *o, *p;
+  gunichar sc;
+
+  if (haystack == NULL) return NULL;
+  if (nuni == NULL) return NULL;
+  if (strlen (haystack) == 0) return NULL;
+  while (*(nuni + nlen) != 0) nlen++;
+
+  if (nlen < 1) return haystack;
+
+  o = haystack;
+
+  for (p = get_next (o, &sc, g_unichar_isalnum (nuni[0]));
+       p && sc;
+       p = get_next (p, &sc, g_unichar_isalnum (nuni[0]))) {
+    if (sc) {
+      /* We have valid stripped gchar */
+      if (sc == nuni[0]) {
+        const gchar *q = p;
+        gint npos = 1;
+        while (npos < nlen) {
+          q = e_util_unicode_get_utf8 (q, &unival);
+          if (!q || !unival) return NULL;
+          sc = stripped_char (unival);
+          if ((!sc) || (sc != nuni[npos])) break;
+          npos++;
+        }
+        if (npos == nlen) {
+          return o;
+        }
+      }
+    }
+    while (p) {
+      sc = g_utf8_get_char (p);
+      if (!g_unichar_isalnum (sc))
+        break;
+      p = g_utf8_next_char (p);
+    }
+
+    o = p;
+  }
+
+  return NULL;
+}
+
+/**
+ * hildon_helper_strip_string:
+ * @string: a string to be stripped off.
+ *
+ * Strips all capitalization and accentuation marks from a string.
+ * The returned Unicode string is %NULL-terminated.
+ *
+ * Returns: a newly allocated Unicode, lowercase, and without accentuation
+ * marks version of @string, or %NULL if @string is an empty string.
+ *
+ * Since: 2.2.18
+ **/
+gunichar *
+hildon_helper_strip_string (const gchar *string)
+{
+  gunichar *nuni;
+  gint nlen;
+  gunichar unival;
+  const gchar *p;
+
+  if (strlen (string) == 0) return NULL;
+
+  nuni = g_malloc (sizeof (gunichar) * (strlen (string) + 1));
+
+  nlen = 0;
+  for (p = e_util_unicode_get_utf8 (string, &unival);
+       p && unival;
+       p = e_util_unicode_get_utf8 (p, &unival)) {
+      gunichar sc;
+      sc = stripped_char (unival);
+      if (sc) {
+          nuni[nlen++] = sc;
+      }
+  }
+
+  /* NULL means there was illegal utf-8 sequence */
+  if (!p) nlen = 0;
+
+  nuni[nlen] = 0;
+
+  return nuni;
+}

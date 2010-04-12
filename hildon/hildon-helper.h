@@ -62,6 +62,13 @@ hildon_helper_set_thumb_scrollbar               (GtkScrolledWindow *win,
 gchar *
 hildon_format_file_size_for_display             (goffset size);
 
+const gchar *
+hildon_helper_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack,
+						     const gunichar *nuni);
+
+gunichar *
+hildon_helper_strip_string                      (const gchar *string);
+
 G_END_DECLS
 
 #endif                                          /* __HILDON_HELPER_H__ */
