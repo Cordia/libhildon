@@ -610,7 +610,7 @@ get_next (const gchar *p, gunichar *out, gboolean separators)
        q = p;
        p = e_util_unicode_get_utf8 (q, &utf8);
        *out = stripped_char (utf8);
-    } while (p && !g_unichar_isalnum (*out));
+    } while (p && utf8 && !g_unichar_isalnum (*out));
   } else {
     p = e_util_unicode_get_utf8 (p, &utf8);
     *out = stripped_char (utf8);
@@ -669,11 +669,7 @@ hildon_helper_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, cons
         gint npos = 1;
         while (npos < nlen) {
           q = e_util_unicode_get_utf8 (q, &unival);
-          if (!q) return NULL;
-          if (!unival) {
-                  npos++;
-                  continue;
-          }
+          if (!q || !unival) return NULL;
           sc = stripped_char (unival);
           if ((!sc) || (sc != nuni[npos])) break;
           npos++;
