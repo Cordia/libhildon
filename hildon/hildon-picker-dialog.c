@@ -360,7 +360,7 @@ hildon_picker_dialog_size_request               (GtkWidget *widget,
 
     /* assure the requisition is done */
     gtk_widget_size_request (bin->child, &child_requisition);
-    gtk_widget_get_child_requisition (selector, &selector_requisition);
+    gtk_widget_get_child_requisition (GTK_WIDGET (selector), &selector_requisition);
 
     hildon_touch_selector_optimal_size_request (selector,
                                                 &optimal_requisition);
