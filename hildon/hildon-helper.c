@@ -602,13 +602,11 @@ e_util_unicode_get_utf8 (const gchar *text, gunichar *out)
 static const gchar *
 get_next (const gchar *p, gunichar *out, gboolean separators)
 {
-  const gchar *q;
   gunichar utf8;
 
   if (separators) {
     do {
-       q = p;
-       p = e_util_unicode_get_utf8 (q, &utf8);
+       p = e_util_unicode_get_utf8 (p, &utf8);
        *out = stripped_char (utf8);
     } while (p && utf8 && !g_unichar_isalnum (*out));
   } else {
