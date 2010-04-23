@@ -589,7 +589,8 @@ e_util_unicode_get_utf8 (const gchar *text, gunichar *out)
 /**
  * get_next:
  * @p: a pointer to the string to search.
- * @out: a place to store the next valid
+ * @o: a place to store the location of the next valid char.
+ * @out: a place to store the next valid char.
  * @separators: whether to search only for alphanumeric strings
  * and skip any word separator.
  *
@@ -600,16 +601,18 @@ e_util_unicode_get_utf8 (const gchar *text, gunichar *out)
  * string iteration.
  **/
 static const gchar *
-get_next (const gchar *p, gunichar *out, gboolean separators)
+get_next (const gchar *p, const gchar **o, gunichar *out, gboolean separators)
 {
   gunichar utf8;
 
   if (separators) {
     do {
+       *o = p;
        p = e_util_unicode_get_utf8 (p, &utf8);
        *out = stripped_char (utf8);
     } while (p && utf8 && !g_unichar_isalnum (*out));
   } else {
+    *o = p;
     p = e_util_unicode_get_utf8 (p, &utf8);
     *out = stripped_char (utf8);
   }
@@ -655,11 +658,9 @@ hildon_helper_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, cons
 
   if (nlen < 1) return haystack;
 
-  o = haystack;
-
-  for (p = get_next (o, &sc, g_unichar_isalnum (nuni[0]));
+  for (p = get_next (haystack, &o, &sc, g_unichar_isalnum (nuni[0]));
        p && sc;
-       p = get_next (p, &sc, g_unichar_isalnum (nuni[0]))) {
+       p = get_next (p, &o, &sc, g_unichar_isalnum (nuni[0]))) {
     if (sc) {
       /* We have valid stripped gchar */
       if (sc == nuni[0]) {
@@ -683,8 +684,6 @@ hildon_helper_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack, cons
         break;
       p = g_utf8_next_char (p);
     }
-
-    o = p;
   }
 
   return NULL;
