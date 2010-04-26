@@ -704,6 +704,8 @@ hildon_live_search_init                         (HildonLiveSearch *self)
     priv->visible_destroy = NULL;
     priv->visible_func_set = FALSE;
 
+    priv->selection_map = NULL;
+
     priv->text_column = -1;
 
     entry_container = gtk_tool_item_new ();
