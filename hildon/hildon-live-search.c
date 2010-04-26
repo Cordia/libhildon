@@ -325,11 +325,18 @@ refilter (HildonLiveSearch *livesearch)
 {
     HildonLiveSearchPrivate *priv = livesearch->priv;
     gboolean handled = FALSE;
+    gboolean needs_mapping;
+
+    needs_mapping = GTK_IS_TREE_VIEW (priv->kb_focus_widget) &&
+        gtk_tree_selection_get_mode (gtk_tree_view_get_selection (
+                                         GTK_TREE_VIEW (priv->kb_focus_widget))) != GTK_SELECTION_NONE;
 
     /* Create/update selection map from current selection */
-    if (priv->selection_map == NULL)
-        selection_map_create (priv);
-    selection_map_update_map_from_selection (priv);
+    if (needs_mapping) {
+        if (priv->selection_map == NULL)
+            selection_map_create (priv);
+        selection_map_update_map_from_selection (priv);
+    }
 
     /* Filter the model */
     g_signal_emit (livesearch, signals[REFILTER], 0, &handled);
@@ -337,7 +344,8 @@ refilter (HildonLiveSearch *livesearch)
         gtk_tree_model_filter_refilter (priv->filter);
 
     /* Restore selection from mapping */
-    selection_map_update_selection_from_map (priv);
+    if (needs_mapping)
+        selection_map_update_selection_from_map (priv);
 }
 
 static void
