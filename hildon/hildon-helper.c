@@ -37,6 +37,7 @@
 #include                                        <config.h>
 #endif
 
+#define _GNU_SOURCE
 #include                                        <string.h>
 #include                                        "hildon-helper.h"
 #include                                        "hildon-banner.h"
@@ -730,4 +731,68 @@ hildon_helper_strip_string (const gchar *string)
   nuni[nlen] = 0;
 
   return nuni;
+}
+
+/**
+ * hildon_helper_normalize_string:
+ * @string: a string
+ *
+ * Transform a string into an ascii equivalent representation.
+ * This is necessary for hildon_helper_smart_match() to work properly.
+ *
+ * Returns: a newly allocated string.
+ **/
+gchar *
+hildon_helper_normalize_string (const gchar *string)
+{
+    gchar *str = g_convert (string, -1, "ascii//translit", "utf-8", NULL, NULL, NULL);
+
+    return str;
+}
+
+/**
+ * hildon_helper_smart_match:
+ * @haystack: a string where to find a match
+ * @needle: what to find
+ *
+ * Searches for the first occurence of @needle in @haystack. The search
+ * is performed only in the first alphanumeric character after a
+ * sequence of non-alphanumeric ones. This allows smart matching of words
+ * inside more complex strings.
+ *
+ * If @haystack itself doesn't start with an alphanumeric character,
+ * then the search is equivalent to strcasecmp().
+ *
+ * To make the best of this method, it is recommended that both the needle
+ * and the haystack are already normalized as ASCII strings. For this, you
+ * should call hildon_helper_normalize_string() on both strings.
+ *
+ * Returns: a pointer to the first occurence of @needle in @haystack or %NULL
+ * if not found
+ **/
+gchar *
+hildon_helper_smart_match (const gchar *haystack, const gchar *needle)
+{
+    if (haystack == NULL) return NULL;
+    if (needle == NULL) return NULL;
+    if (strlen (haystack) == 0) return NULL;
+
+    gboolean skip_separators = g_ascii_isalnum (needle[0]);
+
+    if (skip_separators) {
+        gint i = 0;
+        while (haystack[i] != '\0') {
+            while (haystack[i] != '\0' && !g_ascii_isalnum (haystack[i]))
+                i++;
+            if (g_ascii_strncasecmp (haystack + i, needle, strlen (needle)) == 0) {
+                return (gchar *)haystack + i;
+            }
+            while (g_ascii_isalnum (haystack[i]))
+                   i++;
+        }
+    } else {
+        return strcasestr (haystack, needle);
+    }
+
+    return NULL;
 }

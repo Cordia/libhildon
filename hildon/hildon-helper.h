@@ -69,6 +69,13 @@ hildon_helper_utf8_strstrcasedecomp_needle_stripped (const gchar *haystack,
 gunichar *
 hildon_helper_strip_string                      (const gchar *string);
 
+gchar *
+hildon_helper_normalize_string                  (const gchar *string);
+
+gchar *
+hildon_helper_smart_match                       (const gchar *haystack,
+                                                 const gchar *needle);
+
 G_END_DECLS
 
 #endif                                          /* __HILDON_HELPER_H__ */

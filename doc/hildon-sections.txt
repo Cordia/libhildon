@@ -1334,6 +1334,8 @@ hildon_helper_set_thumb_scrollbar
 hildon_format_file_size_for_display
 hildon_helper_strip_string
 hildon_helper_utf8_strstrcasedecomp_needle_stripped
+hildon_helper_normalize_string
+hildon_helper_smart_match
 </SECTION>
 
 <SECTION>
