@@ -330,6 +330,11 @@ refilter (HildonLiveSearch *livesearch)
         gtk_tree_selection_get_mode (gtk_tree_view_get_selection (
                                          GTK_TREE_VIEW (priv->kb_focus_widget))) != GTK_SELECTION_NONE;
 
+    /* This is not pretty code, but it should fix some warnings in the case we
+       attempt to refilter before the treeview actually has a model. */
+    if (needs_mapping && !gtk_tree_view_get_model (GTK_TREE_VIEW (priv->kb_focus_widget)))
+        return;
+
     /* Create/update selection map from current selection */
     if (needs_mapping) {
         if (priv->selection_map == NULL)
