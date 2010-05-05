@@ -103,10 +103,11 @@ hash_func                                       (gconstpointer key)
     gchar *path_str;
     guint val;
 
-    path = (GtkTreePath *) key;
+    path = gtk_tree_row_reference_get_path ((GtkTreeRowReference *) key);
     path_str = gtk_tree_path_to_string (path);
     val = g_str_hash (path_str);
     g_free (path_str);
+    gtk_tree_path_free (path);
 
     return val;
 }
@@ -115,28 +116,18 @@ static gboolean
 key_equal_func                                  (gconstpointer v1,
                                                  gconstpointer v2)
 {
-    return gtk_tree_path_compare ((GtkTreePath *)v1,
-                                  (GtkTreePath *)v2) == 0;
-}
+    gboolean ret;
+    GtkTreePath *path1;
+    GtkTreePath *path2;
 
-static gboolean
-model_get_root (GtkTreeModelFilter *filter,
-                GtkTreeModel *base_model,
-                GtkTreeIter *iter_child)
-{
-    GtkTreeIter virtual_root;
-    GtkTreePath *virtual_root_path;
-    gboolean walking;
+    path1 = gtk_tree_row_reference_get_path ((GtkTreeRowReference *) v1);
+    path2 = gtk_tree_row_reference_get_path ((GtkTreeRowReference *) v2);
+    ret = gtk_tree_path_compare (path1, path2) == 0;
 
-    g_object_get (filter, "virtual-root", &virtual_root_path, NULL);
-    if (virtual_root_path) {
-        gtk_tree_model_get_iter (base_model, &virtual_root, virtual_root_path);
-    }
-    walking = gtk_tree_model_iter_children (base_model, iter_child,
-                                            virtual_root_path ?
-                                            &virtual_root : NULL);
+    gtk_tree_path_free (path1);
+    gtk_tree_path_free (path2);
 
-    return walking;
+    return ret;
 }
 
 /**
@@ -149,30 +140,15 @@ model_get_root (GtkTreeModelFilter *filter,
 static void
 selection_map_create                            (HildonLiveSearchPrivate *priv)
 {
-    gboolean walking;
-    GtkTreeModel *base_model;
-    GtkTreeIter iter_child;
-    GtkTreePath *path;
-
     if (!GTK_IS_TREE_VIEW (priv->kb_focus_widget))
         return;
 
     g_assert (priv->selection_map == NULL);
 
-    base_model = gtk_tree_model_filter_get_model (priv->filter);
-
     priv->selection_map = g_hash_table_new_full
-        (hash_func, key_equal_func, (GDestroyNotify) gtk_tree_path_free, NULL);
+        (hash_func, key_equal_func,
+         (GDestroyNotify) gtk_tree_row_reference_free, NULL);
 
-    walking = model_get_root (priv->filter, base_model, &iter_child);
-
-    while (walking) {
-        path = gtk_tree_model_get_path (base_model, &iter_child);
-        g_hash_table_insert (priv->selection_map,
-                             path, GINT_TO_POINTER (FALSE));
-
-        walking = gtk_tree_model_iter_next (base_model, &iter_child);
-    }
 }
 
 /**
@@ -202,13 +178,64 @@ convert_child_path_to_path (GtkTreeModel *model,
   if (model == base_model)
     return gtk_tree_path_copy (path);
 
-  g_assert (gtk_tree_model_sort_get_model (GTK_TREE_MODEL_SORT(model)) ==
-            base_model);
   g_assert (GTK_IS_TREE_MODEL_SORT (model));
+  g_assert (gtk_tree_model_sort_get_model (GTK_TREE_MODEL_SORT(model)) == base_model);
 
   return gtk_tree_model_sort_convert_child_path_to_path
       (GTK_TREE_MODEL_SORT (model), path);
 }
+
+static GtkTreePath *
+convert_path_to_child_path (GtkTreeModel *model,
+                            GtkTreeModel *base_model,
+                            GtkTreePath *path)
+{
+  g_return_val_if_fail (model != NULL, NULL);
+  g_return_val_if_fail (base_model != NULL, NULL);
+  g_return_val_if_fail (path != NULL, NULL);
+
+  if (model == base_model)
+    return gtk_tree_path_copy (path);
+
+  g_assert (GTK_IS_TREE_MODEL_SORT (model));
+  g_assert (gtk_tree_model_sort_get_model (model) == base_model);
+
+  return gtk_tree_model_sort_convert_path_to_child_path
+      (GTK_TREE_MODEL_SORT (model), path);
+}
+
+static gboolean
+row_reference_is_not_selected (GtkTreeRowReference *row_ref,
+                               gpointer value,
+                               HildonLiveSearchPrivate *priv)
+{
+  GtkTreeSelection *selection = gtk_tree_view_get_selection (
+      GTK_TREE_VIEW (priv->kb_focus_widget));
+  GtkTreePath *base_path = gtk_tree_row_reference_get_path (row_ref);
+  GtkTreePath *filter_path = gtk_tree_model_filter_convert_child_path_to_path
+      (priv->filter, base_path);
+  GtkTreePath *view_path;
+  gboolean ret;
+
+  if (filter_path == NULL)
+    {
+      gtk_tree_path_free (base_path);
+      return FALSE;
+    }
+
+  view_path = convert_child_path_to_path (
+      gtk_tree_view_get_model (GTK_TREE_VIEW (priv->kb_focus_widget)),
+              GTK_TREE_MODEL (priv->filter), filter_path);
+
+  ret = ! gtk_tree_selection_path_is_selected (selection, view_path);
+
+  gtk_tree_path_free (base_path);
+  gtk_tree_path_free (filter_path);
+  gtk_tree_path_free (view_path);
+
+  return ret;
+}
+
 
 /**
  * selection_map_update_map_from_selection:
@@ -220,10 +247,8 @@ convert_child_path_to_path (GtkTreeModel *model,
 static void
 selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
 {
-    gboolean walking;
     GtkTreeModel *base_model;
     GtkTreeSelection *selection;
-    GtkTreeIter iter_child;
 
     if (!GTK_IS_TREE_VIEW (priv->kb_focus_widget))
         return;
@@ -231,38 +256,43 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
     base_model = gtk_tree_model_filter_get_model (priv->filter);
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
-    walking = model_get_root (priv->filter, base_model, &iter_child);
+    /* Remove all items from priv->selection_map which are not selected */
+    g_hash_table_foreach_remove (priv->selection_map,
+                                 (GHRFunc) row_reference_is_not_selected, priv);
 
-    while (walking) {
-        GtkTreePath *base_path, *filter_path, *view_path = NULL;
-        base_path = gtk_tree_model_get_path (base_model, &iter_child);
-        filter_path = gtk_tree_model_filter_convert_child_path_to_path
-          (priv->filter, base_path);
-        if (filter_path) {
-            view_path = convert_child_path_to_path (
-                gtk_tree_view_get_model (GTK_TREE_VIEW (priv->kb_focus_widget)),
-                GTK_TREE_MODEL (priv->filter), filter_path);
-            gtk_tree_path_free (filter_path);
-        }
-        if (view_path) {
-            if (gtk_tree_selection_path_is_selected
-                (selection, view_path)) {
-                g_hash_table_replace
-                    (priv->selection_map,
-                     base_path,
-                     GINT_TO_POINTER (TRUE));
-            } else {
-                g_hash_table_replace
-                    (priv->selection_map,
-                     base_path,
-                     GINT_TO_POINTER (FALSE));
-            }
-            gtk_tree_path_free (view_path);
-        } else {
-            gtk_tree_path_free (base_path);
-        }
-        walking = gtk_tree_model_iter_next (base_model, &iter_child);
+    /* fill priv->selection_map from gtk_tree_selection_get_selected_rows()*/
+    GList *selected_list = gtk_tree_selection_get_selected_rows (selection,
+                                                                 NULL);
+    while (selected_list) {
+        GtkTreePath *view_path = selected_list->data;
+        GtkTreePath *base_path, *filter_path;
+        GtkTreeRowReference *row_ref;
+
+        filter_path = convert_path_to_child_path (
+            gtk_tree_view_get_model (GTK_TREE_VIEW (priv->kb_focus_widget)),
+            GTK_TREE_MODEL (priv->filter), view_path);
+        base_path = gtk_tree_model_filter_convert_path_to_child_path
+          (priv->filter, filter_path);
+
+        row_ref = gtk_tree_row_reference_new (base_model, base_path);
+        g_hash_table_replace (priv->selection_map,
+            row_ref, NULL);
+        gtk_tree_path_free (view_path);
+        gtk_tree_path_free (filter_path);
+        gtk_tree_path_free (base_path);
+        selected_list->data = NULL;
+        selected_list = g_list_delete_link (selected_list, selected_list);
     }
+}
+
+gboolean
+reference_row_has_path (GtkTreeRowReference *row_ref, gpointer value, GtkTreePath *path)
+{
+    gboolean ret;
+    GtkTreePath *path2 = gtk_tree_row_reference_get_path (row_ref);
+    ret = gtk_tree_path_compare (path, path2) == 0;
+    gtk_tree_path_free (path2);
+    return ret;
 }
 
 /**
@@ -275,10 +305,8 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
 static void
 selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
 {
-    gboolean walking;
     GtkTreeModel *base_model;
     GtkTreeSelection *selection;
-    GtkTreeIter iter_child;
 
     if (!GTK_IS_TREE_VIEW (priv->kb_focus_widget))
         return;
@@ -286,36 +314,51 @@ selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
     base_model = gtk_tree_model_filter_get_model (priv->filter);
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
-    walking = model_get_root (priv->filter, base_model, &iter_child);
+    /* unselect things which are not in priv->selection_map */
+    GList *selected_list = gtk_tree_selection_get_selected_rows (selection,
+        NULL);
+    while (selected_list) {
+        GtkTreePath *view_path = selected_list->data;
+        GtkTreePath *base_path, *filter_path;
+        filter_path = convert_path_to_child_path (
+            gtk_tree_view_get_model (GTK_TREE_VIEW (priv->kb_focus_widget)),
+            GTK_TREE_MODEL (priv->filter), view_path);
+        base_path = gtk_tree_model_filter_convert_path_to_child_path
+            (priv->filter, filter_path);
 
-    while (walking) {
-        GtkTreePath *base_path, *filter_path, *view_path = NULL;
-        base_path = gtk_tree_model_get_path (base_model, &iter_child);
-        filter_path = gtk_tree_model_filter_convert_child_path_to_path
-          (priv->filter, base_path);
-        if (filter_path) {
-            view_path = convert_child_path_to_path (
-                gtk_tree_view_get_model (GTK_TREE_VIEW (priv->kb_focus_widget)),
-                GTK_TREE_MODEL (priv->filter), filter_path);
-            gtk_tree_path_free (filter_path);
-        }
-        if (view_path) {
-            gboolean selected;
-            selected = GPOINTER_TO_INT
-                (g_hash_table_lookup
-                 (priv->selection_map, base_path));
+        if (g_hash_table_find (priv->selection_map,
+                               (GHRFunc) reference_row_has_path, base_path) == NULL)
+            gtk_tree_selection_unselect_path
+                (selection, view_path);
 
-            if (selected) {
-                gtk_tree_selection_select_path
-                    (selection, view_path);
-            } else {
-                gtk_tree_selection_unselect_path
-                    (selection, view_path);
-            }
-            gtk_tree_path_free (view_path);
-        }
+        gtk_tree_path_free (view_path);
+        gtk_tree_path_free (filter_path);
         gtk_tree_path_free (base_path);
-        walking = gtk_tree_model_iter_next (base_model, &iter_child);
+        selected_list->data = NULL;
+
+        selected_list = g_list_delete_link (selected_list, selected_list);
+      }
+
+    /* going though priv->selection_map to select items */
+    GHashTableIter iter;
+    gpointer key, value;
+
+    g_hash_table_iter_init (&iter, priv->selection_map);
+    while (g_hash_table_iter_next (&iter, &key, &value)) {
+        GtkTreeRowReference *row_ref = key;
+        GtkTreePath *base_path = gtk_tree_row_reference_get_path (row_ref);
+        GtkTreePath *filter_path = gtk_tree_model_filter_convert_child_path_to_path
+          (priv->filter, base_path);
+        GtkTreePath *view_path;
+
+        if (filter_path == NULL)
+            continue;
+
+        view_path = convert_child_path_to_path (
+            gtk_tree_view_get_model (GTK_TREE_VIEW (priv->kb_focus_widget)),
+            GTK_TREE_MODEL (priv->filter), filter_path);
+
+        gtk_tree_selection_select_path (selection, view_path);
     }
 }
 
