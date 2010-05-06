@@ -285,7 +285,7 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
     }
 }
 
-gboolean
+static gboolean
 reference_row_has_path (GtkTreeRowReference *row_ref, gpointer value, GtkTreePath *path)
 {
     gboolean ret;
