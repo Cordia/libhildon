@@ -212,7 +212,13 @@ row_reference_is_not_selected (GtkTreeRowReference *row_ref,
   GtkTreeSelection *selection = gtk_tree_view_get_selection (
       GTK_TREE_VIEW (priv->kb_focus_widget));
   GtkTreePath *base_path = gtk_tree_row_reference_get_path (row_ref);
-  GtkTreePath *filter_path = gtk_tree_model_filter_convert_child_path_to_path
+  GtkTreePath *filter_path;
+
+  if (base_path == NULL) {
+      return TRUE;
+  }
+
+  filter_path = gtk_tree_model_filter_convert_child_path_to_path
       (priv->filter, base_path);
   GtkTreePath *view_path;
   gboolean ret;
