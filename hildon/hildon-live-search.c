@@ -61,6 +61,7 @@ struct _HildonLiveSearchPrivate
     gulong key_press_id;
     gulong event_widget_destroy_id;
     gulong kb_focus_widget_destroy_id;
+    gulong idle_filter_id;
 
     gchar *prefix;
     gint text_column;
@@ -405,6 +406,15 @@ refilter (HildonLiveSearch *livesearch)
         selection_map_update_selection_from_map (priv);
 }
 
+static gboolean
+on_idle_refilter (HildonLiveSearch *livesearch)
+{
+    refilter (livesearch);
+    livesearch->priv->idle_filter_id = 0;
+
+    return FALSE;
+}
+
 static void
 on_entry_changed                                (GtkEntry *entry,
                                                  gpointer  user_data)
@@ -426,7 +436,9 @@ on_entry_changed                                (GtkEntry *entry,
     g_free (priv->prefix);
     priv->prefix = g_strdup (text);
 
-    refilter (livesearch);
+    if (priv->idle_filter_id == 0) {
+        priv->idle_filter_id = g_idle_add ((GSourceFunc) on_idle_refilter, livesearch);
+    }
 
     /* Show the livesearch only if there is text in it */
     if (priv->prefix == NULL) {
@@ -640,6 +652,11 @@ hildon_live_search_dispose                      (GObject *object)
         priv->visible_destroy = NULL;
     }
 
+    if (priv->idle_filter_id) {
+        g_source_remove (priv->idle_filter_id);
+        priv->idle_filter_id = 0;
+    }
+
     G_OBJECT_CLASS (hildon_live_search_parent_class)->dispose (object);
 }
 
@@ -768,6 +785,7 @@ hildon_live_search_init                         (HildonLiveSearch *self)
     priv->visible_data = NULL;
     priv->visible_destroy = NULL;
     priv->visible_func_set = FALSE;
+    priv->idle_filter_id = 0;
 
     priv->selection_map = NULL;
 
