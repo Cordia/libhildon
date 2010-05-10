@@ -255,6 +255,7 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
 {
     GtkTreeModel *base_model;
     GtkTreeSelection *selection;
+    GList *selected_list, *l_iter;
 
     if (!GTK_IS_TREE_VIEW (priv->kb_focus_widget))
         return;
@@ -267,10 +268,10 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
                                  (GHRFunc) row_reference_is_not_selected, priv);
 
     /* fill priv->selection_map from gtk_tree_selection_get_selected_rows()*/
-    GList *selected_list = gtk_tree_selection_get_selected_rows (selection,
+    selected_list = l_iter = gtk_tree_selection_get_selected_rows (selection,
                                                                  NULL);
-    while (selected_list) {
-        GtkTreePath *view_path = selected_list->data;
+    while (l_iter) {
+        GtkTreePath *view_path = l_iter->data;
         GtkTreePath *base_path, *filter_path;
         GtkTreeRowReference *row_ref;
 
@@ -282,13 +283,14 @@ selection_map_update_map_from_selection         (HildonLiveSearchPrivate *priv)
 
         row_ref = gtk_tree_row_reference_new (base_model, base_path);
         g_hash_table_replace (priv->selection_map,
-            row_ref, NULL);
+                              row_ref, NULL);
         gtk_tree_path_free (view_path);
         gtk_tree_path_free (filter_path);
         gtk_tree_path_free (base_path);
         selected_list->data = NULL;
-        selected_list = g_list_delete_link (selected_list, selected_list);
+        l_iter = g_list_next (l_iter);
     }
+    g_list_free (selected_list);
 }
 
 static gboolean
@@ -313,6 +315,7 @@ selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
 {
     GtkTreeModel *base_model;
     GtkTreeSelection *selection;
+    GList *selected_list, *l_iter;
 
     if (!GTK_IS_TREE_VIEW (priv->kb_focus_widget))
         return;
@@ -321,10 +324,10 @@ selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
     /* unselect things which are not in priv->selection_map */
-    GList *selected_list = gtk_tree_selection_get_selected_rows (selection,
-        NULL);
-    while (selected_list) {
-        GtkTreePath *view_path = selected_list->data;
+    selected_list = l_iter = gtk_tree_selection_get_selected_rows (selection,
+                                                                 NULL);
+    while (l_iter) {
+        GtkTreePath *view_path = l_iter->data;
         GtkTreePath *base_path, *filter_path;
         filter_path = convert_path_to_child_path (
             gtk_tree_view_get_model (GTK_TREE_VIEW (priv->kb_focus_widget)),
@@ -340,10 +343,11 @@ selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
         gtk_tree_path_free (view_path);
         gtk_tree_path_free (filter_path);
         gtk_tree_path_free (base_path);
-        selected_list->data = NULL;
+        l_iter->data = NULL;
 
-        selected_list = g_list_delete_link (selected_list, selected_list);
-      }
+        l_iter = g_list_next (l_iter);
+    }
+    g_list_free (selected_list);
 
     /* going though priv->selection_map to select items */
     GHashTableIter iter;
