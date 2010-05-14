@@ -372,7 +372,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_VSCROLLBAR_POLICY,
 				   g_param_spec_enum ("vscrollbar_policy",
 						      "vscrollbar policy",
-						      "Visual policy of the vertical scrollbar",
+						      "Visual policy of the vertical scrollbar.",
 						      GTK_TYPE_POLICY_TYPE,
 						      GTK_POLICY_AUTOMATIC,
 						      G_PARAM_READWRITE |
@@ -382,7 +382,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_HSCROLLBAR_POLICY,
 				   g_param_spec_enum ("hscrollbar_policy",
 						      "hscrollbar policy",
-						      "Visual policy of the horizontal scrollbar",
+						      "Visual policy of the horizontal scrollbar.",
 						      GTK_TYPE_POLICY_TYPE,
 						      GTK_POLICY_AUTOMATIC,
 						      G_PARAM_READWRITE |
@@ -403,7 +403,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_MOVEMENT_MODE,
 				   g_param_spec_flags ("mov_mode",
                                                        "Scroll movement mode",
-                                                       "Controls if the widget can scroll vertically, horizontally or both",
+                                                       "Controls if the widget can scroll vertically, horizontally or both.",
                                                        HILDON_TYPE_MOVEMENT_MODE,
                                                        HILDON_MOVEMENT_MODE_VERT,
                                                        G_PARAM_READWRITE |
@@ -464,9 +464,9 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_DRAG_INERTIA,
 				   g_param_spec_double ("drag_inertia",
 							"Inertia of the cursor dragging",
-							"Percentage of the calculated speed in each moment we are are going to use"
-                                                        "to calculate the launch speed, the other part would be the speed"
-                                                        "calculated previously",
+							"Percentage of the calculated speed in each moment we are are going to use "
+                                                        "to calculate the launch speed, the other part would be the speed "
+                                                        "calculated previously.",
 							0, 1.0, 0.85,
 							G_PARAM_READWRITE |
 							G_PARAM_CONSTRUCT));
@@ -484,7 +484,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_PANNING_THRESHOLD,
 				   g_param_spec_uint ("panning_threshold",
 						      "Threshold to consider a motion event an scroll",
-						      "Amount of pixels to consider a motion event an scroll, if it is less"
+						      "Amount of pixels to consider a motion event an scroll, if it is less "
                                                       "it is a click detected incorrectly by the touch screen.",
 						      0, G_MAXUINT, 25,
 						      G_PARAM_READWRITE |
@@ -494,7 +494,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_SCROLLBAR_FADE_DELAY,
 				   g_param_spec_uint ("scrollbar_fade_delay",
 						      "Time before starting to fade the scrollbar",
-						      "Time the scrollbar is going to be visible if the widget is not in"
+						      "Time the scrollbar is going to be visible if the widget is not in "
                                                       "action in miliseconds",
 						      0, G_MAXUINT, 1000,
 						      G_PARAM_READWRITE |
@@ -504,7 +504,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_BOUNCE_STEPS,
 				   g_param_spec_uint ("bounce_steps",
 						      "Bounce steps",
-						      "Number of steps that is going to be used to bounce when hitting the"
+						      "Number of steps that is going to be used to bounce when hitting the "
                                                       "edge, the rubberband effect depends on it",
 						      0, G_MAXUINT, 3,
 						      G_PARAM_READWRITE |
@@ -514,7 +514,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_FORCE,
 				   g_param_spec_uint ("force",
 						      "Multiplier of the calculated speed",
-						      "Force applied to the movement, multiplies the calculated speed of the"
+						      "Force applied to the movement, multiplies the calculated speed of the "
                                                       "user movement the cursor in the screen",
 						      0, G_MAXUINT, 50,
 						      G_PARAM_READWRITE |
@@ -524,8 +524,8 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_DIRECTION_ERROR_MARGIN,
 				   g_param_spec_uint ("direction_error_margin",
 						      "Margin in the direction detection",
-						      "After detecting the direction of the movement (horizontal or"
-                                                      "vertical), we can add this margin of error to allow the movement in"
+						      "After detecting the direction of the movement (horizontal or "
+                                                      "vertical), we can add this margin of error to allow the movement in "
                                                       "the other direction even apparently it is not",
 						      0, G_MAXUINT, 10,
 						      G_PARAM_READWRITE |
@@ -535,7 +535,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_VOVERSHOOT_MAX,
 				   g_param_spec_int ("vovershoot_max",
                                                      "Vertical overshoot distance",
-                                                     "Space we allow the widget to pass over its vertical limits when"
+                                                     "Space we allow the widget to pass over its vertical limits when "
                                                      "hitting the edges, set 0 in order to deactivate overshooting.",
                                                      0, G_MAXINT, 150,
                                                      G_PARAM_READWRITE |
@@ -545,7 +545,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_HOVERSHOOT_MAX,
 				   g_param_spec_int ("hovershoot_max",
                                                      "Horizontal overshoot distance",
-                                                     "Space we allow the widget to pass over its horizontal limits when"
+                                                     "Space we allow the widget to pass over its horizontal limits when "
                                                      "hitting the edges, set 0 in order to deactivate overshooting.",
                                                      0, G_MAXINT, 150,
                                                      G_PARAM_READWRITE |
@@ -555,7 +555,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_SCROLL_TIME,
 				   g_param_spec_double ("scroll_time",
 							"Time to scroll to a position",
-							"The time to scroll to a position when calling the hildon_pannable_scroll_to function",
+							"The time to scroll to a position when calling the hildon_pannable_scroll_to() function.",
 							0.0, 20.0, 1.0,
 							G_PARAM_READWRITE |
 							G_PARAM_CONSTRUCT));
@@ -573,7 +573,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
  				   PROP_LOW_FRICTION_MODE,
  				   g_param_spec_boolean ("low-friction-mode",
  							 "Do not decelerate the initial velocity",
- 							 "Avoid decelerating the panning movement, like no friction, the widget"
+							 "Avoid decelerating the panning movement, like no friction, the widget "
                                                          "will stop in the edges or if the user clicks.",
  							 FALSE,
 							 G_PARAM_READWRITE |
@@ -596,7 +596,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
                                    PROP_SIZE_REQUEST_POLICY,
 				   g_param_spec_enum ("size-request-policy",
                                                       "Size Requisition policy",
-                                                      "Controls the size request policy of the widget",
+                                                      "Controls the size request policy of the widget.",
                                                       HILDON_TYPE_SIZE_REQUEST_POLICY,
                                                       HILDON_SIZE_REQUEST_MINIMUM,
                                                       G_PARAM_READWRITE|
@@ -606,14 +606,14 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 				   PROP_HADJUSTMENT,
 				   g_param_spec_object ("hadjustment",
 							"Horizontal Adjustment",
-							"The GtkAdjustment for the horizontal position",
+							"The GtkAdjustment for the horizontal position.",
 							GTK_TYPE_ADJUSTMENT,
 							G_PARAM_READABLE));
   g_object_class_install_property (object_class,
 				   PROP_VADJUSTMENT,
 				   g_param_spec_object ("vadjustment",
 							"Vertical Adjustment",
-							"The GtkAdjustment for the vertical position",
+							"The GtkAdjustment for the vertical position.",
 							GTK_TYPE_ADJUSTMENT,
 							G_PARAM_READABLE));
 
