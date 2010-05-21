@@ -437,7 +437,7 @@ on_entry_changed                                (GtkEntry *entry,
     priv->prefix = g_strdup (text);
 
     if (priv->idle_filter_id == 0) {
-        priv->idle_filter_id = g_idle_add ((GSourceFunc) on_idle_refilter, livesearch);
+        priv->idle_filter_id = gdk_threads_add_idle ((GSourceFunc) on_idle_refilter, livesearch);
     }
 
     /* Show the livesearch only if there is text in it */
