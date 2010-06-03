@@ -603,10 +603,16 @@ hildon_button_set_title                         (HildonButton *button,
                                                  const gchar  *title)
 {
     HildonButtonPrivate *priv;
+    GtkStockItem item;
 
     g_return_if_fail (HILDON_IS_BUTTON (button));
 
     priv = HILDON_BUTTON_GET_PRIVATE (button);
+
+    if (gtk_button_get_use_stock (GTK_BUTTON (button)) &&
+	gtk_stock_lookup (title, &item))
+	    title = item.label;
+
     gtk_label_set_text (priv->title, title);
 
     /* If the button has no title, hide the label so the value is
