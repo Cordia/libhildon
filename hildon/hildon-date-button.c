@@ -16,6 +16,7 @@
 
 #include <libintl.h>
 
+#include "hildon-stock.h"
 #include "hildon-date-button.h"
 #include "hildon-date-selector.h"
 #include "hildon-touch-selector.h"
@@ -73,12 +74,28 @@ hildon_date_button_set_property (GObject * object, guint property_id,
 }
 #endif
 
+static GObject *
+hildon_date_button_constructor (GType type,
+				guint n_construct_params,
+				GObjectConstructParam *construct_params)
+{
+  GObject *object;
+
+  object = G_OBJECT_CLASS (hildon_date_button_parent_class)->constructor (type,
+                                                                          n_construct_params,
+                                                                          construct_params);
+  gtk_button_set_use_stock (GTK_BUTTON (object), TRUE);
+
+  return object;
+}
+
 static void
 hildon_date_button_class_init (HildonDateButtonClass * klass)
 {
-#if 0
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->constructor = hildon_date_button_constructor;
+#if 0
   g_type_class_add_private (klass, sizeof (HildonDateButtonPrivate));
 
   object_class->get_property = hildon_date_button_get_property;
@@ -103,7 +120,7 @@ hildon_date_button_new_full (HildonSizeType           size,
                              GtkWidget               *selector)
 {
   return g_object_new (HILDON_TYPE_DATE_BUTTON,
-                       "title", _("wdgt_ti_date"),
+                       "title", HILDON_STOCK_DATE,
                        "arrangement", arrangement,
                        "size", size,
                        "touch-selector", selector,
