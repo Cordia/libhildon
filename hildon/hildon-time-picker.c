@@ -86,11 +86,9 @@
 
 #include                                        "hildon-time-picker.h"
 #include                                        "hildon-defines.h"
+#include                                        "hildon-stock.h"
 #include                                        "hildon-time-picker-private.h"
 #include                                        "hildon-time-editor.h"
-
-#define                                         _(String) \
-                                                dgettext("hildon-libs", String)
 
 #define                                         DEFAULT_HOURS 1
 
@@ -475,8 +473,7 @@ hildon_time_picker_init                         (HildonTimePicker *picker)
     gtk_window_set_modal (GTK_WINDOW (dialog), FALSE);
     /* And final dialog packing */
     gtk_dialog_set_has_separator (dialog, FALSE);
-    gtk_dialog_add_button (dialog, _("wdgt_bd_done"),
-            GTK_RESPONSE_OK);
+    gtk_dialog_add_button (dialog, HILDON_STOCK_DONE, GTK_RESPONSE_OK);
 
     gtk_container_add (GTK_CONTAINER (maintocenter), GTK_WIDGET(table));
     gtk_box_pack_start (GTK_BOX (dialog->vbox), maintocenter, TRUE, FALSE, 0);

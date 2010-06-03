@@ -53,6 +53,7 @@
 #include                                        "hildon-color-chooser.h"
 #include                                        "hildon-defines.h"
 #include                                        "hildon-banner.h"
+#include                                        "hildon-stock.h"
 #include                                        "hildon-color-chooser-dialog-private.h"
 
 #define                                         _(String) dgettext("hildon-libs", String)
@@ -214,7 +215,7 @@ hildon_color_chooser_dialog_init                (HildonColorChooserDialog *objec
     gtk_box_pack_start (GTK_BOX (priv->vbox), priv->separator, FALSE, FALSE, 0);
     gtk_box_pack_start (GTK_BOX (priv->vbox), priv->align_custom, FALSE, FALSE, 0);
 
-    gtk_dialog_add_button (GTK_DIALOG (object), _("wdgt_bd_done"), GTK_RESPONSE_OK);
+    gtk_dialog_add_button (GTK_DIALOG (object), HILDON_STOCK_DONE, GTK_RESPONSE_OK);
     gtk_dialog_set_default_response (GTK_DIALOG (object), GTK_RESPONSE_OK);
 
     g_signal_connect (G_OBJECT (priv->chooser), 

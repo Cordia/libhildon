@@ -86,6 +86,7 @@
 #include                                        "hildon-calendar-popup.h"
 #include                                        "hildon-calendar-popup-private.h"
 #include                                        "hildon-calendar.h"
+#include                                        "hildon-stock.h"
 
 #define                                         _(String)\
                                                 dgettext("hildon-libs", String)
@@ -347,7 +348,7 @@ hildon_calendar_popup_init                      (HildonCalendarPopup *cal)
     gtk_box_pack_start (GTK_BOX (GTK_DIALOG (cal)->vbox), priv->cal,
             TRUE, TRUE, 0);
     gtk_dialog_set_has_separator (GTK_DIALOG (cal), FALSE);
-    gtk_dialog_add_button (GTK_DIALOG (cal), _("wdgt_bd_done"), GTK_RESPONSE_OK);
+    gtk_dialog_add_button (GTK_DIALOG (cal), HILDON_STOCK_DONE, GTK_RESPONSE_OK);
     gtk_widget_show(priv->cal);
 
     /* Connect signals */

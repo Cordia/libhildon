@@ -54,6 +54,7 @@
 #include                                        <glib.h>
 #include                                        <gdk/gdkkeysyms.h>
 
+#include                                        "hildon-stock.h"
 #include                                        "hildon-set-password-dialog.h"
 #include                                        "hildon-caption.h"
 #include                                        "hildon-note.h"
@@ -69,7 +70,7 @@
 
 #define                                         HILDON_SET_PASSWORD_DIALOG_VERIFY_PASSWORD "ecdg_fi_set_passwd_confirm"
 
-#define                                         HILDON_SET_PASSWORD_DIALOG_OK "wdgt_bd_done"
+#define                                         HILDON_SET_PASSWORD_DIALOG_OK HILDON_STOCK_DONE
 
 #define                                         HILDON_SET_PASSWORD_DIALOG_CANCEL "ecdg_bd_set_password_dialog_cancel"
 
@@ -81,7 +82,7 @@
 
 #define                                         HILDON_SET_MODIFY_PASSWORD_DIALOG_VERIFY_PASSWORD "ckdg_fi_dialog_c_passwd_ver_pwd"
 
-#define                                         HILDON_SET_MODIFY_PASSWORD_DIALOG_OK "wdgt_bd_done"
+#define                                         HILDON_SET_MODIFY_PASSWORD_DIALOG_OK HILDON_STOCK_DONE
 
 #define                                         HILDON_SET_MODIFY_PASSWORD_DIALOG_CANCEL "ckdg_bd_change_password_dialog_cancel"
 

@@ -85,6 +85,7 @@
 #include                                        "hildon-banner.h"
 #include                                        "hildon-get-password-dialog-private.h"
 #include                                        "hildon-entry.h"
+#include                                        "hildon-stock.h"
 
 #define                                         _(String) dgettext("hildon-libs", String)
 
@@ -92,7 +93,7 @@
 
 #define                                         HILDON_GET_PASSWORD_DIALOG_PASSWORD "ecdg_fi_get_old_pwd_enter_pwd"
 
-#define                                         HILDON_GET_PASSWORD_DIALOG_OK "wdgt_bd_done"
+#define                                         HILDON_GET_PASSWORD_DIALOG_OK HILDON_STOCK_DONE
 
 #define                                         HILDON_GET_PASSWORD_DIALOG_CANCEL "ecdg_bd_get_old_password_dialog_cancel"
 
@@ -100,7 +101,7 @@
 
 #define                                         HILDON_GET_PASSWORD_VERIFY_DIALOG_PASSWORD "ecdg_fi_verify_pwd_enter_pwd"
 
-#define                                         HILDON_GET_PASSWORD_VERIFY_DIALOG_OK "wdgt_bd_done"
+#define                                         HILDON_GET_PASSWORD_VERIFY_DIALOG_OK HILDON_STOCK_DONE
 
 #define                                         HILDON_GET_PASSWORD_VERIFY_DIALOG_CANCEL "ecdg_bd_verify_password_dialog_cancel"
 
@@ -410,8 +411,8 @@ create_contents                                 (HildonGetPasswordDialog *dialog
     /* Create buttons */
     gtk_dialog_add_button (GTK_DIALOG (dialog),
                     (priv->get_old
-                     ? _(HILDON_GET_PASSWORD_DIALOG_OK)
-                     : _(HILDON_GET_PASSWORD_VERIFY_DIALOG_OK)),
+                     ? HILDON_GET_PASSWORD_DIALOG_OK
+                     : HILDON_GET_PASSWORD_VERIFY_DIALOG_OK),
                     GTK_RESPONSE_OK);
 
     gtk_dialog_add_button (GTK_DIALOG (dialog),

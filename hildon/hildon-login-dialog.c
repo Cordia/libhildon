@@ -52,6 +52,7 @@
 #include                                        "hildon-caption.h"
 #include                                        "hildon-login-dialog-private.h"
 #include                                        "hildon-entry.h"
+#include                                        "hildon-stock.h"
 
 enum
 {
@@ -85,7 +86,7 @@ hildon_login_dialog_get_property                (GObject *object,
 
 #define                                         HILDON_LOGIN_DIALOG_PASSWORD "frw_ti_get_user_name_and_pwd_enter_pwd"
 
-#define                                         HILDON_LOGIN_DIALOG_OK "wdgt_bd_done"
+#define                                         HILDON_LOGIN_DIALOG_OK HILDON_STOCK_DONE
 
 #define                                         _(String) dgettext("hildon-libs", String)
 
@@ -270,7 +271,7 @@ hildon_login_dialog_init                        (HildonLoginDialog *dialog)
             GTK_WIDGET (priv->message_label), FALSE, FALSE, 0);
 
     /* Create buttons */    
-    gtk_dialog_add_button (GTK_DIALOG (dialog), _(HILDON_LOGIN_DIALOG_OK), GTK_RESPONSE_OK);
+    gtk_dialog_add_button (GTK_DIALOG (dialog), HILDON_STOCK_DONE, GTK_RESPONSE_OK);
 
     /* Setup username entry */
     priv->username_entry = hildon_entry_new (HILDON_SIZE_FINGER_HEIGHT | HILDON_SIZE_AUTO_WIDTH);

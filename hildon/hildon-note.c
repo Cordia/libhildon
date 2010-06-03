@@ -97,6 +97,7 @@
 #include                                        "hildon-defines.h"
 #include                                        "hildon-sound.h"
 #include                                        "hildon-gtk.h"
+#include                                        "hildon-stock.h"
 #include                                        "hildon-enum-types.h"
 #include                                        "hildon-note-private.h"
 
@@ -109,8 +110,6 @@
 
 #define                                         INFORMATION_SOUND_PATH \
                                                 "/usr/share/sounds/ui-information_note.wav"
-
-#define                                         _(String) dgettext("hildon-libs", String)
 
 static void 
 hildon_note_class_init                          (HildonNoteClass *class);
@@ -772,9 +771,9 @@ hildon_note_rebuild                             (HildonNote *note)
     {
         case HILDON_NOTE_TYPE_CONFIRMATION:
             priv->okButton = gtk_dialog_add_button (dialog,
-                    _("wdgt_bd_yes"), GTK_RESPONSE_OK);
+		    HILDON_STOCK_YES, GTK_RESPONSE_OK);
             priv->cancelButton = gtk_dialog_add_button (dialog,
-                    _("wdgt_bd_no"), GTK_RESPONSE_CANCEL);
+                    HILDON_STOCK_NO, GTK_RESPONSE_CANCEL);
             gtk_widget_show (priv->cancelButton);
             g_object_get (priv->okButton, "width-request",
                           &priv->button_width, NULL);
@@ -790,7 +789,7 @@ hildon_note_rebuild                             (HildonNote *note)
 
         case HILDON_NOTE_TYPE_PROGRESSBAR:
             priv->cancelButton = gtk_dialog_add_button (dialog,
-                    _("wdgt_bd_stop"), GTK_RESPONSE_CANCEL);
+                    HILDON_STOCK_STOP, GTK_RESPONSE_CANCEL);
             gtk_widget_show (priv->cancelButton);
             gtk_widget_set_no_show_all (priv->cancelButton, FALSE);
             break;
@@ -1113,7 +1112,7 @@ hildon_note_set_button_text                     (HildonNote *note,
     if (priv->okButton) {
         gtk_button_set_label (GTK_BUTTON (priv->okButton), text);
         gtk_button_set_label (GTK_BUTTON (priv->cancelButton),
-                _("wdgt_bd_no"));
+                HILDON_STOCK_NO);
     } else {
         gtk_button_set_label (GTK_BUTTON (priv->cancelButton), text);
     }

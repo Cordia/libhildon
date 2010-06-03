@@ -49,6 +49,7 @@
 #include                                        "hildon-caption.h"
 #include                                        "hildon-color-button.h"
 #include                                        "hildon-font-selection-dialog-private.h"
+#include                                        "hildon-stock.h"
 
 /* These are what we use as the standard font sizes, for the size list */
 
@@ -764,8 +765,7 @@ hildon_font_selection_dialog_init               (HildonFontSelectionDialog *font
 
     /* Add dialog buttons */
     gtk_dialog_add_button (GTK_DIALOG (fontseldiag),
-            _("wdgt_bd_done"),
-            GTK_RESPONSE_OK);
+			   HILDON_STOCK_DONE, GTK_RESPONSE_OK);
 
 #if 0
     preview_button = gtk_button_new_with_label (_("ecdg_bd_font_dialog_preview"));
@@ -1148,11 +1148,8 @@ hildon_font_selection_dialog_show_preview       (HildonFontSelectionDialog *font
     /* preview dialog init */
     preview_dialog =
         gtk_dialog_new_with_buttons (_("ecdg_ti_preview_font"), NULL,
-                GTK_DIALOG_MODAL |
-                GTK_DIALOG_DESTROY_WITH_PARENT |
-                GTK_DIALOG_NO_SEPARATOR,
-                _("wdgt_bd_done"),
-                GTK_RESPONSE_ACCEPT,
+                GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT | GTK_DIALOG_NO_SEPARATOR,
+                HILDON_STOCK_DONE, GTK_RESPONSE_ACCEPT,
                 NULL);
 
     str = (show_ref) ? g_strconcat (_("ecdg_fi_preview_font_preview_reference"), priv->preview_text, 0) :

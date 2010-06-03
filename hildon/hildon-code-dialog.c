@@ -46,6 +46,7 @@
 #include                                        "hildon-code-dialog.h"
 #include                                        "hildon-defines.h"
 #include                                        "hildon-banner.h"
+#include                                        "hildon-stock.h"
 #include                                        "hildon-code-dialog-private.h"
 
 #define                                         HEIGHT (48-HILDON_MARGIN_DEFAULT)
@@ -60,7 +61,7 @@
 #define                                         c_(String) \
                                                 dgettext("hildon-common-strings", String)
 
-#define                                         DEVICELOCK_OK _("wdgt_bd_done")
+#define                                         DEVICELOCK_OK HILDON_STOCK_DONE
 
 #define                                         DEVICELOCK_TITLE dgettext("osso-system-lock", "secu_application_title")
 
