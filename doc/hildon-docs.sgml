@@ -74,6 +74,7 @@
     <xi:include href="xml/hildon-main.xml"/>
     <xi:include href="xml/hildon-gtk.xml"/>
     <xi:include href="xml/hildon-defines.xml"/>
+    <xi:include href="xml/hildon-stock.xml"/>
     <xi:include href="xml/hildon-helper.xml"/>
     <xi:include href="xml/hildon-version.xml"/>
     <xi:include href="xml/hildon-sound.xml"/>

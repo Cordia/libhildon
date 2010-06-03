@@ -66,7 +66,25 @@
 
 
 #include <gtk/gtk.h>
+#include <glib/gi18n.h>
+
 #include "hildon-main.h"
+#include "hildon-stock.h"
+
+#define GETTEXT_PACKAGE "hildon-libs"
+
+static const GtkStockItem hildon_items[] = {
+  { HILDON_STOCK_DATE, N_("wdgt_ti_date"), 0, 0, GETTEXT_PACKAGE },
+  { HILDON_STOCK_TIME, N_("wdgt_ti_time"), 0, 0, GETTEXT_PACKAGE },
+  { HILDON_STOCK_STOP, N_("wdgt_bd_stop"), 0, 0, GETTEXT_PACKAGE },
+  { HILDON_STOCK_YES,  N_("wdgt_bd_yes"),  0, 0, GETTEXT_PACKAGE },
+  { HILDON_STOCK_NO,   N_("wdgt_bd_no"),   0, 0, GETTEXT_PACKAGE },
+  { HILDON_STOCK_DONE, N_("wdgt_bd_done"), 0, 0, GETTEXT_PACKAGE },
+  { HILDON_STOCK_SORT, N_("wdgt_bd_sort"), 0, 0, GETTEXT_PACKAGE },
+  { HILDON_STOCK_FINISH,   N_("wdgt_bd_finish"),   0, 0, GETTEXT_PACKAGE },
+  { HILDON_STOCK_PREVIOUS, N_("wdgt_bd_previous"), 0, 0, GETTEXT_PACKAGE },
+  { HILDON_STOCK_NEXT, N_("wdgt_bd_next"), 0, 0, GETTEXT_PACKAGE },
+};
 
 /**
  * hildon_init:
@@ -96,6 +114,9 @@ hildon_init (void)
   gtk_icon_size_register ("hildon-thumb", 64, 64);
   gtk_icon_size_register ("hildon-large", 96, 96);
   gtk_icon_size_register ("hildon-xlarge", 128, 128);
+
+  /* Add Hildon stock items */
+  gtk_stock_add_static (hildon_items, G_N_ELEMENTS (hildon_items));
 }
 
 /**

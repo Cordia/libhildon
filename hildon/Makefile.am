@@ -157,7 +157,8 @@ libhildon_@API_VERSION_MAJOR@_public_headers = \
 		hildon-gtk.h				\
 		hildon-version.h			\
 		hildon-main.h				\
-		hildon-live-search.h
+		hildon-live-search.h			\
+		hildon-stock.h
 
 libhildon_@API_VERSION_MAJOR@_include_HEADERS = \
 		$(libhildon_@API_VERSION_MAJOR@_public_headers)		\

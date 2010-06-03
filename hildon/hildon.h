@@ -84,5 +84,6 @@
 #include                                        "hildon-dialog.h"
 #include                                        "hildon-main.h"
 #include                                        "hildon-live-search.h"
+#include                                        "hildon-stock.h"
 
 #endif
