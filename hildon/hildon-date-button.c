@@ -22,12 +22,6 @@
 #include "hildon-touch-selector.h"
 #include "hildon-picker-button-private.h"
 
-#define                                         _(String) \
-                                                dgettext("hildon-libs", String)
-
-#define                                         c_(String) \
-                                                dgettext("hildon-common-strings", String)
-
 /**
  * SECTION:hildon-date-button
  * @Short_Description: Button displaying and allowing selection of a date.
