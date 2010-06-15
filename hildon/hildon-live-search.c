@@ -410,6 +410,10 @@ static gboolean
 on_idle_refilter (HildonLiveSearch *livesearch)
 {
     refilter (livesearch);
+
+    if (livesearch->priv->prefix == NULL)
+        selection_map_destroy (livesearch->priv);
+
     livesearch->priv->idle_filter_id = 0;
 
     return FALSE;
@@ -442,7 +446,6 @@ on_entry_changed                                (GtkEntry *entry,
 
     /* Show the livesearch only if there is text in it */
     if (priv->prefix == NULL) {
-        selection_map_destroy (priv);
         gtk_widget_hide (GTK_WIDGET (livesearch));
     } else {
         gtk_widget_show (GTK_WIDGET (livesearch));
