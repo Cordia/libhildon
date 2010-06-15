@@ -588,7 +588,7 @@ static void
 on_hide_cb                                      (GtkWidget        *widget,
                                                  HildonLiveSearch *live_search)
 {
-    gtk_entry_set_text (GTK_ENTRY (live_search->priv->entry), "");
+    hildon_live_search_set_text (live_search, "");
     gtk_widget_grab_focus (live_search->priv->kb_focus_widget);
 }
 
