@@ -70,6 +70,7 @@ struct _HildonLiveSearchPrivate
     gpointer visible_data;
     GDestroyNotify visible_destroy;
     gboolean visible_func_set;
+    gboolean run_async;
 };
 
 enum
@@ -440,8 +441,16 @@ on_entry_changed                                (GtkEntry *entry,
     g_free (priv->prefix);
     priv->prefix = g_strdup (text);
 
-    if (priv->idle_filter_id == 0) {
-        priv->idle_filter_id = gdk_threads_add_idle ((GSourceFunc) on_idle_refilter, livesearch);
+    if (priv->run_async) {
+        if (priv->idle_filter_id == 0) {
+            priv->idle_filter_id = gdk_threads_add_idle ((GSourceFunc) on_idle_refilter, livesearch);
+        }
+    } else {
+        if (priv->idle_filter_id != 0) {
+            g_source_remove (priv->idle_filter_id);
+            priv->idle_filter_id = 0;
+        }
+        on_idle_refilter (livesearch);
     }
 
     /* Show the livesearch only if there is text in it */
@@ -502,8 +511,10 @@ hildon_live_search_set_text                  (HildonLiveSearch *livesearch,
     g_return_if_fail (HILDON_IS_LIVE_SEARCH (livesearch));
     g_return_if_fail (NULL != text);
 
+    livesearch->priv->run_async = FALSE;
     gtk_entry_set_text (GTK_ENTRY (livesearch->priv->entry),
                         text);
+    livesearch->priv->run_async = TRUE;
 
     /* GObject::notify::text for HildonLiveSearch:text emitted in the
        handler for GtkEntry::changed. */
@@ -791,6 +802,7 @@ hildon_live_search_init                         (HildonLiveSearch *self)
     priv->idle_filter_id = 0;
 
     priv->selection_map = NULL;
+    priv->run_async = TRUE;
 
     priv->text_column = -1;
 
