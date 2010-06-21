@@ -78,8 +78,11 @@ create_selector ()
     GtkTreeIter iter;
     gchar *label = item->data;
 
-    gtk_list_store_append (store_icons, &iter);
-    gtk_list_store_set (store_icons, &iter, 0, label, -1);
+    if (gtk_style_lookup_icon_set (gtk_widget_get_style (selector),
+				   label)) {
+	    gtk_list_store_append (store_icons, &iter);
+	    gtk_list_store_set (store_icons, &iter, 0, label, -1);
+    }
     g_free (label);
   }
   g_slist_free (icon_list);
