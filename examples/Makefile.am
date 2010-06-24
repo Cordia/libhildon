@@ -364,22 +364,26 @@ hildon_pannable_area_tuning_example_SOURCES		= hildon-pannable-area-tuning-examp
 
 # Hildon pannable area scroll jump example
 hildon_pannable_area_scroll_jump_example_LDADD		= $(HILDON_OBJ_LIBS)
-hildon_pannable_area_scroll_jump_example_CFLAGS		= $(HILDON_OBJ_CFLAGS)
+hildon_pannable_area_scroll_jump_example_CFLAGS		= $(HILDON_OBJ_CFLAGS)			\
+							  $(EXTRA_CFLAGS)
 hildon_pannable_area_scroll_jump_example_SOURCES	= hildon-pannable-area-scroll-jump-example.c
 
 # Hildon pannable area buttons scroll example
 hildon_pannable_area_buttons_scroll_example_LDADD		= $(HILDON_OBJ_LIBS)
-hildon_pannable_area_buttons_scroll_example_CFLAGS		= $(HILDON_OBJ_CFLAGS)
+hildon_pannable_area_buttons_scroll_example_CFLAGS		= $(HILDON_OBJ_CFLAGS)			\
+								  $(EXTRA_CFLAGS)
 hildon_pannable_area_buttons_scroll_example_SOURCES		= hildon-pannable-area-buttons-scroll-example.c
 
 # Hildon pannable area gesture signals example
 hildon_pannable_area_gesture_signals_example_LDADD		= $(HILDON_OBJ_LIBS)
-hildon_pannable_area_gesture_signals_example_CFLAGS		= $(HILDON_OBJ_CFLAGS)
+hildon_pannable_area_gesture_signals_example_CFLAGS		= $(HILDON_OBJ_CFLAGS)			\
+								  $(EXTRA_CFLAGS)
 hildon_pannable_area_gesture_signals_example_SOURCES		= hildon-pannable-area-gesture-signals-example.c
 
 # Hildon pannable area initial hint example
 hildon_pannable_area_initial_hint_example_LDADD		= $(HILDON_OBJ_LIBS)
-hildon_pannable_area_initial_hint_example_CFLAGS	= $(HILDON_OBJ_CFLAGS)
+hildon_pannable_area_initial_hint_example_CFLAGS	= $(HILDON_OBJ_CFLAGS)			\
+							  $(EXTRA_CFLAGS)
 hildon_pannable_area_initial_hint_example_SOURCES	= hildon-pannable-area-initial-hint-example.c
 
 # Hildon pannable area touch list
