@@ -79,6 +79,14 @@ hildon_picker_button_set_active                 (HildonPickerButton * button,
 gint
 hildon_picker_button_get_active                 (HildonPickerButton * button);
 
+void
+hildon_picker_button_set_active_iter            (HildonPickerButton *button,
+                                                 GtkTreeIter        *iter);
+
+gboolean
+hildon_picker_button_get_active_iter            (HildonPickerButton *button,
+                                                 GtkTreeIter        *iter);
+
 const gchar *
 hildon_picker_button_get_done_button_text       (HildonPickerButton * button);
 

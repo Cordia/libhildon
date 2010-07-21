@@ -569,6 +569,60 @@ hildon_picker_button_set_active                 (HildonPickerButton * button,
 }
 
 /**
+ * hildon_picker_button_set_active_iter:
+ * @button: a #HildonPickerButton
+ * @iter: the #GtkTreeIter
+ *
+ * Sets the active item of the #HildonTouchSelector associated to
+ * @button to @iter. If the selector has several columns, only the
+ * first one is used.
+ *
+ * See hildon_touch_selector_set_active() for more details.
+ *
+ * Since: 3.0
+ **/
+void
+hildon_picker_button_set_active_iter            (HildonPickerButton *button,
+                                                 GtkTreeIter        *iter)
+{
+  HildonTouchSelector *sel;
+
+  g_return_if_fail (HILDON_IS_PICKER_BUTTON (button));
+
+  sel = hildon_picker_button_get_selector (button);
+
+  hildon_touch_selector_unselect_all (sel, 0);
+  hildon_touch_selector_select_iter (sel, 0, iter, FALSE);
+}
+
+/**
+ * hildon_picker_button_get_active_iter:
+ * @button: a #HildonPickerButton
+ * @iter: a #GtkTreeIter
+ *
+ * Sets @iter to the current active item, if it exists. If the
+ * selector has several columns, only the first one is used.
+ *
+ * See hildon_touch_selector_get_selected() for more details.
+ *
+ * Returns: %TRUE if there is an active item, %FALSE otherwise
+ *
+ * Since: 3.0
+ **/
+gboolean
+hildon_picker_button_get_active_iter            (HildonPickerButton *button,
+                                                 GtkTreeIter        *iter)
+{
+  HildonTouchSelector *sel;
+
+  g_return_val_if_fail (HILDON_IS_PICKER_BUTTON (button), FALSE);
+
+  sel = hildon_picker_button_get_selector (button);
+
+  return hildon_touch_selector_get_selected (sel, 0, iter);
+}
+
+/**
  * hildon_picker_button_get_done_button_text:
  * @button: a #HildonPickerButton
  *
