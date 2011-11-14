@@ -70,6 +70,7 @@
  */
 
 #include                                        "hildon-check-button.h"
+#include					"hildon-enum-types.h"
 
 enum {
   TOGGLED,
