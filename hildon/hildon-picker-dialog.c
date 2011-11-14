@@ -456,8 +456,9 @@ selection_completed (HildonPickerDialog *dialog)
   GList *list;
   gint i, n_cols;
   gboolean all_selected = TRUE;
+#ifdef MAEMO_GTK
   HildonUIMode mode = HILDON_UI_MODE_NORMAL;
-
+#endif
   priv = HILDON_PICKER_DIALOG_GET_PRIVATE (dialog);
 
   if (HILDON_IS_TOUCH_SELECTOR_ENTRY (priv->selector)) {
@@ -469,12 +470,12 @@ selection_completed (HildonPickerDialog *dialog)
       return TRUE;
     }
   }
-
+#ifdef MAEMO_GTK
   mode = hildon_touch_selector_get_hildon_ui_mode (HILDON_TOUCH_SELECTOR (priv->selector));
   if (mode == HILDON_UI_MODE_NORMAL) {
     return TRUE;
   }
-
+#endif
   n_cols = hildon_touch_selector_get_num_columns (HILDON_TOUCH_SELECTOR (priv->selector));
   for (i = 0; i < n_cols; i++) {
     list = hildon_touch_selector_get_selected_rows (HILDON_TOUCH_SELECTOR (priv->selector), i);

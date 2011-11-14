@@ -247,7 +247,9 @@ hildon_touch_selector_entry_init (HildonTouchSelectorEntry *self)
 {
   HildonTouchSelectorEntryPrivate *priv;
   GtkEntryCompletion *completion;
+#ifdef MAEMO_GTK
   HildonGtkInputMode input_mode;
+#endif
 
   priv = HILDON_TOUCH_SELECTOR_ENTRY_GET_PRIVATE (self);
 
@@ -255,6 +257,7 @@ hildon_touch_selector_entry_init (HildonTouchSelectorEntry *self)
 
   priv->entry = hildon_entry_new (HILDON_SIZE_FINGER_HEIGHT);
   gtk_entry_set_activates_default (GTK_ENTRY (priv->entry), TRUE);
+#ifdef MAEMO_GTK
   input_mode = hildon_gtk_entry_get_input_mode (GTK_ENTRY (priv->entry));
 
   /* Disable unsupported input modes. */
@@ -263,6 +266,7 @@ hildon_touch_selector_entry_init (HildonTouchSelectorEntry *self)
   input_mode &= ~HILDON_GTK_INPUT_MODE_DICTIONARY;
 
   hildon_gtk_entry_set_input_mode (GTK_ENTRY (priv->entry), input_mode);
+#endif
 
   completion = gtk_entry_completion_new ();
   gtk_entry_completion_set_inline_completion (completion, TRUE);
@@ -404,6 +408,7 @@ hildon_touch_selector_entry_get_text_column (HildonTouchSelectorEntry *selector)
   return text_column;
 }
 
+#ifdef MAEMO_GTK
 /**
  * hildon_touch_selector_entry_set_input_mode:
  * @selector: a #HildonTouchSelectorEntry
@@ -458,6 +463,7 @@ hildon_touch_selector_entry_get_input_mode (HildonTouchSelectorEntry * selector)
 
   return hildon_gtk_entry_get_input_mode (GTK_ENTRY (priv->entry));
 }
+#endif
 
 static void
 entry_on_text_changed (GtkEditable * editable,

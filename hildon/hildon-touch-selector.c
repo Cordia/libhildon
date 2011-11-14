@@ -232,15 +232,18 @@ struct _HildonTouchSelectorPrivate
   HildonTouchSelectorPrintFunc print_func;
   gpointer print_user_data;
   GDestroyNotify print_destroy_func;
-
+#ifdef MAEMO_GTK
   HildonUIMode hildon_ui_mode;
+#endif
 };
 
 enum
 {
   PROP_HAS_MULTIPLE_SELECTION = 1,
   PROP_INITIAL_SCROLL,
+#ifdef MAEMO_GTK
   PROP_HILDON_UI_MODE,
+#endif
   PROP_LIVE_SEARCH
 };
 
@@ -437,6 +440,7 @@ hildon_touch_selector_class_init (HildonTouchSelectorClass * class)
                                                          TRUE,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
+#ifdef MAEMO_GTK
     /**
      * HildonTouchSelector:hildon-ui-mode:
      *
@@ -463,7 +467,7 @@ hildon_touch_selector_class_init (HildonTouchSelectorClass * class)
                                                       HILDON_TYPE_UI_MODE,
                                                       HILDON_UI_MODE_EDIT,
                                                       G_PARAM_READWRITE));
-
+#endif
   g_object_class_install_property (G_OBJECT_CLASS (gobject_class),
                                    PROP_LIVE_SEARCH,
                                    g_param_spec_boolean ("live-search",
@@ -499,9 +503,11 @@ hildon_touch_selector_get_property (GObject * object,
   case PROP_INITIAL_SCROLL:
     g_value_set_boolean (value, priv->initial_scroll);
     break;
+#ifdef MAEMO_GTK
   case PROP_HILDON_UI_MODE:
     g_value_set_enum (value, priv->hildon_ui_mode);
     break;
+#endif
   case PROP_LIVE_SEARCH:
     g_value_set_boolean (value,
                          hildon_touch_selector_get_live_search (HILDON_TOUCH_SELECTOR (object)));
@@ -522,10 +528,12 @@ hildon_touch_selector_set_property (GObject *object, guint prop_id,
   case PROP_INITIAL_SCROLL:
     priv->initial_scroll = g_value_get_boolean (value);
     break;
+#ifdef MAEMO_GTK
   case PROP_HILDON_UI_MODE:
     hildon_touch_selector_set_hildon_ui_mode (HILDON_TOUCH_SELECTOR (object),
                                               g_value_get_enum (value));
     break;
+#endif
   case PROP_LIVE_SEARCH:
     hildon_touch_selector_set_live_search (HILDON_TOUCH_SELECTOR (object),
                                            g_value_get_boolean (value));
@@ -555,8 +563,9 @@ hildon_touch_selector_init (HildonTouchSelector * selector)
   selector->priv->hbox = gtk_hbox_new (FALSE, 0);
 
   selector->priv->changed_blocked = FALSE;
-
+#ifdef MAEMO_GTK
   selector->priv->hildon_ui_mode = HILDON_UI_MODE_EDIT;
+#endif
 
   gtk_box_pack_end (GTK_BOX (selector), selector->priv->hbox,
                     TRUE, TRUE, 0);
@@ -684,6 +693,7 @@ hildon_touch_selector_emit_value_changed        (HildonTouchSelector *selector,
   }
 }
 
+#ifdef MAEMO_GTK
 static void
 hildon_touch_selector_check_ui_mode_coherence   (HildonTouchSelector *selector)
 {
@@ -693,6 +703,7 @@ hildon_touch_selector_check_ui_mode_coherence   (HildonTouchSelector *selector)
     hildon_touch_selector_set_hildon_ui_mode (selector, HILDON_UI_MODE_EDIT);
   }
 }
+#endif
 
 /**
  * default_print_func:
@@ -909,8 +920,12 @@ _create_new_column (HildonTouchSelector * selector,
 
   /* select the first item */
   *emit_changed = FALSE;
-  if ((gtk_tree_model_get_iter_first (filter, &iter))&&
-      (selector->priv->hildon_ui_mode == HILDON_UI_MODE_EDIT)) {
+  if ((gtk_tree_model_get_iter_first (filter, &iter))
+#ifdef MAEMO_GTK
+      && (selector->priv->hildon_ui_mode == HILDON_UI_MODE_EDIT)
+#endif
+      )
+  {
     gtk_tree_selection_select_iter (selection, &iter);
     *emit_changed = TRUE;
   }
@@ -1584,9 +1599,9 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
     colnum = g_slist_length (selector->priv->columns);
     hildon_touch_selector_emit_value_changed (selector, colnum);
   }
-
+#ifdef MAEMO_GTK
   hildon_touch_selector_check_ui_mode_coherence (selector);
-
+#endif
   return new_column;
 }
 
@@ -2754,6 +2769,7 @@ hildon_touch_selector_optimal_size_request      (HildonTouchSelector *selector,
 
 
 
+#ifdef MAEMO_GTK
 /**
  * hildon_touch_selector_get_hildon_ui_mode
  * @selector: a #HildonTouchSelector
@@ -2824,6 +2840,7 @@ hildon_touch_selector_set_hildon_ui_mode        (HildonTouchSelector *selector,
 
   return TRUE;
 }
+#endif
 
 /**
  * hildon_touch_selector_get_last_activated_row
