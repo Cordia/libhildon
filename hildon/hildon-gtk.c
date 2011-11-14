@@ -596,3 +596,65 @@ hildon_gtk_vscale_new                           (void)
 
   return scale;
 }
+
+#ifndef MAEMO_GTK
+
+#define HILDON_HEIGHT_FINGER    70
+
+#define HILDON_HEIGHT_THUMB     105
+
+#define HILDON_WIDTH_FULLSCREEN (gdk_screen_get_width (gdk_screen_get_default ()))
+
+#define HILDON_WIDTH_HALFSCREEN (HILDON_WIDTH_FULLSCREEN / 2)
+
+/**
+ * hildon_gtk_widget_set_theme_size:
+ * @widget: A #GtkWidget
+ * @size: Flags indicating the size of the widget
+ *
+ * This function sets the requested size of a widget.
+ *
+ * Since: maemo 2.0
+ * Stability: Unstable
+ **/
+void
+hildon_gtk_widget_set_theme_size (GtkWidget      *widget,
+                                  HildonSizeType  size)
+{
+  gint width = -1;
+  gint height = -1;
+  gchar *widget_name = NULL;
+
+  g_return_if_fail (GTK_IS_WIDGET (widget));
+
+  /* Requested height */
+  if (size & HILDON_SIZE_FINGER_HEIGHT)
+    {
+      height = HILDON_HEIGHT_FINGER;
+      widget_name = "-finger";
+    }
+  else if (size & HILDON_SIZE_THUMB_HEIGHT)
+    {
+      height = HILDON_HEIGHT_THUMB;
+      widget_name = "-thumb";
+    }
+
+  if (widget_name)
+    widget_name = g_strconcat (g_type_name (GTK_WIDGET_TYPE (widget)),
+                               widget_name, NULL);
+
+    /* Requested width */
+  if (size & HILDON_SIZE_HALFSCREEN_WIDTH)
+    width = HILDON_WIDTH_HALFSCREEN;
+  else if (size & HILDON_SIZE_FULLSCREEN_WIDTH)
+    width = HILDON_WIDTH_FULLSCREEN;
+
+  gtk_widget_set_size_request (widget, width, height);
+
+  if (widget_name)
+    {
+      gtk_widget_set_name (widget, widget_name);
+      g_free (widget_name);
+    }
+}
+#endif

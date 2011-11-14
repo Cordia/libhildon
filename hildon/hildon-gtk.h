@@ -129,6 +129,12 @@ hildon_gtk_hscale_new                           (void);
 GtkWidget*
 hildon_gtk_vscale_new                           (void);
 
+#ifndef MAEMO_GTK
+void hildon_gtk_widget_set_theme_size           (GtkWidget      *widget,
+                                                 HildonSizeType  size);
+#endif /* MAEMO_GTK */
+
+
 G_END_DECLS
 
 #endif /* __HILDON_GTK_H__ */
