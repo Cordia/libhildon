@@ -21,6 +21,19 @@
 
 G_BEGIN_DECLS
 
+#ifndef MAEMO_GTK
+typedef enum {
+  HILDON_SIZE_AUTO_WIDTH       = 0 << 0, /* set to automatic width */
+  HILDON_SIZE_HALFSCREEN_WIDTH = 1 << 0, /* set to 50% screen width */
+  HILDON_SIZE_FULLSCREEN_WIDTH = 2 << 0, /* set to 100% screen width */
+  HILDON_SIZE_AUTO_HEIGHT      = 0 << 2, /* set to automatic height */
+  HILDON_SIZE_FINGER_HEIGHT    = 1 << 2, /* set to finger height */
+  HILDON_SIZE_THUMB_HEIGHT     = 2 << 2, /* set to thumb height */
+  HILDON_SIZE_AUTO             = (HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_AUTO_HEIGHT)
+} HildonSizeType;
+#endif /* MAEMO_GTK */
+
+
 GtkWidget *
 hildon_gtk_menu_new                             (void);
 
