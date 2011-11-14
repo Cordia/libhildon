@@ -768,12 +768,14 @@ close_button_clicked_cb                         (GtkWidget *button,
     gtk_widget_hide (GTK_WIDGET (user_data));
 }
 
+#ifdef MAEMO_GTK
 static HildonGtkInputMode
 filter_input_mode                               (HildonGtkInputMode imode)
 {
     return imode & ~(HILDON_GTK_INPUT_MODE_AUTOCAP |
                      HILDON_GTK_INPUT_MODE_DICTIONARY);
 }
+#endif
 
 static void
 hildon_live_search_init                         (HildonLiveSearch *self)
@@ -785,8 +787,9 @@ hildon_live_search_init                         (HildonLiveSearch *self)
     GtkToolItem *close_button;
     GtkToolItem *entry_container;
     GtkWidget *entry_hbox;
+#ifdef MAEMO_GTK
     HildonGtkInputMode imode;
-
+#endif
     self->priv = priv = GET_PRIVATE (self);
 
     gtk_toolbar_set_style (GTK_TOOLBAR (self), GTK_TOOLBAR_ICONS);
@@ -814,12 +817,13 @@ hildon_live_search_init                         (HildonLiveSearch *self)
 
     priv->entry = hildon_entry_new (HILDON_SIZE_FINGER_HEIGHT);
 
+#ifdef MAEMO_GTK
     /* Unset the autocap and dictionary input flags from the
        HildonEntry. */
     imode = hildon_gtk_entry_get_input_mode (GTK_ENTRY (priv->entry));
     hildon_gtk_entry_set_input_mode (GTK_ENTRY (priv->entry),
                                      filter_input_mode (imode));
-
+#endif
     gtk_widget_set_name (GTK_WIDGET (priv->entry),
                          "HildonLiveSearchEntry");
 
