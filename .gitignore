@@ -22,9 +22,12 @@ tags
 *.[ao]
 *.l[ao]
 *.swp
+*~
 .libs
 .deps
 
+m4/libtool.m4
+m4/lt*.m4
 
 hildon/hildon-enum-types.c
 hildon/hildon-enum-types.h
