@@ -138,7 +138,9 @@ hildon_entry_set_placeholder                    (HildonEntry *entry,
                                                  const gchar *text)
 {
     g_return_if_fail (HILDON_IS_ENTRY (entry) && text != NULL);
+#ifdef MAEMO_GTK
     hildon_gtk_entry_set_placeholder_text (GTK_ENTRY (entry), text);
+#endif
 }
 
 /**

@@ -134,7 +134,9 @@ hildon_text_view_set_placeholder                (HildonTextView *text_view,
                                                  const gchar    *text)
 {
     g_return_if_fail (HILDON_IS_TEXT_VIEW (text_view) && text != NULL);
+#ifdef MAEMO_GTK
     hildon_gtk_text_view_set_placeholder_text (GTK_TEXT_VIEW (text_view), text);
+#endif
 }
 
 /**

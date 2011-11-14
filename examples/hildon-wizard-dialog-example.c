@@ -77,7 +77,9 @@ main (int argc, char **argv)
     GtkWidget *label_1 = gtk_label_new ("Page 1");
     GtkWidget *label_2 = gtk_label_new ("Page 2");
     GtkWidget *entry_3 = hildon_entry_new (HILDON_SIZE_AUTO);
+#ifdef MAEMO_GTK
     hildon_gtk_entry_set_placeholder_text (GTK_ENTRY (entry_3), " Write something to continue");
+#endif
     GtkWidget *label_4 = gtk_label_new ("Page 4");
 
     gtk_notebook_append_page (GTK_NOTEBOOK (notebook), label_1, NULL);
