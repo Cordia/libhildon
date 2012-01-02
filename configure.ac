@@ -1,4 +1,4 @@
-AC_INIT([Hildon gtk widgets], [2.3.0], [hildon-devel@garage.maemo.org], [hildon])
+AC_INIT([Hildon gtk widgets], [3.0.0], [cordia-dev@lists.xiaoka.com], [hildon])
 AC_CANONICAL_SYSTEM
 
 AM_CONFIG_HEADER(config.h)
@@ -41,9 +41,9 @@ AC_PROG_AWK
 
 AC_HEADER_STDC
 
-GTK_VERSION=2.14.3
+GTK_VERSION=3.2
 
-PKG_CHECK_MODULES(GTK, gtk+-2.0 >= $GTK_VERSION)
+PKG_CHECK_MODULES(GTK, gtk+-3.0 >= $GTK_VERSION)
 AC_SUBST(GTK_LIBS)
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_VERSION)
@@ -101,30 +101,6 @@ if test x$BUILD_EXAMPLES = xyes; then
     AC_MSG_NOTICE(Will locally build example programs)
 else
     AC_MSG_NOTICE(Will not build examples )
-fi
-
-# use maemo gtk+ specific api (or not)
-AC_ARG_WITH(maemo-gtk, 
-    AC_HELP_STRING([--with-maemo-gtk], [Use Maemo GTK+ API]),
-    [
-     case "${withval}" in
-         yes) USE_MAEMO_GTK=yes ;;
-         no)  USE_MAEMO_GTK=no ;;
-         *)   AC_MSG_ERROR(bad value ${withval} for --with-maemo-gtk) ;;
-     esac],
-     [USE_MAEMO_GTK=yes])
-
-AM_CONDITIONAL(USE_MAEMO_GTK, test "x$USE_MAEMO_GTK" = "xyes")
-
-# just print out our status
-if test x$USE_MAEMO_GTK = xyes; then
-    AC_MSG_NOTICE(Will use Maemo GTK+ specific API)
-    MAEMO_GTK="-DMAEMO_GTK"
-    AC_SUBST(MAEMO_GTK)
-    MAEMO_CHANGES="-DMAEMO_CHANGES"
-    AC_SUBST(MAEMO_CHANGES)
-else
-    AC_MSG_NOTICE(Will not use Maemo GTK+ specific API)
 fi
 
 # build with assertion checks (or not)
