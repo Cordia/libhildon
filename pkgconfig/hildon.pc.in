@@ -8,4 +8,4 @@ Description: Hildon widgets library
 Requires: gtk+-2.0 >= @GTK_VERSION@
 Version: @VERSION@
 Libs: -L${libdir} -lhildon-@API_VERSION_MAJOR@
-Cflags: -I${includedir} @MAEMO_CHANGES@ @MAEMO_GTK@
+Cflags: -I${includedir}

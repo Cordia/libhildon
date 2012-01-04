@@ -118,11 +118,6 @@ hildon_note_init                                (HildonNote *dialog);
 static void 
 hildon_note_rebuild                             (HildonNote *note);
 
-#ifdef MAEMO_GTK
-static void
-hildon_note_set_padding                         (HildonNote *note);
-#endif /* MAEMO_GTK */
-
 static void
 hildon_note_rename                              (HildonNote *note);
 
@@ -647,39 +642,6 @@ hildon_note_rename                              (HildonNote *note)
   g_type_class_unref (enum_class);
 }
 
-#ifdef MAEMO_GTK
-static void
-hildon_note_set_padding (HildonNote *note)
-{
-    HildonNotePrivate *priv;
-
-    priv = HILDON_NOTE_GET_PRIVATE (note);
-
-    switch (priv->note_n) {
-    case HILDON_NOTE_TYPE_INFORMATION:
-    case HILDON_NOTE_TYPE_INFORMATION_THEME:
-        gtk_dialog_set_padding (GTK_DIALOG (note),
-                                HILDON_MARGIN_DOUBLE,
-                                HILDON_MARGIN_DOUBLE,
-                                0,
-                                0);
-        break;
-
-    case HILDON_NOTE_TYPE_CONFIRMATION:
-    case HILDON_NOTE_TYPE_CONFIRMATION_BUTTON:
-        gtk_dialog_set_padding (GTK_DIALOG (note),
-                                HILDON_MARGIN_DOUBLE,
-                                HILDON_MARGIN_DEFAULT,
-                                HILDON_MARGIN_DOUBLE,
-                                HILDON_MARGIN_DOUBLE);
-        break;
-
-    default:
-        break;
-    }
-}
-#endif /* MAEMO_GTK */
-
 static void
 hildon_note_rebuild                             (HildonNote *note)
 {
@@ -725,13 +687,6 @@ hildon_note_rebuild                             (HildonNote *note)
             g_object_get (priv->okButton, "width-request",
                           &priv->button_width, NULL);
             gtk_widget_set_no_show_all (priv->cancelButton, FALSE);
-#ifdef MAEMO_GTK
-	    gtk_dialog_set_padding (dialog,
-				    HILDON_MARGIN_DOUBLE,
-				    HILDON_MARGIN_DEFAULT,
-				    HILDON_MARGIN_DOUBLE,
-				    HILDON_MARGIN_DOUBLE);
-#endif /* MAEMO_GTK */
             break;
 
         case HILDON_NOTE_TYPE_PROGRESSBAR:
@@ -742,13 +697,6 @@ hildon_note_rebuild                             (HildonNote *note)
             break;
 
         case HILDON_NOTE_TYPE_INFORMATION:
-#ifdef MAEMO_GTK
-	    gtk_dialog_set_padding (dialog,
-				    HILDON_MARGIN_DOUBLE,
-				    HILDON_MARGIN_DOUBLE,
-				    0,
-				    0);
-#endif /* MAEMO_GTK */
             is_info_note = TRUE;
             break;
 
@@ -782,10 +730,6 @@ hildon_note_rebuild                             (HildonNote *note)
         gtk_misc_set_alignment (GTK_MISC (priv->label), 0.5, 0.5);
         gtk_alignment_set_padding (GTK_ALIGNMENT (priv->align), 0, 0, 0, 0);
     }
-
-#ifdef MAEMO_GTK
-    hildon_note_set_padding (note);
-#endif /* MAEMO_GTK */
 
     gtk_container_add (GTK_CONTAINER (dialog->vbox), priv->event_box);
 

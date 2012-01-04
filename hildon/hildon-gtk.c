@@ -212,115 +212,6 @@ hildon_gtk_radio_button_new_from_widget         (HildonSizeType  size,
     return button;
 }
 
-#ifdef MAEMO_GTK
-/**
- * hildon_gtk_tree_view_new:
- * @mode: the Hildon UI mode
- *
- * Creates a new #GtkTreeView widget with the Hildon UI mode set to
- * @mode
- *
- * Return value: A newly created #GtkTreeView widget.
- *
- * Since: 2.2
- **/
-GtkWidget *
-hildon_gtk_tree_view_new                        (HildonUIMode mode)
-{
-    return g_object_new (GTK_TYPE_TREE_VIEW, "hildon-ui-mode", mode,
-                         "enable-search", FALSE, NULL);
-}
-
-/**
- * hildon_gtk_tree_view_new_with_model:
- * @mode: the Hildon UI mode
- * @model: the model.
- *
- * Creates a new #GtkTreeView widget with the Hildon UI mode set to
- * @mode and the model initialized to @model.
- *
- * Return value: A newly created #GtkTreeView widget.
- *
- * Since: 2.2
- **/
-GtkWidget *
-hildon_gtk_tree_view_new_with_model             (HildonUIMode  mode,
-                                                 GtkTreeModel *model)
-{
-    return g_object_new (GTK_TYPE_TREE_VIEW, "hildon-ui-mode", mode, "model", model, NULL);
-}
-
-/**
- * hildon_gtk_tree_view_set_ui_mode:
- * @treeview: A #GtkTreeView
- * @mode: The new #HildonUIMode
- *
- * Sets the UI mode of @treeview to @mode.
- *
- * Since: 2.2
- **/
-void
-hildon_gtk_tree_view_set_ui_mode                (GtkTreeView  *treeview,
-                                                 HildonUIMode  mode)
-{
-    g_return_if_fail (GTK_IS_TREE_VIEW (treeview));
-    g_object_set (treeview, "hildon-ui-mode", mode, NULL);
-}
-
-/**
- * hildon_gtk_icon_view_new:
- * @mode: the Hildon UI mode
- *
- * Creates a new #GtkIconView widget with the Hildon UI mode set to
- * @mode
- *
- * Return value: A newly created #GtkIconView widget
- *
- * Since: 2.2
- **/
-GtkWidget *
-hildon_gtk_icon_view_new                        (HildonUIMode mode)
-{
-    return g_object_new (GTK_TYPE_ICON_VIEW, "hildon-ui-mode", mode, NULL);
-}
-
-/**
- * hildon_gtk_icon_view_new_with_model:
- * @mode: the Hildon UI mode
- * @model: The model.
- *
- * Creates a new #GtkIconView widget with the Hildon UI mode set to
- * @mode and the model intitialized to @model.
- *
- * Return value: A newly created #GtkIconView widget.
- *
- * Since: 2.2
- **/
-GtkWidget *
-hildon_gtk_icon_view_new_with_model             (HildonUIMode  mode,
-                                                 GtkTreeModel *model)
-{
-    return g_object_new (GTK_TYPE_ICON_VIEW, "hildon-ui-mode", mode, "model", model, NULL);
-}
-
-/**
- * hildon_gtk_icon_view_set_ui_mode:
- * @iconview: A #GtkIconView
- * @mode: The new #HildonUIMode
- *
- * Sets the UI mode of @iconview to @mode.
- *
- * Since: 2.2
- **/
-void
-hildon_gtk_icon_view_set_ui_mode                (GtkIconView  *iconview,
-                                                 HildonUIMode  mode)
-{
-    g_return_if_fail (GTK_IS_ICON_VIEW (iconview));
-    g_object_set (iconview, "hildon-ui-mode", mode, NULL);
-}
-#endif /* MAEMO_GTK */
-
 static void
 do_set_progress_indicator                       (GtkWindow *window,
                                                  gpointer   stateptr)
@@ -558,12 +449,7 @@ GtkWidget*
 hildon_gtk_hscale_new                           (void)
 {
   GtkWidget *scale = gtk_hscale_new_with_range (0.0, 1.0, 0.1);
-  g_object_set (scale,
-                "draw-value", FALSE,
-#ifdef MAEMO_GTK
-                "jump-to-position", TRUE,
-#endif
-                NULL);
+  g_object_set (scale, "draw-value", FALSE, NULL);
 
   return scale;
 }
@@ -587,17 +473,10 @@ GtkWidget*
 hildon_gtk_vscale_new                           (void)
 {
   GtkWidget *scale = gtk_vscale_new_with_range (0.0, 1.0, 0.1);
-  g_object_set (scale,
-                "draw-value", FALSE,
-#ifdef MAEMO_GTK
-                "jump-to-position", TRUE,
-#endif
-                NULL);
+  g_object_set (scale, "draw-value", FALSE, NULL);
 
   return scale;
 }
-
-#ifndef MAEMO_GTK
 
 #define HILDON_HEIGHT_FINGER    70
 
@@ -657,4 +536,3 @@ hildon_gtk_widget_set_theme_size (GtkWidget      *widget,
       g_free (widget_name);
     }
 }
-#endif

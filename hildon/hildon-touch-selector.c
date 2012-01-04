@@ -230,18 +230,12 @@ struct _HildonTouchSelectorPrivate
   HildonTouchSelectorPrintFunc print_func;
   gpointer print_user_data;
   GDestroyNotify print_destroy_func;
-#ifdef MAEMO_GTK
-  HildonUIMode hildon_ui_mode;
-#endif
 };
 
 enum
 {
   PROP_HAS_MULTIPLE_SELECTION = 1,
   PROP_INITIAL_SCROLL,
-#ifdef MAEMO_GTK
-  PROP_HILDON_UI_MODE,
-#endif
   PROP_LIVE_SEARCH
 };
 
@@ -438,34 +432,6 @@ hildon_touch_selector_class_init (HildonTouchSelectorClass * class)
                                                          TRUE,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
-#ifdef MAEMO_GTK
-    /**
-     * HildonTouchSelector:hildon-ui-mode:
-     *
-     * Specifies which UI mode to use in the internal treeviews.  A setting
-     * of %HILDON_UI_MODE_NORMAL will cause these tree view to disable selections
-     * and emit row-activated as soon as a row is pressed (unless it is pressed
-     * to drag the pannable area where the treeview is). You can use the
-     * method hildon_touch_selector_get_last_activated_row() to get it. When
-     * %HILDON_UI_MODE_EDIT is set, selections can be made according to the
-     * setting of the mode on GtkTreeSelection.
-     *
-     * Toggling this property will cause the tree view to select an
-     * appropriate selection mode if not already done.
-     *
-     * Since: Hildon 2.2
-     */
-  g_object_class_install_property (gobject_class,
-                                   PROP_HILDON_UI_MODE,
-                                   g_param_spec_enum ("hildon-ui-mode",
-                                                      "Hildon UI Mode",
-                                                      "The Hildon UI mode according "
-                                                      "to which the touch selector "
-                                                      "should behave",
-                                                      HILDON_TYPE_UI_MODE,
-                                                      HILDON_UI_MODE_EDIT,
-                                                      G_PARAM_READWRITE));
-#endif
   g_object_class_install_property (G_OBJECT_CLASS (gobject_class),
                                    PROP_LIVE_SEARCH,
                                    g_param_spec_boolean ("live-search",
@@ -501,11 +467,6 @@ hildon_touch_selector_get_property (GObject * object,
   case PROP_INITIAL_SCROLL:
     g_value_set_boolean (value, priv->initial_scroll);
     break;
-#ifdef MAEMO_GTK
-  case PROP_HILDON_UI_MODE:
-    g_value_set_enum (value, priv->hildon_ui_mode);
-    break;
-#endif
   case PROP_LIVE_SEARCH:
     g_value_set_boolean (value,
                          hildon_touch_selector_get_live_search (HILDON_TOUCH_SELECTOR (object)));
@@ -526,12 +487,6 @@ hildon_touch_selector_set_property (GObject *object, guint prop_id,
   case PROP_INITIAL_SCROLL:
     priv->initial_scroll = g_value_get_boolean (value);
     break;
-#ifdef MAEMO_GTK
-  case PROP_HILDON_UI_MODE:
-    hildon_touch_selector_set_hildon_ui_mode (HILDON_TOUCH_SELECTOR (object),
-                                              g_value_get_enum (value));
-    break;
-#endif
   case PROP_LIVE_SEARCH:
     hildon_touch_selector_set_live_search (HILDON_TOUCH_SELECTOR (object),
                                            g_value_get_boolean (value));
@@ -561,9 +516,6 @@ hildon_touch_selector_init (HildonTouchSelector * selector)
   selector->priv->hbox = gtk_hbox_new (FALSE, 0);
 
   selector->priv->changed_blocked = FALSE;
-#ifdef MAEMO_GTK
-  selector->priv->hildon_ui_mode = HILDON_UI_MODE_EDIT;
-#endif
 
   gtk_box_pack_end (GTK_BOX (selector), selector->priv->hbox,
                     TRUE, TRUE, 0);
@@ -690,18 +642,6 @@ hildon_touch_selector_emit_value_changed        (HildonTouchSelector *selector,
     g_signal_emit (selector, hildon_touch_selector_signals[CHANGED], 0, column);
   }
 }
-
-#ifdef MAEMO_GTK
-static void
-hildon_touch_selector_check_ui_mode_coherence   (HildonTouchSelector *selector)
-{
-  g_return_if_fail (HILDON_IS_TOUCH_SELECTOR (selector));
-
-  if (hildon_touch_selector_get_num_columns (selector) > 1) {
-    hildon_touch_selector_set_hildon_ui_mode (selector, HILDON_UI_MODE_EDIT);
-  }
-}
-#endif
 
 /**
  * default_print_func:
@@ -882,11 +822,7 @@ _create_new_column (HildonTouchSelector * selector,
     }
   }
 
-#ifdef MAEMO_GTK
-  tv = GTK_TREE_VIEW (hildon_gtk_tree_view_new (selector->priv->hildon_ui_mode));
-#else
   tv = GTK_TREE_VIEW (gtk_tree_view_new ());
-#endif /* MAEMO_GTK */
 
   gtk_tree_view_set_enable_search (tv, FALSE);
 
@@ -918,11 +854,7 @@ _create_new_column (HildonTouchSelector * selector,
 
   /* select the first item */
   *emit_changed = FALSE;
-  if ((gtk_tree_model_get_iter_first (filter, &iter))
-#ifdef MAEMO_GTK
-      && (selector->priv->hildon_ui_mode == HILDON_UI_MODE_EDIT)
-#endif
-      )
+  if (gtk_tree_model_get_iter_first (filter, &iter))
   {
     gtk_tree_selection_select_iter (selection, &iter);
     *emit_changed = TRUE;
@@ -1597,9 +1529,6 @@ hildon_touch_selector_append_column (HildonTouchSelector * selector,
     colnum = g_slist_length (selector->priv->columns);
     hildon_touch_selector_emit_value_changed (selector, colnum);
   }
-#ifdef MAEMO_GTK
-  hildon_touch_selector_check_ui_mode_coherence (selector);
-#endif
   return new_column;
 }
 
@@ -2707,80 +2636,6 @@ hildon_touch_selector_optimal_size_request      (HildonTouchSelector *selector,
   requisition->height = base_height + height;
 }
 
-
-
-#ifdef MAEMO_GTK
-/**
- * hildon_touch_selector_get_hildon_ui_mode
- * @selector: a #HildonTouchSelector
- *
- * Gets the current hildon-ui-mode, see #HildonUIMode for more information
- *
- * Returns: the current hildon-ui-mode
- *
- * Since: 2.2
- **/
-HildonUIMode
-hildon_touch_selector_get_hildon_ui_mode        (HildonTouchSelector *selector)
-{
-  g_return_val_if_fail (HILDON_IS_TOUCH_SELECTOR (selector), HILDON_UI_MODE_EDIT);
-
-  return selector->priv->hildon_ui_mode;
-}
-
-/**
- * hildon_touch_selector_set_hildon_ui_mode
- * @selector: a #HildonTouchSelector
- * @mode: a #HildonUIMode
- *
- * Sets the value of the property #HildonTouchSelector:hildon-ui-mode to be @mode,
- * see #HildonUIMode for more information
- *
- * Note that the %HILDON_UI_MODE_NORMAL can be only used when the selector has
- * one column, use the return value to check if the change was effective.
- *
- * Returns: %TRUE if #HildonTouchSelector:hildon-ui-mode was changed
- *          %FALSE otherwise
- *
- * Since: 2.2
- **/
-gboolean
-hildon_touch_selector_set_hildon_ui_mode        (HildonTouchSelector *selector,
-                                                 HildonUIMode         mode)
-{
-  gint num = 0;
-  GSList *iter = NULL;
-  HildonTouchSelectorColumn *column = NULL;
-  GtkTreeView *tree_view = NULL;
-
-  g_return_val_if_fail (HILDON_IS_TOUCH_SELECTOR (selector), FALSE);
-  num = hildon_touch_selector_get_num_columns (selector);
-  g_return_val_if_fail ((mode == HILDON_UI_MODE_EDIT) || (num == 1), FALSE);
-
-  if (mode == selector->priv->hildon_ui_mode) {
-    return FALSE;
-  }
-
-  for (iter = selector->priv->columns; iter; iter = g_slist_next (iter)) {
-    column = HILDON_TOUCH_SELECTOR_COLUMN (iter->data);
-    tree_view = column->priv->tree_view;
-
-    hildon_tree_view_set_hildon_ui_mode (tree_view, mode);
-
-    /* looking at the code of hildon_tree_view_set_hildon_ui_mode, it seems
-       that it call the unselect_all, but it is required anyway */
-    if (mode == HILDON_UI_MODE_NORMAL) {
-      GtkTreeSelection *selection = gtk_tree_view_get_selection (tree_view);
-
-      gtk_tree_selection_unselect_all (selection);
-    }
-  }
-
-  selector->priv->hildon_ui_mode = mode;
-
-  return TRUE;
-}
-#endif
 
 /**
  * hildon_touch_selector_get_last_activated_row

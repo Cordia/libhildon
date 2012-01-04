@@ -559,26 +559,6 @@ hildon_banner_button_press_event                (GtkWidget* widget,
     return result;
 }
 
-#if defined(MAEMO_GTK)
-static void
-hildon_banner_map                               (GtkWidget *widget)
-{
-    if (GTK_WIDGET_CLASS (hildon_banner_parent_class)->map) {
-        /* Make the banner temporary _before_ mapping it, to avoid closing
-         * other temporary windows */
-        gtk_window_set_is_temporary (GTK_WINDOW (widget), TRUE);
-
-        GTK_WIDGET_CLASS (hildon_banner_parent_class)->map (widget);
-
-        /* Make the banner non-temporary _after_ mapping it, to avoid
-         * being closed by other non-temporary windows */
-        gtk_window_set_is_temporary (GTK_WINDOW (widget), FALSE);
-
-        gtk_window_move (GTK_WINDOW (widget), 0, HILDON_WINDOW_TITLEBAR_HEIGHT);
-    }
-}
-#endif
-
 /* We start the timer for timed notifications after the window appears on screen */
 static gboolean 
 hildon_banner_map_event                         (GtkWidget *widget, 
@@ -747,9 +727,6 @@ hildon_banner_class_init                        (HildonBannerClass *klass)
     widget_class->realize = hildon_banner_realize;
     widget_class->unrealize = hildon_banner_unrealize;
     widget_class->button_press_event = hildon_banner_button_press_event;
-#if defined(MAEMO_GTK)
-    widget_class->map = hildon_banner_map;
-#endif
 
     /* Install properties.
        We need construct properties for singleton purposes */

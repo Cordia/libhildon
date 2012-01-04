@@ -79,15 +79,6 @@ hildon_touch_selector_entry_set_text_column     (HildonTouchSelectorEntry *selec
 gint
 hildon_touch_selector_entry_get_text_column     (HildonTouchSelectorEntry *selector);
 
-#ifdef MAEMO_GTK
-HildonGtkInputMode
-hildon_touch_selector_entry_get_input_mode (HildonTouchSelectorEntry * selector);
-
-void
-hildon_touch_selector_entry_set_input_mode (HildonTouchSelectorEntry * selector,
-                                            HildonGtkInputMode input_mode);
-#endif
-
 HildonEntry *
 hildon_touch_selector_entry_get_entry (HildonTouchSelectorEntry * selector);
 

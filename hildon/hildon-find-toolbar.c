@@ -99,13 +99,6 @@ static void
 hildon_find_toolbar_emit_close                  (GtkButton *button, 
                                                  gpointer self);
 
-#ifdef MAEMO_GTK 
-static void
-hildon_find_toolbar_emit_invalid_input          (GtkEntry *entry, 
-                                                 GtkInvalidInputType type, 
-                                                 gpointer self);
-#endif
-
 static void
 hildon_find_toolbar_entry_activate              (GtkWidget *widget,
                                                  gpointer user_data);
@@ -463,31 +456,9 @@ static void
 hildon_find_toolbar_emit_close                  (GtkButton *button, 
                                                  gpointer self)
 {
-#ifdef MAEMO_GTK 
-    HildonFindToolbarPrivate *priv = HILDON_FIND_TOOLBAR_GET_PRIVATE (self);
-    g_assert (priv);
-
-    GtkWidget *entry = gtk_bin_get_child (GTK_BIN (priv->entry_combo_box));
-    if (GTK_WIDGET_HAS_FOCUS (entry))
-    {
-        hildon_gtk_im_context_hide (GTK_ENTRY (entry)->im_context);
-    }
-#endif
-
     /* Clicked close button */
     g_signal_emit (self, HildonFindToolbar_signal [CLOSE], 0);
 }
-
-#ifdef MAEMO_GTK 
-static void
-hildon_find_toolbar_emit_invalid_input          (GtkEntry *entry, 
-                                                 GtkInvalidInputType type, 
-                                                 gpointer self)
-{
-    if(type == GTK_INVALID_INPUT_MAX_CHARS_REACHED)
-        g_signal_emit (self, HildonFindToolbar_signal [INVALID_INPUT], 0);
-}
-#endif
 
 static void
 hildon_find_toolbar_entry_activate              (GtkWidget *widget,
@@ -683,12 +654,6 @@ hildon_find_toolbar_init                        (HildonFindToolbar *self)
 
     /* ComboBoxEntry for search prefix string / history list */
     priv->entry_combo_box = GTK_COMBO_BOX_ENTRY (gtk_combo_box_entry_new ());
-
-#ifdef MAEMO_GTK
-    g_signal_connect (hildon_find_toolbar_get_entry(priv),
-            "invalid_input", 
-            G_CALLBACK(hildon_find_toolbar_emit_invalid_input), self);
-#endif
 
     entry_combo_box_container = gtk_tool_item_new ();
     alignment = GTK_ALIGNMENT (gtk_alignment_new (0, 0.5, 1, 0));

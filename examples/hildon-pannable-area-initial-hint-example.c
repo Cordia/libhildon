@@ -73,11 +73,7 @@ create_content ()
   GtkWidget         *vbox     = NULL;
 
   /* Create a treeview */
-#ifdef MAEMO_GTK
-  tv = hildon_gtk_tree_view_new (HILDON_UI_MODE_NORMAL);
-#else
   tv = gtk_tree_view_new ();
-#endif /* MAEMO_GTK */
 
   renderer = gtk_cell_renderer_text_new ();
   g_object_set (renderer, "width", 1, "xalign", 0.5, NULL);

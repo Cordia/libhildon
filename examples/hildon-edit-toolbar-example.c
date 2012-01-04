@@ -62,19 +62,11 @@ create_icon_view                                (TreeViewMode  tvmode)
 
   if (tvmode == NORMAL_MODE)
     {
-#ifdef MAEMO_GTK
-      icon_view = hildon_gtk_icon_view_new (HILDON_UI_MODE_NORMAL);
-#else
       icon_view = gtk_icon_view_new ();
-#endif /* MAEMO_GTK */
     }
   else
     {
-#ifdef MAEMO_GTK
-      icon_view = hildon_gtk_icon_view_new (HILDON_UI_MODE_EDIT);
-#else
       icon_view = gtk_icon_view_new ();
-#endif /* MAEMO_GTK */
 
       gtk_icon_view_set_selection_mode (GTK_ICON_VIEW (icon_view),
                                         GTK_SELECTION_MULTIPLE);

@@ -21,7 +21,6 @@
 
 G_BEGIN_DECLS
 
-#ifndef MAEMO_GTK
 typedef enum {
   HILDON_SIZE_AUTO_WIDTH       = 0 << 0, /* set to automatic width */
   HILDON_SIZE_HALFSCREEN_WIDTH = 1 << 0, /* set to 50% screen width */
@@ -31,7 +30,6 @@ typedef enum {
   HILDON_SIZE_THUMB_HEIGHT     = 2 << 2, /* set to thumb height */
   HILDON_SIZE_AUTO             = (HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_AUTO_HEIGHT)
 } HildonSizeType;
-#endif /* MAEMO_GTK */
 
 
 GtkWidget *
@@ -50,30 +48,6 @@ hildon_gtk_radio_button_new                     (HildonSizeType  size,
 GtkWidget *
 hildon_gtk_radio_button_new_from_widget         (HildonSizeType  size,
                                                  GtkRadioButton *radio_group_member);
-
-#ifdef MAEMO_GTK
-GtkWidget *
-hildon_gtk_tree_view_new                        (HildonUIMode mode);
-
-GtkWidget *
-hildon_gtk_tree_view_new_with_model             (HildonUIMode  mode,
-                                                 GtkTreeModel *model);
-
-void
-hildon_gtk_tree_view_set_ui_mode                (GtkTreeView  *treeview,
-                                                 HildonUIMode  mode);
-
-GtkWidget *
-hildon_gtk_icon_view_new                        (HildonUIMode mode);
-
-GtkWidget *
-hildon_gtk_icon_view_new_with_model             (HildonUIMode  mode,
-                                                 GtkTreeModel *model);
-
-void
-hildon_gtk_icon_view_set_ui_mode                (GtkIconView  *iconview,
-                                                 HildonUIMode  mode);
-#endif /* MAEMO_GTK */
 
 void
 hildon_gtk_window_set_progress_indicator        (GtkWindow *window,
@@ -129,11 +103,8 @@ hildon_gtk_hscale_new                           (void);
 GtkWidget*
 hildon_gtk_vscale_new                           (void);
 
-#ifndef MAEMO_GTK
 void hildon_gtk_widget_set_theme_size           (GtkWidget      *widget,
                                                  HildonSizeType  size);
-#endif /* MAEMO_GTK */
-
 
 G_END_DECLS
 
