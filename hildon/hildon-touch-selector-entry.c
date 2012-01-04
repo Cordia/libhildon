@@ -173,28 +173,6 @@ hildon_touch_selector_entry_class_init (HildonTouchSelectorEntryClass *klass)
   object_class->finalize     = hildon_touch_selector_entry_finalize;
 
   /**
-   * HildonTouchSelectorEntry:text-column:
-   *
-   * A column in the data source model to get the strings from.
-   *
-   * This property is deprecated. Use HildonTouchSelectorColumn:text-column
-   * instead. Use hildon_touch_selector_entry_set_text_column() and
-   * hildon_touch_selector_entry_get_text_column() to manage it.
-   *
-   * Deprecated: use HildonTouchSelectorColumn:text-column instead
-   *
-   * Since: 2.2
-   **/
-  g_object_class_install_property (G_OBJECT_CLASS (klass),
-                                   PROP_TEXT_COLUMN,
-                                   g_param_spec_int ("text-column",
-                                                     "Text Column",
-                                                     "A column in the data source model to get the strings from.",
-                                                     -1,
-                                                     G_MAXINT,
-                                                     -1,
-                                                     G_PARAM_READWRITE));
-  /**
    * HildonTouchSelectorEntry:smart-match:
    *
    * Whether the widget should suggest an element if an approximate match is found.

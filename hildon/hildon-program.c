@@ -76,8 +76,6 @@
  * </example>
  */
 
-#undef                                          HILDON_DISABLE_DEPRECATED
-
 #ifdef                                          HAVE_CONFIG_H
 #include                                        <config.h>
 #endif
@@ -263,46 +261,6 @@ hildon_program_get_property                     (GObject *object,
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
             break;
     }
-}
-
-/**
- * hildon_program_pop_window_stack:
- * @self: A #HildonProgram
- *
- * Pops a window from the stack.
- *
- * Deprecated: Use hildon_window_stack_pop() instead
- *
- * Returns: A #HildonStackableWindow, or %NULL
- *
- * Since: 2.2
- */
-HildonStackableWindow *
-hildon_program_pop_window_stack                 (HildonProgram *self)
-{
-    HildonWindowStack *stack = hildon_window_stack_get_default ();
-    GtkWidget *win = hildon_window_stack_pop_1 (stack);
-    g_warning ("%s: this function is deprecated. Use hildon_window_stack_pop() instead", __FUNCTION__);
-    return win ? HILDON_STACKABLE_WINDOW (win) : NULL;
-}
-
-/**
- * hildon_program_peek_window_stack:
- * @self: A #HildonProgram
- *
- * Deprecated: Use hildon_window_stack_peek() instead
- *
- * Returns: A #HildonStackableWindow, or %NULL
- *
- * Since: 2.2
- */
-HildonStackableWindow *
-hildon_program_peek_window_stack                (HildonProgram *self)
-{
-    HildonWindowStack *stack = hildon_window_stack_get_default ();
-    GtkWidget *win = hildon_window_stack_peek (stack);
-    g_warning ("%s: this function is deprecated. Use hildon_window_stack_peek() instead", __FUNCTION__);
-    return win ? HILDON_STACKABLE_WINDOW (win) : NULL;
 }
 
 /* Utilities */
@@ -918,23 +876,3 @@ hildon_program_get_is_topmost                   (HildonProgram *self)
     return priv->is_topmost;
 }
 
-/**
- * hildon_program_go_to_root_window:
- * @self: A #HildonProgram
- *
- * Goes to the root window of the stack.
- *
- * Deprecated: See #HildonWindowStack
- *
- * Since: 2.2
- */
-void
-hildon_program_go_to_root_window                (HildonProgram *self)
-{
-    HildonWindowStack *stack = hildon_window_stack_get_default ();
-    gint n = hildon_window_stack_size (stack);
-    g_warning ("%s: this function is deprecated. Use hildon_window_stack_pop() instead.", __FUNCTION__);
-    if (n > 1) {
-        hildon_window_stack_pop (stack, n-1, NULL);
-    }
-}

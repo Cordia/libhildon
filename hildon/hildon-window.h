@@ -31,19 +31,6 @@
 
 G_BEGIN_DECLS
 
-#ifndef HILDON_DISABLE_DEPRECATED
-/**
- * HILDON_WINDOW_LONG_PRESS_TIME:
- *
- * Time (in miliseconds) after which a hardware key press is
- * considered a long press.
- *
- * Deprecated: Hildon 2.2: this value is only meant to be used
- * internally by Hildon.
- */
-#define                                         HILDON_WINDOW_LONG_PRESS_TIME 800
-#endif
-
 #define                                         HILDON_TYPE_WINDOW \
                                                 (hildon_window_get_type())
 
@@ -67,21 +54,6 @@ G_BEGIN_DECLS
 typedef struct                                  _HildonWindow HildonWindow;
 
 typedef struct                                  _HildonWindowClass HildonWindowClass;
-
-#ifndef HILDON_DISABLE_DEPRECATED
-/**
- * HildonWindowClipboardOperation:
- *
- * Deprecated: Hildon 2.2: this value is only meant to be used
- * internally by Hildon
- */
-typedef enum
-{
-    HILDON_WINDOW_CO_COPY,
-    HILDON_WINDOW_CO_CUT,
-    HILDON_WINDOW_CO_PASTE
-}                                               HildonWindowClipboardOperation;
-#endif /* HILDON_DISABLE_DEPRECATED */
 
 struct                                          _HildonWindow
 {
@@ -123,15 +95,6 @@ hildon_window_set_app_menu                      (HildonWindow  *self,
 
 HildonAppMenu *
 hildon_window_get_app_menu                      (HildonWindow *self);
-
-#ifndef HILDON_DISABLE_DEPRECATED
-void        
-hildon_window_set_menu                          (HildonWindow *self,
-                                                 GtkMenu      *menu);
-
-GtkMenu*
-hildon_window_get_menu                          (HildonWindow *self);
-#endif
 
 void    
 hildon_window_add_toolbar                       (HildonWindow *self,

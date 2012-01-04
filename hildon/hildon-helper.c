@@ -31,8 +31,6 @@
  * on widget styles and probing functions for touch events.
  */
 
-#undef                                          HILDON_DISABLE_DEPRECATED
-
 #ifdef                                          HAVE_CONFIG_H
 #include                                        <config.h>
 #endif
@@ -341,96 +339,6 @@ hildon_helper_set_logical_font                  (GtkWidget *widget,
                                     list, NULL, 0);
 
     return signum;
-}
-
-static GQuark
-hildon_helper_insensitive_message_quark         (void)
-{
-    static GQuark quark = 0;
-
-    if (G_UNLIKELY (quark == 0))
-        quark = g_quark_from_static_string ("hildon-insensitive-message");
-
-    return quark;
-}
-
-static void
-show_insensitive_message                        (GtkWidget *widget, 
-                                                 gpointer user_data)
-{
-    gchar *message = NULL;
-
-    g_assert (GTK_IS_WIDGET (widget));
-
-    message = (gchar*) g_object_get_qdata (G_OBJECT (widget),
-            hildon_helper_insensitive_message_quark ());
-
-    if (message)
-        hildon_banner_show_information (widget, NULL, message);
-}
-
-
-/**
- * hildon_helper_set_insensitive_message:
- * @widget: A #GtkWidget to assign a banner to
- * @message: A message to display to the user
- *
- * This function assigns an insensitive message to a @widget. When the @widget is
- * in an insensitive state and the user activates it, the @message will be displayed
- * using a standard #HildonBanner.
- *
- * Deprecated: As of hildon 2.2, it is strongly discouraged to use insensitive messages.
- **/
-void
-hildon_helper_set_insensitive_message           (GtkWidget *widget,
-                                                 const gchar *message)
-{
-    g_return_if_fail (GTK_IS_WIDGET (widget));
-
-    /* Clean up any previous instance of the insensitive message */
-    g_signal_handlers_disconnect_matched (G_OBJECT (widget), G_SIGNAL_MATCH_FUNC,
-					  0, 0, NULL,
-					  G_CALLBACK (show_insensitive_message), NULL);
-    
-    /* We need to dup the string because the pointer might not be valid when the
-     insensitive-press signal callback is executed */
-    g_object_set_qdata_full (G_OBJECT (widget), hildon_helper_insensitive_message_quark (), 
-			     (gpointer)g_strdup (message),
-			     g_free);
-
-    if (message != NULL) {
-      g_signal_connect (G_OBJECT (widget), "insensitive-press",
-			G_CALLBACK (show_insensitive_message), NULL);
-    }
-}
-
-/**
- * hildon_helper_set_insensitive_messagef:
- * @widget: A #GtkWidget to assign a banner to
- * @format: a printf-like format string
- * @Varargs: arguments for the format string
- *
- * A version of hildon_helper_set_insensitive_message with string formatting.
- *
- * Deprecated: As of hildon 2.2, it is strongly discouraged to use insensitive messages.
- **/
-void
-hildon_helper_set_insensitive_messagef          (GtkWidget *widget,
-                                                 const gchar *format,
-                                                 ...)
-{
-    g_return_if_fail (GTK_IS_WIDGET (widget));
-
-    gchar *message;
-    va_list args;
-
-    va_start (args, format);
-    message = g_strdup_vprintf (format, args);
-    va_end (args);
-
-    hildon_helper_set_insensitive_message (widget, message);
-
-    g_free (message);
 }
 
 /**

@@ -52,38 +52,11 @@ configure_tests(gint environment)
   /* Create srunner object with the first test suite */
 
   sr = srunner_create(create_hildon_caption_suite());
-#ifndef HILDON_DISABLE_DEPRECATED
-  srunner_add_suite(sr, create_hildon_number_editor_suite());
-  srunner_add_suite(sr, create_hildon_time_editor_suite());
-  srunner_add_suite(sr, create_hildon_time_picker_suite());
-  srunner_add_suite(sr, create_hildon_date_editor_suite());
-  srunner_add_suite(sr, create_hildon_weekday_picker_suite());
-  srunner_add_suite(sr, create_hildon_controlbar_suite());
-  srunner_add_suite(sr, create_hildon_color_button_suite());
-  srunner_add_suite(sr, create_hildon_color_chooser_suite());
-  srunner_add_suite(sr, create_hildon_seekbar_suite());
-  /* srunner_add_suite(sr, create_hildon_dialoghelp_suite()); */
-  srunner_add_suite(sr, create_hildon_calendar_popup_suite());
-  srunner_add_suite(sr, create_hildon_range_editor_suite());
-  /* srunner_add_suite(sr, create_hildon_name_password_dialog_suite());
-  srunner_add_suite(sr, create_hildon_get_password_dialog_suite());
-  srunner_add_suite(sr, create_hildon_set_password_dialog_suite()); */
-  srunner_add_suite(sr, create_hildon_sort_dialog_suite());
-  srunner_add_suite(sr, create_hildon_code_dialog_suite());
-  srunner_add_suite(sr, create_hildon_volumebar_suite());
-  srunner_add_suite(sr, create_hildon_volumebar_range_suite());
-  srunner_add_suite(sr, create_hildon_font_selection_dialog_suite());
-#endif /* HILDON_DISABLE_DEPRECATED */
 
   srunner_add_suite(sr, create_hildon_find_toolbar_suite());
   srunner_add_suite(sr, create_hildon_note_suite());
   srunner_add_suite(sr, create_hildon_wizard_dialog_suite());
   /* srunner_add_suite(sr, create_hildon_scroll_area_suite()); */
-#ifndef HILDON_DISABLE_DEPRECATED
-  /* HildonBanner is not deprecated, but all the functions tested in
-     this suite are deprecated*/
-  srunner_add_suite(sr, create_hildon_banner_suite());
-#endif
   srunner_add_suite(sr, create_hildon_window_suite());
   srunner_add_suite(sr, create_hildon_helper_suite());
   srunner_add_suite(sr, create_hildon_picker_button_suite());

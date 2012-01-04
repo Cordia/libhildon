@@ -31,15 +31,6 @@
 
 G_BEGIN_DECLS
 
-#ifndef                                         HILDON_DISABLE_DEPRECATED
-
-gboolean G_GNUC_INTERNAL
-hildon_private_composite_focus                  (GtkWidget *widget, 
-                                                 GtkDirectionType direction,
-                                                 GtkDirectionType *effective_direction);
-
-#endif                                          /* HILDON_DISABLE_DEPRECATED */
-
 G_GNUC_INTERNAL GtkWidget *
 hildon_private_create_animation                 (gfloat       framerate,
                                                  const gchar *template,

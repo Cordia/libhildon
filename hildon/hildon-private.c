@@ -22,63 +22,12 @@
  *
  */
 
-#undef                                          HILDON_DISABLE_DEPRECATED
-
 #ifdef                                          HAVE_CONFIG_H
 #include                                        <config.h>
 #endif
 
 #include                                        "hildon-private.h"
-#include                                        "hildon-date-editor.h"
-#include                                        "hildon-time-editor.h"
 #include                                        "hildon-defines.h"
-
-/* This function is a private function of hildon. It hadles focus 
- * changing for composite hildon widgets: HildonDateEditor, 
- * HildonNumberEditor, HildonTimeEditor, HildonWeekdayPicker. 
- * Its purpose is to focus the first widget (from left) inside the container 
- * regardless of where the focus is coming from.
- */
-gboolean G_GNUC_INTERNAL
-hildon_private_composite_focus                  (GtkWidget *widget,
-                                                 GtkDirectionType direction,
-                                                 GtkDirectionType *effective_direction)
-{
-  GtkWidget *toplevel = NULL;
-  GtkWidget *focus_widget = NULL;
-  gboolean coming_from_outside = FALSE;
-
-  toplevel = gtk_widget_get_toplevel (widget);
-
-  focus_widget = GTK_WINDOW (toplevel)->focus_widget;
-
-  if (focus_widget == NULL || gtk_widget_is_ancestor (focus_widget, widget) == FALSE)
-    {
-      /* When coming from outside we want to give focus to the first
-         item in the widgets */
-      *effective_direction = GTK_DIR_TAB_FORWARD;
-      coming_from_outside = TRUE;
-    }
-  else
-    *effective_direction = direction;
-
-  switch (direction) {
-      case GTK_DIR_UP:
-      case GTK_DIR_DOWN:
-      case GTK_DIR_TAB_FORWARD:
-      case GTK_DIR_TAB_BACKWARD:
-        if ((HILDON_IS_DATE_EDITOR (widget) || HILDON_IS_TIME_EDITOR(widget)) &&
-            !coming_from_outside)
-            return FALSE;
-        /* fall through */
-      default:
-        return TRUE;
-  }
-
-  g_assert_not_reached ();
-  return TRUE;
-}
-
 
 G_GNUC_INTERNAL GtkWidget *
 hildon_private_create_animation                 (gfloat       framerate,
@@ -129,7 +78,7 @@ hildon_gtk_window_set_clear_window_flag                           (GtkWindow   *
                                                                    Atom         xatom,
                                                                    gboolean     flag)
 {
-    GdkWindow *gdkwin = GTK_WIDGET (window)->window;
+    GdkWindow *gdkwin = gtk_widget_get_window (GTK_WIDGET (window))	;
     GdkAtom atom = gdk_atom_intern (atomname, FALSE);
 
     if (flag) {
@@ -147,7 +96,7 @@ hildon_gtk_window_set_flag                                        (GtkWindow    
                                                                    gpointer        userdata)
 {
      g_return_if_fail (GTK_IS_WINDOW (window));
-     if (GTK_WIDGET_REALIZED (window)) {
+     if (gtk_widget_get_realized (GTK_WIDGET (window))) {
         (*func) (window, userdata);
      } else {
          g_signal_handlers_disconnect_matched (window, G_SIGNAL_MATCH_FUNC,

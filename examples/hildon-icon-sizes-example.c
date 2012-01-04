@@ -41,11 +41,7 @@ main                                            (int argc,
     g_debug ("Thumb pixel size: %d", HILDON_ICON_PIXEL_SIZE_THUMB);
     g_debug ("Large pixel size: %d", HILDON_ICON_PIXEL_SIZE_LARGE);
     g_debug ("Extra large pixel size: %d", HILDON_ICON_PIXEL_SIZE_XLARGE);
-#ifndef HILDON_DISABLE_DEPRECATED
-    g_debug ("Toolbar pixel size: %d", HILDON_ICON_PIXEL_SIZE_TOOLBAR);
-#else
     g_debug ("Toolbar pixel size: %d", HILDON_ICON_PIXEL_SIZE_FINGER);
-#endif
 
     return 0;
 }

@@ -117,17 +117,6 @@ hildon_program_get_common_toolbar               (HildonProgram *self);
 gboolean
 hildon_program_get_is_topmost                   (HildonProgram *self);
 
-#ifndef HILDON_DISABLE_DEPRECATED
-HildonStackableWindow *
-hildon_program_pop_window_stack                 (HildonProgram *self);
-
-HildonStackableWindow *
-hildon_program_peek_window_stack                (HildonProgram *self);
-
-void
-hildon_program_go_to_root_window                (HildonProgram *self);
-#endif /* HILDON_DISABLE_DEPRECATED */
-
 G_END_DECLS
 
 #endif                                          /* __HILDON_PROGRAM_H__ */

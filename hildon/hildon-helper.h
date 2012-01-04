@@ -44,17 +44,6 @@ hildon_helper_set_logical_color                 (GtkWidget *widget,
 gboolean 
 hildon_helper_event_button_is_finger            (GdkEventButton *event);
 
-#ifndef HILDON_DISABLE_DEPRECATED
-void
-hildon_helper_set_insensitive_message           (GtkWidget *widget,
-                                                 const gchar *message);
-
-void
-hildon_helper_set_insensitive_messagef          (GtkWidget *widget,
-						 const gchar *format,
-						 ...);
-#endif
-
 void
 hildon_helper_set_thumb_scrollbar               (GtkScrolledWindow *win, 
                                                  gboolean thumb);

@@ -21,8 +21,6 @@
  * 02110-1301 USA
  *
  */
-#ifndef HILDON_DISABLE_DEPRECATED
-
 #include <stdlib.h>
 #include <check.h>
 #include <gtk/gtkmain.h>
@@ -244,4 +242,3 @@ Suite *create_hildon_banner_suite()
   return s;             
 }
 
-#endif

@@ -45,8 +45,6 @@
  * </example>
  */
 
-#undef                                          HILDON_DISABLE_DEPRECATED
-
 #include                                        "hildon-entry.h"
 #include					"hildon-enum-types.h"
 
@@ -77,71 +75,6 @@ set_property                                    (GObject      *object,
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
     }
-}
-
-/**
- * hildon_entry_set_text:
- * @entry: a #HildonEntry
- * @text: the new text
- *
- * Sets the text in @entry to @text, replacing its current contents.
- *
- * Since: 2.2
- *
- * Deprecated: Use gtk_entry_set_text() instead
- */
-void
-hildon_entry_set_text                           (HildonEntry *entry,
-                                                 const gchar *text)
-{
-    g_return_if_fail (HILDON_IS_ENTRY (entry) && text != NULL);
-    gtk_entry_set_text (GTK_ENTRY (entry), text);
-}
-
-/**
- * hildon_entry_get_text:
- * @entry: a #HildonEntry
- *
- * Gets the current text in @entry.
- *
- * Note that the placeholder text (set using
- * hildon_gtk_entry_set_placeholder_text()) is never returned. Only
- * text set by gtk_entry_set_text() or typed by the user is
- * considered.
- *
- * Returns: the text in @entry. This text must not be modified or
- * freed.
- *
- * Since: 2.2
- *
- * Deprecated: Use gtk_entry_get_text() instead
- */
-const gchar *
-hildon_entry_get_text                           (HildonEntry *entry)
-{
-    g_return_val_if_fail (HILDON_IS_ENTRY (entry), NULL);
-    return gtk_entry_get_text (GTK_ENTRY (entry));
-}
-
-/**
- * hildon_entry_set_placeholder:
- * @entry: a #HildonEntry
- * @text: the new text
- *
- * Sets the placeholder text in @entry to @text.
- *
- * Since: 2.2
- *
- * Deprecated: Use hildon_gtk_entry_set_placeholder_text() instead
- */
-void
-hildon_entry_set_placeholder                    (HildonEntry *entry,
-                                                 const gchar *text)
-{
-    g_return_if_fail (HILDON_IS_ENTRY (entry) && text != NULL);
-#ifdef MAEMO_GTK
-    hildon_gtk_entry_set_placeholder_text (GTK_ENTRY (entry), text);
-#endif
 }
 
 /**

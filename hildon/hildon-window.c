@@ -77,8 +77,6 @@
  * </example>
  */
 
-#undef                                          HILDON_DISABLE_DEPRECATED
-
 #include                                        <memory.h>
 #include                                        <string.h>
 #include                                        <strings.h>
@@ -190,14 +188,8 @@ hildon_window_key_press_event                   (GtkWidget *widget,
                                                  GdkEventKey *event);
 
 static gboolean
-hildon_window_key_release_event                 (GtkWidget *widget, 
-                                                 GdkEventKey *event);
-static gboolean
 hildon_window_window_state_event                (GtkWidget *widget, 
                                                  GdkEventWindowState *event);
-static gboolean
-hildon_window_focus_out_event                   (GtkWidget *widget, 
-                                                 GdkEventFocus *event);
 
 static void
 hildon_window_notify                            (GObject *gobject, 
@@ -215,9 +207,6 @@ static gboolean
 hildon_window_toggle_menu_real                  (HildonWindow * self,
 						 guint button,
 						 guint32 time);
-
-static gboolean
-hildon_window_escape_timeout                    (gpointer data);
 
 static GdkFilterReturn
 hildon_window_event_filter                      (GdkXEvent *xevent, 
@@ -277,9 +266,7 @@ hildon_window_class_init                        (HildonWindowClass * window_clas
     widget_class->realize               = hildon_window_realize;
     widget_class->unrealize             = hildon_window_unrealize;
     widget_class->key_press_event       = hildon_window_key_press_event;
-    widget_class->key_release_event     = hildon_window_key_release_event;
     widget_class->window_state_event    = hildon_window_window_state_event;
-    widget_class->focus_out_event       = hildon_window_focus_out_event;
     widget_class->map                   = hildon_window_map;
     widget_class->unmap                 = hildon_window_unmap;
 
@@ -354,7 +341,6 @@ hildon_window_init                              (HildonWindow *self)
     priv->is_topmost = FALSE;
     priv->borders = NULL;
     priv->toolbar_borders = NULL;
-    priv->escape_timeout = 0;
     priv->markup = NULL;
 
     priv->fullscreen = FALSE;
@@ -373,11 +359,6 @@ hildon_window_finalize                          (GObject * obj_self)
     g_assert (priv != NULL);
     
     g_free (priv->markup);
-
-    if (priv->escape_timeout) {
-      g_source_remove (priv->escape_timeout);
-      priv->escape_timeout = 0;
-    }
 
     if (priv->borders)
         gtk_border_free (priv->borders);
@@ -1080,25 +1061,6 @@ hildon_window_event_filter                      (GdkXEvent *xevent,
             hildon_window_toggle_menu (HILDON_WINDOW ( data ), cm->data.l[2], cm->data.l[0]);
             return GDK_FILTER_REMOVE;
         }
-        /* opera hack clipboard client message */
-        else if (xclient_message_type_check (cm, "_HILDON_IM_CLIPBOARD_COPY"))
-        {
-            g_signal_emit_by_name(G_OBJECT(data), "clipboard_operation",
-                    HILDON_WINDOW_CO_COPY);
-            return GDK_FILTER_REMOVE;
-        }
-        else if (xclient_message_type_check(cm, "_HILDON_IM_CLIPBOARD_CUT"))
-        {
-            g_signal_emit_by_name(G_OBJECT(data), "clipboard_operation",
-                    HILDON_WINDOW_CO_CUT);
-            return GDK_FILTER_REMOVE;
-        }
-        else if (xclient_message_type_check(cm, "_HILDON_IM_CLIPBOARD_PASTE"))
-        {
-            g_signal_emit_by_name(G_OBJECT(data), "clipboard_operation",
-                    HILDON_WINDOW_CO_PASTE);
-            return GDK_FILTER_REMOVE;
-        }
     }
 
     if (eventti->type == PropertyNotify)
@@ -1137,41 +1099,9 @@ hildon_window_key_press_event                   (GtkWidget *widget,
             if (hildon_window_toggle_menu (HILDON_WINDOW (widget), 0, GDK_CURRENT_TIME))
                 return TRUE;
             break;
-        case HILDON_HARDKEY_ESC:
-            if (!priv->escape_timeout)
-            {
-                priv->escape_timeout = gdk_threads_add_timeout
-                    (HILDON_WINDOW_LONG_PRESS_TIME,
-                     hildon_window_escape_timeout, widget);
-            }
-            break;
     }
 
     return GTK_WIDGET_CLASS (hildon_window_parent_class)->key_press_event (widget, event);
-}
-
-static gboolean
-hildon_window_key_release_event                 (GtkWidget *widget, 
-                                                 GdkEventKey *event)
-{
-    HildonWindowPrivate *priv = HILDON_WINDOW_GET_PRIVATE (widget);
-
-    g_return_val_if_fail (HILDON_IS_WINDOW (widget), FALSE);
-    g_assert (priv);
-
-    switch (event->keyval)
-    {
-        case HILDON_HARDKEY_ESC:
-            if (priv->escape_timeout)
-            {
-                g_source_remove (priv->escape_timeout);
-                priv->escape_timeout = 0;
-            }
-            break;
-    }
-
-    return GTK_WIDGET_CLASS (hildon_window_parent_class)->key_release_event (widget, event);
-
 }
 
 /*
@@ -1198,25 +1128,6 @@ hildon_window_window_state_event                (GtkWidget *widget,
     {
         return FALSE;
     }
-}
-
-/*
- * If the window lost focus while the user started to press the ESC key, we
- * won't get the release event. We need to stop the timeout.
- */
-static gboolean
-hildon_window_focus_out_event                   (GtkWidget *widget, 
-                                                 GdkEventFocus *event)
-{
-  HildonWindowPrivate *priv = HILDON_WINDOW_GET_PRIVATE (widget);
-
-  if (priv->escape_timeout)
-  {
-      g_source_remove (priv->escape_timeout);
-      priv->escape_timeout = 0;
-  }
-
-  return GTK_WIDGET_CLASS (hildon_window_parent_class)->focus_out_event (widget, event);
 }
 
 static void
@@ -1678,32 +1589,6 @@ hildon_window_toggle_menu_real                  (HildonWindow * self,
     return retvalue;
 }
 
-/*
- * If the ESC key was not released when the timeout expires,
- * close the window
- */
-static gboolean
-hildon_window_escape_timeout                    (gpointer data)
-{
-    HildonWindowPrivate *priv = HILDON_WINDOW_GET_PRIVATE (data);
-    GdkEvent *event;
-
-    g_assert (priv);
-
-    /* Send fake event, simulation a situation that user
-       pressed 'x' from the corner */
-    event = gdk_event_new(GDK_DELETE);
-    ((GdkEventAny *)event)->window = GDK_WINDOW (g_object_ref (GTK_WIDGET(data)->window));
-    gtk_main_do_event(event);
-
-    /* That unrefs the window, so we're reffing it above */
-    gdk_event_free(event);
-
-    priv->escape_timeout = 0;
-
-    return FALSE;
-}
-
 /**
  * hildon_window_new: 
  * 
@@ -1919,23 +1804,6 @@ hildon_window_get_main_menu                     (HildonWindow * self)
     return priv->menu;
 }
 
-/**
- * hildon_window_get_menu:
- * @self: a #HildonWindow
- *
- * Gets the #GtkMenu assigned to @self
- *
- * Return value: a #GtkMenu
- *
- * Deprecated: In Hildon 2.2 this function has been renamed to
- * hildon_window_get_main_menu() for consistency
- **/
-GtkMenu*
-hildon_window_get_menu                          (HildonWindow * self)
-{
-    return hildon_window_get_main_menu (self);
-}
-
 /* Since we've been asking developers to call gtk_window_add_accel_group()
  * themselves, do not trigger criticals by trying it again.
  */
@@ -2021,40 +1889,6 @@ hildon_window_set_main_menu (HildonWindow* self,
     }
 
     hildon_window_update_menu_flag (self, FALSE);
-}
-
-/**
- * hildon_window_set_menu:
- * @self: A #HildonWindow
- * @menu: The #GtkMenu to be used for this #HildonWindow
- *
- * Sets the menu to be used for this window. This menu overrides
- * a program-wide menu that may have been set with
- * hildon_program_set_common_menu(). Pass %NULL to remove the current
- * menu. HildonWindow takes ownership of the passed menu and you're
- * not supposed to free it yourself anymore.
- *
- * Note: hildon_window_set_menu() calls gtk_widget_show_all() for the
- * #GtkMenu. To pass control about visibility to the application
- * developer, hildon_window_set_main_menu() was introduced, which
- * doesn't do this.
- *
- * Deprecated: Hildon 2.2: use hildon_window_set_main_menu()
- **/
-void
-hildon_window_set_menu                          (HildonWindow *self, 
-                                                 GtkMenu *menu)
-{
-    HildonWindowPrivate *priv;
-
-    g_return_if_fail (HILDON_IS_WINDOW (self));
-
-    hildon_window_set_main_menu (self, menu);
-
-    priv = HILDON_WINDOW_GET_PRIVATE (self);
-
-    if (priv->menu != NULL)
-        gtk_widget_show_all (GTK_WIDGET (priv->menu));
 }
 
 /**

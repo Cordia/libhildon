@@ -201,8 +201,8 @@ START_TEST (test_new_information_regular)
 
   g_object_get_property(G_OBJECT (note),"note_type",&enum_value);
   note_type = g_value_get_int(&enum_value);   
-  fail_if( note_type != HILDON_NOTE_TYPE_INFORMATION_THEME,
-	   "hildon-note: Type was not set property on creation (HILDON_NOTE_TYPE_INFORMATION_THEME)",note_type);
+  fail_if( note_type != HILDON_NOTE_TYPE_INFORMATION,
+	   "hildon-note: Type was not set property on creation (HILDON_NOTE_TYPE_INFORMATION)",note_type);
 
   gtk_widget_destroy (GTK_WIDGET (note));
   note=NULL;
@@ -221,8 +221,8 @@ START_TEST (test_new_information_regular)
 
   g_object_get_property(G_OBJECT (note),"note_type",&enum_value);
   note_type = g_value_get_int(&enum_value);
-  fail_if( note_type != HILDON_NOTE_TYPE_INFORMATION_THEME,
-	   "hildon-note: Type was not set property on creation (HILDON_NOTE_TYPE_INFORMATION_THEME)",note_type);
+  fail_if( note_type != HILDON_NOTE_TYPE_INFORMATION,
+	   "hildon-note: Type was not set property on creation (HILDON_NOTE_TYPE_INFORMATION)",note_type);
 
   gtk_widget_destroy (GTK_WIDGET (note));
   note=NULL;
@@ -264,8 +264,8 @@ START_TEST (test_new_information_invalid)
 
   g_object_get_property(G_OBJECT (invalid_note),"note_type",&enum_value);
   note_type = g_value_get_int(&enum_value);
-  fail_if( note_type != HILDON_NOTE_TYPE_INFORMATION_THEME,
-	   "hildon-note: Type was not set property on creation (HILDON_NOTE_TYPE_INFORMATION_THEME)",note_type);
+  fail_if( note_type != HILDON_NOTE_TYPE_INFORMATION,
+	   "hildon-note: Type was not set property on creation (HILDON_NOTE_TYPE_INFORMATION)",note_type);
     
   gtk_widget_destroy (GTK_WIDGET (invalid_note));
   invalid_note=NULL;
@@ -279,149 +279,6 @@ START_TEST (test_new_information_invalid)
   g_value_unset(&enum_value);
 }
 END_TEST
-
-#ifndef HILDON_DISABLE_DEPRECATED
-/* ----- Test case for new_confirmation_with_icon_name -----*/
-/**
- * Purpose: Check that note dialog is properly created with description regular values. 
- * Cases considered:
- *    - Create new confirmation note with description set to TEST_STRING and icon name "control_calibration_target".
- *    - Create new confirmation note with description set to "" and icon name NULL.
- *
- */
-START_TEST (test_new_confirmation_with_icon_name_regular)
-{
-  const gchar * description = NULL;
-  const gchar * ret_description = NULL;
-  const gchar *icon_name = NULL;
-  const gchar * ret_icon_name = NULL;
-  GValue value={0, };
-  GValue icon_name_value={0, };
-  GValue enum_value={0, };
-  HildonNoteType note_type;
-
-  g_value_init (&value, G_TYPE_STRING);
-  g_value_init (&icon_name_value, G_TYPE_STRING);
-  g_value_init (&enum_value, G_TYPE_INT);
-
-  /* Test 1: create new confirmation note with description set to TEST_STRING */
-  description = TEST_STRING;
-  icon_name="control_calibration_target";
-  note = HILDON_NOTE(hildon_note_new_confirmation_with_icon_name(n_window,description,icon_name));
-  fail_if(!HILDON_IS_NOTE(note),
-          "hildon-note: Creation failed with hildon_note_new_confirmation_with_icon_name");
-
-    g_object_get_property(G_OBJECT (note),"description",&value);
-  ret_description = g_value_get_string (&value);
-  fail_if( strcmp (description,ret_description) != 0,
-	   "hildon-note: Description (%s) was not set properly on creation. Returned description: %s",
-	   description,ret_description);
-  
-  g_object_get_property(G_OBJECT (note),"note_type",&enum_value);
-  note_type = g_value_get_int(&enum_value);  
-  fail_if( note_type != HILDON_NOTE_TYPE_CONFIRMATION,
-	   "hildon-note: Type was not set property on creation (HILDON_NOTE_TYPE_CONFIRMATION)",note_type);
-  
-  g_object_get_property(G_OBJECT (note),"icon",&icon_name_value);
-  ret_icon_name = g_value_get_string (&icon_name_value);
-  fail_if( strcmp (icon_name,ret_icon_name) != 0,
-	   "hildon-note: icon_name (%s) was not set properly on creation. Returned icon_name: %s",
-	   icon_name,ret_icon_name);
-
-  gtk_widget_destroy (GTK_WIDGET (note));
-  note=NULL;
-  
-  /* Test 2: create new confirmation note with description set to "" and icon name set to NULL */
-  description = "";
-  icon_name=NULL;
-  note = HILDON_NOTE(hildon_note_new_confirmation_with_icon_name(n_window,description,icon_name));
-  fail_if(!HILDON_IS_NOTE(note),
-          "hildon-note: Creation failed with hildon_note_new_confirmation_with_icon_name");
-  
-  g_object_get_property(G_OBJECT (note),"description",&value);
-  ret_description = g_value_get_string (&value);
-  fail_if( strcmp (description,ret_description) != 0,
-	   "hildon-note: Description (%s) was not set properly on creation. Returned description: %s",
-	   description,ret_description);
-  
-  g_object_get_property(G_OBJECT (note),"note_type",&enum_value);
-  note_type = g_value_get_int(&enum_value);  
-  fail_if( note_type != HILDON_NOTE_TYPE_CONFIRMATION,
-	   "hildon-note: Type was not set property on creation (HILDON_NOTE_TYPE_CONFIRMATION)",note_type);
-  
-  g_object_get_property(G_OBJECT (note),"icon",&icon_name_value);
-  ret_icon_name = g_value_get_string (&icon_name_value);
-  fail_if( ret_icon_name != NULL,
-	   "hildon-note: icon_name (%s) was not set properly on creation. Returned icon_name: %s",
-	   icon_name,ret_icon_name);
-  
-  gtk_widget_destroy (GTK_WIDGET (note));
-  note=NULL;
-  
-  g_value_unset(&value);
-  g_value_unset(&icon_name_value);
-  g_value_unset(&enum_value);
-  
-}
-END_TEST
-
-/**
- * Purpose: Check that note dialog is properly created with description invalid values. 
- * Cases considered:
- *    - Create new confirmation note with window set to NULL.
- *    - Create new confirmation note with description set to "NULL".
- *
- */
-START_TEST (test_new_confirmation_with_icon_name_invalid)
-{
-  const gchar * ret_description = NULL;
-  const gchar * ret_icon_name = NULL;
-  GValue value={0, };
-  GValue enum_value={0, };
-  GValue icon_name_value={0, };
-  HildonNoteType note_type;
-  HildonNote * invalid_note;
-
-  g_value_init (&value, G_TYPE_STRING);
-  g_value_init (&icon_name_value, G_TYPE_STRING);
-  g_value_init (&enum_value, G_TYPE_INT);
-
-  /* Test 1: create new confirmation note with window set to "NULL" */
-  invalid_note = HILDON_NOTE(hildon_note_new_confirmation_with_icon_name(NULL,"",""));
-  fail_if(!HILDON_IS_NOTE(invalid_note),
-          "hildon-note: Creation failed with hildon_note_new_confirmation_with_icon_name");
-
-  g_object_get_property(G_OBJECT (invalid_note),"description",&value);
-  ret_description = g_value_get_string (&value);
-  fail_if( strcmp ("",ret_description) != 0,
-	   "hildon-note: Description "" was not set properly on creation. Returned description: %s",
-	   ret_description);
-
-  g_object_get_property(G_OBJECT (invalid_note),"icon",&icon_name_value);
-  ret_icon_name = g_value_get_string (&icon_name_value);
-  fail_if( strcmp ("",ret_icon_name) != 0,
-	   "hildon-note: Description "" was not set properly on creation. Returned description: %s",
-	   ret_icon_name);
-
-  g_object_get_property(G_OBJECT (invalid_note),"note_type",&enum_value);
-  note_type = g_value_get_int(&enum_value);
-  fail_if( note_type != HILDON_NOTE_TYPE_CONFIRMATION,
-	   "hildon-note: Type was not set property on creation (HILDON_NOTE_TYPE_CONFIRMATION)",note_type);
-
-  gtk_widget_destroy (GTK_WIDGET (invalid_note));
-  invalid_note=NULL;
-
-  /* Test 2: create new confirmation note with description set to "NULL" */
-  invalid_note = HILDON_NOTE(hildon_note_new_confirmation_with_icon_name(n_window,NULL,"control_calibration_target"));
-  fail_if(HILDON_IS_NOTE(invalid_note),
-          "hildon-note: Creation succeeded with hildon_note_new_confirmation_with_icon_name with message == NULL");
-
-  g_value_unset(&icon_name_value);
-  g_value_unset(&value);
-  g_value_unset(&enum_value);
-}
-END_TEST
-#endif
 
 /* ----- Test case for new_cancel_with_progress_bar -----*/
 
@@ -557,9 +414,6 @@ Suite *create_hildon_note_suite()
 
   /* Create test cases */
   TCase *tc1 = tcase_create("new_confirmation");
-#ifndef HILDON_DISABLE_DEPRECATED
-  TCase *tc2 = tcase_create("new_confirmation_with_icon_name");
-#endif
   TCase *tc3 = tcase_create("new_information");
   TCase *tc4 = tcase_create("new_cancel_with_progress_bar");
 
@@ -568,14 +422,6 @@ Suite *create_hildon_note_suite()
   tcase_add_test(tc1, test_new_confirmation_regular);
   tcase_add_test(tc1, test_new_confirmation_invalid);
   suite_add_tcase (s, tc1);
-
-#ifndef HILDON_DISABLE_DEPRECATED
-  /* Create test case for hildon_note_new_confirmation_with_icon_name and add it to the suite */
-  tcase_add_checked_fixture(tc2, fx_setup_default_note, fx_teardown_default_note);
-  tcase_add_test(tc2, test_new_confirmation_with_icon_name_regular);
-  tcase_add_test(tc2, test_new_confirmation_with_icon_name_invalid);
-  suite_add_tcase (s, tc2);
-#endif
 
   /* Create test case for hildon_note_new_with_information and add it to the suite */
   tcase_add_checked_fixture(tc3, fx_setup_default_note, fx_teardown_default_note);

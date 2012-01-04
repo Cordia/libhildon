@@ -63,19 +63,6 @@ hildon_text_view_get_type                       (void) G_GNUC_CONST;
 GtkWidget *
 hildon_text_view_new                            (void);
 
-#ifndef HILDON_DISABLE_DEPRECATED
-void
-hildon_text_view_set_buffer                     (HildonTextView *text_view,
-                                                 GtkTextBuffer  *buffer);
-
-GtkTextBuffer *
-hildon_text_view_get_buffer                     (HildonTextView *text_view);
-
-void
-hildon_text_view_set_placeholder                (HildonTextView *text_view,
-                                                 const gchar    *text);
-#endif
-
 G_END_DECLS
 
 #endif /* __HILDON_TEXT_VIEW_H__ */

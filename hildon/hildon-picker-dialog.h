@@ -21,17 +21,7 @@
 #ifndef                                         __HILDON_PICKER_DIALOG_H__
 #define                                         __HILDON_PICKER_DIALOG_H__
 
-#ifdef HILDON_DISABLE_DEPRECATED
-  #define __SHOULD_REENABLE_DISABLE_DEPRECATED
-#endif
-
-#undef HILDON_DISABLE_DEPRECATED
 #include                                        "hildon-dialog.h"
-
-#ifdef __SHOULD_REENABLE_DISABLE_DEPRECATED
-  #define HILDON_DISABLE_DEPRECATED
-#endif
-
 #include                                        "hildon-touch-selector.h"
 
 G_BEGIN_DECLS

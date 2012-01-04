@@ -45,8 +45,6 @@
  * vertical, horizontal and both panning directions.
  */
 
-#undef HILDON_DISABLE_DEPRECATED
-
 #include <math.h>
 #if USE_CAIRO_SCROLLBARS == 1
 #include <cairo.h>
@@ -579,29 +577,6 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
 							 G_PARAM_READWRITE |
  							 G_PARAM_CONSTRUCT));
 
-  /**
-   * HildonPannableArea:size-request-policy:
-   *
-   * Controls the size request policy of the widget.
-   *
-   * <warning><para>
-   * HildonPannableArea:size-request-policy is deprecated and should
-   * not be used in newly-written code. See
-   * hildon_pannable_area_set_size_request_policy()
-   * </para></warning>
-   *
-   * Deprecated: since 2.2
-   */
-  g_object_class_install_property (object_class,
-                                   PROP_SIZE_REQUEST_POLICY,
-				   g_param_spec_enum ("size-request-policy",
-                                                      "Size Requisition policy",
-                                                      "Controls the size request policy of the widget.",
-                                                      HILDON_TYPE_SIZE_REQUEST_POLICY,
-                                                      HILDON_SIZE_REQUEST_MINIMUM,
-                                                      G_PARAM_READWRITE|
-                                                      G_PARAM_CONSTRUCT));
-
   g_object_class_install_property (object_class,
 				   PROP_HADJUSTMENT,
 				   g_param_spec_object ("hadjustment",
@@ -1007,10 +982,6 @@ hildon_pannable_area_set_property (GObject * object,
     break;
   case PROP_LOW_FRICTION_MODE:
     priv->low_friction_mode = g_value_get_boolean (value);
-    break;
-  case PROP_SIZE_REQUEST_POLICY:
-    hildon_pannable_area_set_size_request_policy (HILDON_PANNABLE_AREA (object),
-                                                  g_value_get_enum (value));
     break;
   case PROP_CENTER_ON_CHILD_FOCUS:
     priv->center_on_child_focus = g_value_get_boolean (value);
@@ -3638,78 +3609,6 @@ hildon_pannable_area_get_vadjustment            (HildonPannableArea *area)
   return area->priv->vadjust;
 }
 
-
-/**
- * hildon_pannable_area_get_size_request_policy:
- * @area: A #HildonPannableArea.
- *
- * This function returns the current size request policy of the
- * widget. That policy controls the way the size_request is done in
- * the pannable area. Check
- * hildon_pannable_area_set_size_request_policy() for a more detailed
- * explanation.
- *
- * returns: the policy is currently being used in the widget
- * #HildonSizeRequestPolicy.
- *
- * Since: 2.2
- *
- * Deprecated: See hildon_pannable_area_set_size_request_policy()
- **/
-HildonSizeRequestPolicy
-hildon_pannable_area_get_size_request_policy (HildonPannableArea *area)
-{
-  HildonPannableAreaPrivate *priv;
-
-  g_return_val_if_fail (HILDON_IS_PANNABLE_AREA (area), FALSE);
-
-  priv = area->priv;
-
-  return priv->size_request_policy;
-}
-
-/**
- * hildon_pannable_area_set_size_request_policy:
- * @area: A #HildonPannableArea.
- * @size_request_policy: One of the allowed #HildonSizeRequestPolicy
- *
- * This function sets the pannable area size request policy. That
- * policy controls the way the size_request is done in the pannable
- * area. Pannable can use the size request of its children
- * (#HILDON_SIZE_REQUEST_CHILDREN) or the minimum size required for
- * the area itself (#HILDON_SIZE_REQUEST_MINIMUM), the latter is the
- * default. Recall this size depends on the scrolling policy you are
- * requesting to the pannable area, if you set #GTK_POLICY_NEVER this
- * parameter will not have any effect with
- * #HILDON_SIZE_REQUEST_MINIMUM set.
- *
- * Since: 2.2
- *
- * Deprecated: This method and the policy request is deprecated, DO
- * NOT use it in future code, the only policy properly supported in
- * gtk+ nowadays is the minimum size. Use gtk_window_set_default_size()
- * or gtk_window_set_geometry_hints() with the proper size in your case
- * to define the height of your dialogs.
- **/
-void
-hildon_pannable_area_set_size_request_policy (HildonPannableArea *area,
-                                              HildonSizeRequestPolicy size_request_policy)
-{
-  HildonPannableAreaPrivate *priv;
-
-  g_return_if_fail (HILDON_IS_PANNABLE_AREA (area));
-
-  priv = area->priv;
-
-  if (priv->size_request_policy == size_request_policy)
-    return;
-
-  priv->size_request_policy = size_request_policy;
-
-  gtk_widget_queue_resize (GTK_WIDGET (area));
-
-  g_object_notify (G_OBJECT (area), "size-request-policy");
-}
 
 /**
  * hildon_pannable_area_get_center_on_child_focus

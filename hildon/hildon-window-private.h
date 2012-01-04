@@ -49,7 +49,6 @@ struct                                          _HildonWindowPrivate
 
     guint fullscreen;
     guint is_topmost;
-    guint escape_timeout;
     gint visible_toolbars;
     gint previous_vbox_y;
 

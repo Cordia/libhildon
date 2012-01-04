@@ -1,0 +1,170 @@
+Standard GTK+ 2 to GTK+ 3 migration guide:
+http://developer.gnome.org/gtk3/3.3/ch25s02.html
+
+
+Following is an extract of depreciation comments from code that was removed
+in libhildon 3.0. It should guide you how to migrate deprecated widgets.
+
+ * #HildonBreadCrumbTrail is deprecated since hildon 2.2. You should instead use
+ * #HildonStackableWindow to represent hierarchical structure in
+ * applications.
+
+ * #HildonBreadCrumb is deprecated since hildon 2.2. You should instead use
+ * #HildonStackableWindow to represent hierarchical structure in
+ * applications.
+
+ * #HildonCalendarPopup has been deprecated since Hildon 2.2 and should not
+ * be used in newly written code.
+ * See <link linkend="hildon-migrating-date-widgets">Migrating Date Widgets</link>
+ * section to know how to migrate this deprecated widget.
+
+ * #HildonCalendar has been deprecated since Hildon 2.2
+ * See <link linkend="hildon-migrating-date-widgets">Migrating Date Widgets</link>
+ * section to know how to migrate this deprecated widget.
+
+ * #HildonControlbar has been deprecated since Hildon 2.2
+ * See <link linkend="hildon-migrating-control-bar">Migrating Control Bars</link>
+ * section to know how to migrate this deprecated widget.
+
+ * #HildonDateEditor has been deprecated since Hildon 2.2 and should
+ * not be used in newly written code. Use #HildonDateSelector instead. See
+ * <link linkend="hildon-migrating-date-widgets">Migrating Date Widgets</link>
+ * section to know how to migrate this deprecated widget.
+
+ * As of hildon 2.2, #HildonDialog has been deprecated in favor of #GtkDialog.
+ * #HildonDialog has been deprecated since Hildon 2.2 and should not
+ * be used in newly written code. See
+ * <link linkend="hildon-migrating-hildon-dialogs">Migrating Hildon Dialogs</link>
+ * section to know how to migrate this deprecated widget.
+
+ * HildonFontSelectionDialog:preview-text:
+ * Deprecated: this property is unused since hildon 2.2
+
+ * hildon_helper_set_insensitive_message:
+ * Deprecated: As of hildon 2.2, it is strongly discouraged to use insensitive messages.
+
+ * hildon_helper_set_insensitive_messagef:
+ * Deprecated: As of hildon 2.2, it is strongly discouraged to use insensitive messages.
+
+ * #HildonHVolumeBar has been deprecated since Hildon 2.2
+ * See <link linkend="hildon-migrating-volume-bar">Migrating Volume Bars</link>
+ * section to know how to migrate this deprecated widget.
+
+ * HildonNote:icon:
+ * Deprecated: Since 2.2
+
+ * HildonNote:stock-icon:
+ * Deprecated: Since 2.2
+
+ * hildon_note_new_confirmation_with_icon_name:
+ * Deprecated: Since 2.2, icons are not shown in confirmation notes. Icons set
+ * with this function will be ignored. Use hildon_note_new_confirmation() instead.
+
+ * hildon_note_new_information_with_icon_name:
+ * Deprecated: Since 2.2, icons are not shown in confirmation notes. Icons set
+ * with this function will be ignored. Use hildon_note_new_information()
+
+ * #HildonNumberEditor has been deprecated since Hildon 2.2
+ * See <link linkend="hildon-migrating-number-widgets">Migrating Number Widgets</link>
+ * section to know how to migrate this deprecated widget.
+
+ * HildonPannableArea:size-request-policy:
+ * Deprecated: since 2.2
+
+ * hildon_pannable_area_get_size_request_policy:
+ * Deprecated: See hildon_pannable_area_set_size_request_policy()
+
+ * hildon_pannable_area_set_size_request_policy:
+ * Deprecated: This method and the policy request is deprecated, DO
+ * NOT use it in future code, the only policy properly supported in
+ * gtk+ nowadays is the minimum size. Use gtk_window_set_default_size()
+ * or gtk_window_set_geometry_hints() with the proper size in your case
+ * to define the height of your dialogs.
+
+ * hildon_program_pop_window_stack:
+ * Deprecated: Use hildon_window_stack_pop() instead
+
+ * hildon_program_peek_window_stack:
+ * Deprecated: Use hildon_window_stack_peek() instead
+
+ * hildon_program_go_to_root_window:
+ * Deprecated: See #HildonWindowStack
+
+ * #HildonRangeEditor has been deprecated since Hildon 2.2 and should not
+ * be used in newly written code. See
+ * <link linkend="hildon-migrating-number-widgets">Migrating Number Widgets</link>
+ * section to know how to migrate this deprecated widget.
+
+ * #HildonSeekbar has been deprecated since hildon 2.2. Use #GtkScale
+ * instead. See hildon_gtk_hscale_new() and hildon_gtk_vscale_new().
+
+ * #HildonSortDialog has been deprecated since Hildon 2.2
+ * See <link linkend="hildon-migrating-sort-dialogs">Migrating Sort Dialogs</link>
+ * section to know how to migrate this deprecated widget.
+
+ * hildon_stackable_window_set_main_menu:
+ * Deprecated: Hildon 2.2: use hildon_window_set_app_menu()
+
+ * hildon_text_view_set_buffer:
+ * Deprecated: use gtk_text_view_set_buffer() instead
+
+ * hildon_text_view_get_buffer:
+ * Deprecated: use gtk_text_view_get_buffer() instead
+
+ * hildon_text_view_set_placeholder:
+ * Deprecated: use hildon_gtk_text_view_set_placeholder_text() instead
+
+ * #HildonTimeEditor has been deprecated since Hildon 2.2 and should not
+ * be used in newly written code. See
+ * <link linkend="hildon-migrating-time-widgets">Migrating Time Widgets</link>
+ * section to know how to migrate this deprecated widget.
+
+ * #HildonTimePicker has been deprecated since Hildon 2.2 and should not
+ * be used in newly written code. See
+ * <link linkend="hildon-migrating-time-widgets">Migrating Time Widgets</link>
+ * section to know how to migrate this deprecated widget.
+
+ * HildonTouchSelectorEntry:text-column:
+ * This property is deprecated. Use HildonTouchSelectorColumn:text-column
+ * instead. Use hildon_touch_selector_entry_set_text_column() and
+ * hildon_touch_selector_entry_get_text_column() to manage it.
+ * Deprecated: use HildonTouchSelectorColumn:text-column instead
+
+ * hildon_touch_selector_set_column_attributes:
+ * Deprecated: #HildonTouchSelectorColumn implements #GtkCellLayout, use this
+ *             interface instead. See
+ *             hildon_touch_selector_get_column().
+
+ * #HildonVolumebarRange has been deprecated since Hildon 2.2 and should not
+ * be used in newly written code. See
+ * <link linkend="hildon-migrating-volume-bar">Migrating Volume Bars</link>
+ * section to know how to migrate this deprecated widget.
+
+ * #HildonVolumebar has been deprecated since Hildon 2.2 and should not
+ * be used in newly written code. See
+ * <link linkend="hildon-migrating-volume-bar">Migrating Volume Bars</link>
+ * section to know how to migrate this deprecated widget.
+
+ * hildon_volumebar_set_range_insensitive_message:
+ * Deprecated: As of hildon 2.2, it is strongly discouraged to use insensitive messages.
+
+ * hildon_volumebar_set_range_insensitive_messagef:
+ * Deprecated: As of hildon 2.2, it is strongly discouraged to use insensitive messages.
+
+ * #HildonVVolumebar has been deprecated since Hildon 2.2 and should not
+ * be used in newly written code. See
+ * <link linkend="hildon-migrating-volume-bar">Migrating Volume Bars</link>
+ * section to know how to migrate this deprecated widget.
+
+ * #HildonWeekdayPicker has been deprecated since Hildon 2.2 and should not
+ * be used in newly written code. See
+ * <link linkend="hildon-migrating-date-widgets">Migrating Date Widgets</link>
+ * section to know how to migrate this deprecated widget.
+
+ * hildon_window_get_menu:
+ * Deprecated: In Hildon 2.2 this function has been renamed to
+ * hildon_window_get_main_menu() for consistency
+
+ * hildon_window_set_menu:
+ * Deprecated: Hildon 2.2: use hildon_window_set_main_menu()
+

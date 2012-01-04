@@ -171,8 +171,6 @@
  * a flexible management of the cellrenderers in each #HildonTouchSelector column.
  */
 
-#undef HILDON_DISABLE_DEPRECATED
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -1680,64 +1678,6 @@ hildon_touch_selector_remove_column (HildonTouchSelector * selector, gint column
   g_signal_emit (selector, hildon_touch_selector_signals[COLUMNS_CHANGED], 0);
 
   return TRUE;
-}
-
-/**
- * hildon_touch_selector_set_column_attributes:
- * @selector: a #HildonTouchSelector
- * @num_column: the number of the column whose attributes we're setting
- * @cell_renderer: the #GtkCellRendere we're setting the attributes of
- * @Varargs: A %NULL-terminated list of attributes.
- *
- * Sets the attributes for the given column. The attributes must be given
- * in attribute/column pairs, just like in gtk_tree_view_column_set_attributes().
- * All existing attributes are removed and replaced with the new ones.
- *
- * Deprecated: #HildonTouchSelectorColumn implements #GtkCellLayout, use this
- *             interface instead. See
- *             hildon_touch_selector_get_column().
- *
- * Since: 2.2
- **/
-void
-hildon_touch_selector_set_column_attributes (HildonTouchSelector * selector,
-                                             gint num_column,
-                                             GtkCellRenderer * cell_renderer,
-                                             ...)
-{
-  va_list args;
-  GtkTreeViewColumn *tree_column = NULL;
-  HildonTouchSelectorColumn *current_column = NULL;
-  gchar *attribute = NULL;
-  gint value = 0;
-
-  g_return_if_fail (HILDON_IS_TOUCH_SELECTOR (selector));
-  g_return_if_fail (num_column <
-                    hildon_touch_selector_get_num_columns (selector));
-
-  current_column = g_slist_nth_data (selector->priv->columns, num_column);
-
-  tree_column = gtk_tree_view_get_column (current_column->priv->tree_view, 0);
-  gtk_tree_view_remove_column (current_column->priv->tree_view, tree_column);
-
-  tree_column = gtk_tree_view_column_new ();
-  gtk_tree_view_column_pack_start (tree_column, cell_renderer, TRUE);
-
-  va_start (args, cell_renderer);
-  attribute = va_arg (args, gchar *);
-
-  gtk_tree_view_column_clear_attributes (tree_column, cell_renderer);
-
-  while (attribute != NULL) {
-    value = va_arg (args, gint);
-    gtk_tree_view_column_add_attribute (tree_column, cell_renderer,
-                                        attribute, value);
-    attribute = va_arg (args, gchar *);
-  }
-
-  va_end (args);
-
-  gtk_tree_view_append_column (current_column->priv->tree_view, tree_column);
 }
 
 /**

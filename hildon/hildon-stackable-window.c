@@ -94,8 +94,6 @@
  * </example>
  */
 
-#undef HILDON_DISABLE_DEPRECATED
-
 #include                                        <X11/X.h>
 #include                                        <X11/Xatom.h>
 #include                                        <gdk/gdkx.h>
@@ -145,22 +143,6 @@ hildon_stackable_window_get_stack               (HildonStackableWindow *self)
     priv = HILDON_STACKABLE_WINDOW_GET_PRIVATE (self);
 
     return priv->stack;
-}
-
-/**
- * hildon_stackable_window_set_main_menu:
- * @self: a #HildonStackableWindow
- * @menu: a #HildonAppMenu to be used for this window
- *
- * Sets the menu to be used for this window.
- *
- * Deprecated: Hildon 2.2: use hildon_window_set_app_menu()
- **/
-void
-hildon_stackable_window_set_main_menu           (HildonStackableWindow *self,
-                                                 HildonAppMenu *menu)
-{
-    hildon_window_set_app_menu (HILDON_WINDOW (self), menu);
 }
 
 static void

@@ -163,18 +163,6 @@ else
     FATAL_CFLAGS=""
 fi
 
-# disable deprecated symbols
-AC_ARG_ENABLE(deprecated,
-              [AC_HELP_STRING([--enable-deprecated],
-	                      [enable use of deprecated symbols [default=yes]])],,
-              [enable_deprecated="yes"])
-
-if test x$enable_deprecated = xno; then
-    DISABLE_DEPRECATED="-DHILDON_DISABLE_DEPRECATED"
-fi
-
-AM_CONDITIONAL([HILDON_DISABLE_DEPRECATED], test "x$enable_deprecated" = "xno")
-
 # Check support (c unit test)
 PKG_CHECK_MODULES(CHECK, check , [BUILD_TESTS="yes"], [BUILD_TESTS="no"])
 AM_CONDITIONAL(BUILD_TESTS, test "x$BUILD_TESTS" = "xyes")
@@ -182,8 +170,8 @@ AM_CONDITIONAL(BUILD_TESTS, test "x$BUILD_TESTS" = "xyes")
 CFLAGS="$CFLAGS ${ASSERT_CFLAGS} ${DEBUG_CFLAGS} -Wall -Wmissing-prototypes -Wmissing-declarations -Wno-format ${FATAL_CFLAGS}"
 # -Wno-format due to way translation string are done
 
-### disable deprecated symbols and enable MAEMO platform extensions
-EXTRA_CFLAGS="$DISABLE_DEPRECATED $MAEMO_CHANGES $MAEMO_GTK"
+### enable MAEMO platform extensions
+EXTRA_CFLAGS="$MAEMO_CHANGES $MAEMO_GTK"
 AC_SUBST(EXTRA_CFLAGS)
 
 # HILDON_OBJ_*
@@ -217,7 +205,6 @@ Configuration:
 - Version............: ${VERSION}
 - Api................: ${PACKAGE}-${API_VERSION_MAJOR}
 - Compiler...........: ${CC}
-- Enable deprecated..: ${enable_deprecated}
 - gtk-doc support....: ${enable_gtk_doc}
 - Build examples.....: ${BUILD_EXAMPLES}
 - Build with asserts.: ${BUILD_WITH_ASSERTS}

@@ -51,11 +51,6 @@ Suite *create_hildon_note_suite(void);
 Suite *create_hildon_volumebar_suite(void);
 Suite *create_hildon_volumebar_range_suite(void);
 Suite *create_hildon_wizard_dialog_suite(void);
-#ifndef HILDON_DISABLE_DEPRECATED
-/* HildonBanner is not deprecated, but all the functions tested in
-   this suite are deprecated*/
-Suite *create_hildon_banner_suite(void);
-#endif
 Suite *create_hildon_font_selection_dialog_suite(void);
 Suite *create_hildon_system_sound_suite(void);
 Suite *create_hildon_scroll_area_suite(void);

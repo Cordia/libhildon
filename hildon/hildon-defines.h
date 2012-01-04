@@ -119,18 +119,6 @@ G_BEGIN_DECLS
  */
 #define HILDON_ICON_SIZE_XLARGE                  gtk_icon_size_from_name ("hildon-xlarge")
 
-/* legacy hildon icon sizes, updated for new hildon */
-
-/**
- * HILDON_ICON_SIZE_TOOLBAR:
- *
- * #GtkIconSize for toolbar icons.
- *
- * Deprecated: Use %HILDON_ICON_SIZE_FINGER instead.
- */
-#ifndef HILDON_DISABLE_DEPRECATED
-#define HILDON_ICON_SIZE_TOOLBAR                 gtk_icon_size_from_name ("hildon-finger")
-#endif
 /* Actual icon sizes */
 
 /* New sizes */
@@ -197,17 +185,6 @@ G_BEGIN_DECLS
  */
 #define HILDON_ICON_PIXEL_SIZE_XLARGE            hildon_get_icon_pixel_size (HILDON_ICON_SIZE_XLARGE)
 
-/* legacy sizes */
-/**
- * HILDON_ICON_PIXEL_SIZE_TOOLBAR:
- *
- * Pixel size for toolbar icons.
- *
- * Deprecated: Use %HILDON_ICON_PIXEL_SIZE_FINGER instead.
- */
-#ifndef HILDON_DISABLE_DEPRECATED
-#define HILDON_ICON_PIXEL_SIZE_TOOLBAR           hildon_get_icon_pixel_size (HILDON_ICON_SIZE_TOOLBAR)
-#endif
 /* Margins */
 
 /**

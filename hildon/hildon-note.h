@@ -72,13 +72,6 @@ hildon_note_new_confirmation_add_buttons        (GtkWindow *parent,
                                                  const gchar *description, 
                                                  ...);
 
-#ifndef HILDON_DISABLE_DEPRECATED
-GtkWidget*
-hildon_note_new_confirmation_with_icon_name     (GtkWindow *parent,
-                                                 const gchar *description,
-                                                 const gchar *icon_name);
-#endif
-
 GtkWidget*
 hildon_note_new_cancel_with_progress_bar        (GtkWindow *parent,
                                                  const gchar *description,
@@ -87,12 +80,6 @@ hildon_note_new_cancel_with_progress_bar        (GtkWindow *parent,
 GtkWidget*
 hildon_note_new_information                     (GtkWindow *parent,
                                                  const gchar *description);
-#ifndef HILDON_DISABLE_DEPRECATED
-GtkWidget*
-hildon_note_new_information_with_icon_name      (GtkWindow *parent,
-                                                 const gchar *description,
-                                                 const gchar *icon_name);
-#endif
 
 void 
 hildon_note_set_button_text                     (HildonNote *note, 
@@ -110,8 +97,6 @@ hildon_note_set_button_texts                    (HildonNote *note,
  * @HILDON_NOTE_TYPE_CONFIRMATION_BUTTON: Confirmation note with
  * custom buttons.
  * @HILDON_NOTE_TYPE_INFORMATION: Information note with an 'OK' button.
- * @HILDON_NOTE_TYPE_INFORMATION_THEME: Deprecated information note with a themed
- * icon. Equivalent to %HILDON_NOTE_TYPE_INFORMATION.
  * @HILDON_NOTE_TYPE_PROGRESSBAR: Note with a #GtkProgressBar and an 'OK' button.
  *
  * Type of a #HildonNote, defining its behavior, contents, and theming.
@@ -121,7 +106,6 @@ typedef enum
     HILDON_NOTE_TYPE_CONFIRMATION = 0,
     HILDON_NOTE_TYPE_CONFIRMATION_BUTTON,
     HILDON_NOTE_TYPE_INFORMATION,
-    HILDON_NOTE_TYPE_INFORMATION_THEME,
     HILDON_NOTE_TYPE_PROGRESSBAR
 }                                               HildonNoteType;
 

@@ -68,19 +68,6 @@ hildon_entry_get_type                           (void) G_GNUC_CONST;
 GtkWidget *
 hildon_entry_new                                (HildonSizeType size);
 
-#ifndef HILDON_DISABLE_DEPRECATED
-void
-hildon_entry_set_text                           (HildonEntry *entry,
-                                                 const gchar *text);
-
-const gchar *
-hildon_entry_get_text                           (HildonEntry *entry);
-
-void
-hildon_entry_set_placeholder                    (HildonEntry *entry,
-                                                 const gchar *text);
-#endif
-
 G_END_DECLS
 
 #endif /* __HILDON_ENTRY_H__ */

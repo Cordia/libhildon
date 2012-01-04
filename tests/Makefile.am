@@ -18,30 +18,7 @@ tests					= check_test.c 				\
 					  check-hildon-program.c		\
 					  check-hildon-picker-button.c
 
-
-DEPRECATED_TESTS			= check-hildon-range-editor.c 		\
-					  check-hildon-date-editor.c		\
-					  check-hildon-time-editor.c 		\
-					  check-hildon-weekday-picker.c 	\
-					  check-hildon-controlbar.c 		\
-					  check-hildon-seekbar.c 		\
-					  check-hildon-time-picker.c 		\
-					  check-hildon-number-editor.c  	\
-					  check-hildon-calendar-popup.c 	\
-					  check-hildon-code-dialog.c 		\
-					  check-hildon-sort-dialog.c 		\
-					  check-hildon-volumebar.c 		\
-					  check-hildon-volumebar-range.c 	\
-					  check-hildon-font-selection-dialog.c 	\
-					  check-hildon-color-button.c		\
-					  check-hildon-color-chooser.c
-
-if HILDON_DISABLE_DEPRECATED
 check_test_SOURCES   		 	= $(tests)
-else
-check_test_SOURCES   		 	= $(tests) 				\
-			     		  $(DEPRECATED_TESTS)
-endif
 
 check_test_SOURCES		       += test_suites.h				\
 					  check_utils.h

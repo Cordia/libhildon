@@ -91,8 +91,6 @@
 #include                                        <X11/Xatom.h>
 #include                                        <gdk/gdkx.h>
 
-#undef HILDON_DISABLE_DEPRECATED
-
 #include                                        "hildon-note.h"
 #include                                        "hildon-defines.h"
 #include                                        "hildon-sound.h"
@@ -186,8 +184,7 @@ event_box_press_event                           (GtkEventBox    *event_box,
 {
     HildonNotePrivate *priv = HILDON_NOTE_GET_PRIVATE (note);
 
-    if (priv->note_n == HILDON_NOTE_TYPE_INFORMATION ||
-        priv->note_n == HILDON_NOTE_TYPE_INFORMATION_THEME) {
+    if (priv->note_n == HILDON_NOTE_TYPE_INFORMATION) {
             gtk_dialog_response (note, GTK_RESPONSE_DELETE_EVENT);
             return TRUE;
     } else {
@@ -304,21 +301,6 @@ hildon_note_get_property                        (GObject *object,
     }
 }
 
-#ifdef MAEMO_GTK
-static GObject *
-hildon_note_constructor (GType type,
-                         guint n_construct_properties,
-                         GObjectConstructParam *construct_params)
-{
-    GObject *object;
-    object = (* G_OBJECT_CLASS (parent_class)->constructor)
-        (type, n_construct_properties, construct_params);
-    hildon_note_set_padding (HILDON_NOTE (object));
-
-    return object;
-}
-#endif /* MAEMO_GTK */
-
 /**
  * hildon_note_get_type:
  *
@@ -364,9 +346,6 @@ hildon_note_class_init                          (HildonNoteClass *class)
     object_class->finalize      = hildon_note_finalize;
     object_class->set_property  = hildon_note_set_property;
     object_class->get_property  = hildon_note_get_property;
-#ifdef MAEMO_GTK
-    object_class->constructor   = hildon_note_constructor;
-#endif /* MAEMO_GTK */
     widget_class->realize       = hildon_note_realize;
     widget_class->unrealize     = hildon_note_unrealize;
     widget_class->size_request  = hildon_note_size_request;
@@ -396,36 +375,6 @@ hildon_note_class_init                          (HildonNoteClass *class)
             g_param_spec_string ("description",
                 "note description",
                 "The text that appears in the note dialog",
-                "",
-                G_PARAM_READWRITE));
-
-    /**
-     * HildonNote:icon:
-     *
-     * Icon for the note.
-     *
-     * Deprecated: Since 2.2
-     */
-    g_object_class_install_property (object_class,
-            PROP_HILDON_NOTE_ICON,
-            g_param_spec_string ("icon",
-                "note icon",
-                "The name of the icon that appears in the note dialog",
-                "",
-                G_PARAM_READWRITE));
-
-    /**
-     * HildonNote:stock-icon:
-     *
-     * Stock icon name for the note.
-     *
-     * Deprecated: Since 2.2
-     */
-    g_object_class_install_property (object_class,
-            PROP_HILDON_NOTE_STOCK_ICON,
-            g_param_spec_string ("stock-icon",
-                "Stock note icon",
-                "The stock name of the icon that appears in the note dialog",
                 "",
                 G_PARAM_READWRITE));
 
@@ -590,8 +539,7 @@ screen_size_changed                            (GdkScreen *screen,
 
     hildon_note_rename (HILDON_NOTE (note));
 
-    if (priv->note_n == HILDON_NOTE_TYPE_INFORMATION ||
-        priv->note_n == HILDON_NOTE_TYPE_INFORMATION_THEME) {
+    if (priv->note_n == HILDON_NOTE_TYPE_INFORMATION) {
         gint screen_width = gdk_screen_get_width (screen);
         gint text_width = screen_width - HILDON_INFORMATION_NOTE_MARGIN * 2;
         g_object_set (priv->label, "width-request", text_width, NULL);
@@ -622,8 +570,7 @@ hildon_note_realize                             (GtkWidget *widget)
     display = gdk_drawable_get_display (widget->window);
     atom = gdk_x11_get_xatom_by_name_for_display (display, "_HILDON_NOTIFICATION_TYPE");
 
-    if (priv->note_n == HILDON_NOTE_TYPE_INFORMATION ||
-        priv->note_n == HILDON_NOTE_TYPE_INFORMATION_THEME) {
+    if (priv->note_n == HILDON_NOTE_TYPE_INFORMATION) {
         notification_type = "_HILDON_NOTIFICATION_TYPE_INFO";
         is_info_note = TRUE;
     } else {
@@ -794,7 +741,6 @@ hildon_note_rebuild                             (HildonNote *note)
             gtk_widget_set_no_show_all (priv->cancelButton, FALSE);
             break;
 
-        case HILDON_NOTE_TYPE_INFORMATION_THEME:
         case HILDON_NOTE_TYPE_INFORMATION:
 #ifdef MAEMO_GTK
 	    gtk_dialog_set_padding (dialog,
@@ -951,37 +897,6 @@ hildon_note_new_confirmation                    (GtkWindow *parent,
 }
 
 /**
- * hildon_note_new_confirmation_with_icon_name:
- * @parent: the parent window. The X window ID of the parent window
- *   has to be the same as the X window ID of the application. This is
- *   important so that the window manager could handle the windows
- *   correctly. In GTK the X window ID can be checked using
- *   GDK_WINDOW_XID(GTK_WIDGET(parent)->window).
- * @description: the message to confirm
- * @icon_name: icon to be displayed. If NULL, default icon is used.
- * 
- * Create a new confirmation note. Confirmation note has a text (description) 
- * that you specify and two buttons.
- *
- * Deprecated: Since 2.2, icons are not shown in confirmation notes. Icons set
- * with this function will be ignored. Use hildon_note_new_confirmation() instead.
- *
- * Returns: a new #HildonNote.
- */
-GtkWidget*
-hildon_note_new_confirmation_with_icon_name     (GtkWindow *parent,
-                                                 const gchar *description,
-                                                 const gchar *icon_name)
-{
-    GtkWidget *dialog;
-
-    dialog = hildon_note_new_confirmation (parent, description);
-    g_object_set (dialog, "icon", icon_name, NULL);
-
-    return dialog;
-}
-
-/**
  * hildon_note_new_information:
  * @parent: the parent window. The X window ID of the parent window
  *   has to be the same as the X window ID of the application. This is
@@ -1005,43 +920,11 @@ hildon_note_new_information                     (GtkWindow *parent,
 
     dialog = g_object_new (HILDON_TYPE_NOTE,
             "note-type",
-            HILDON_NOTE_TYPE_INFORMATION_THEME,
+            HILDON_NOTE_TYPE_INFORMATION,
             "description", description, NULL);
 
     if (parent != NULL)
         gtk_window_set_transient_for (GTK_WINDOW (dialog), parent);
-
-    return dialog;
-}
-
-/**
- * hildon_note_new_information_with_icon_name:
- * @parent: the parent window. The X window ID of the parent window
- *   has to be the same as the X window ID of the application. This is
- *   important so that the window manager could handle the windows
- *   correctly. In GTK the X window ID can be checked using
- *   GDK_WINDOW_XID(GTK_WIDGET(parent)->window).
- * @description: the message to confirm.
- * @icon_name: icon to be displayed. If %NULL, the default icon is used.
- * 
- * Create a new information note. An information note has text (a description)
- * that you specify, an OK button and an icon.
- * 
- * Deprecated: Since 2.2, icons are not shown in confirmation notes. Icons set
- * with this function will be ignored. Use hildon_note_new_information()
- * instead.
- *
- * Returns: a new #HildonNote.
- */
-GtkWidget*
-hildon_note_new_information_with_icon_name      (GtkWindow * parent,
-                                                 const gchar *description,
-                                                 const gchar *icon_name)
-{
-    GtkWidget *dialog;
-
-    dialog = hildon_note_new_information (parent, description);
-    g_object_set (dialog, "icon", icon_name, NULL);
 
     return dialog;
 }
@@ -1166,7 +1049,6 @@ sound_handling                                  (gpointer data)
     switch (priv->note_n)
     {
         case HILDON_NOTE_TYPE_INFORMATION:
-        case HILDON_NOTE_TYPE_INFORMATION_THEME:
             hildon_play_system_sound (INFORMATION_SOUND_PATH);
             break;
 

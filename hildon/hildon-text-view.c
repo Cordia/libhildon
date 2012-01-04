@@ -47,8 +47,6 @@
  * </example>
  */
 
-#undef                                          HILDON_DISABLE_DEPRECATED
-
 #include                                        "hildon-text-view.h"
 #include <math.h>
 
@@ -69,75 +67,6 @@ struct                                          _HildonTextViewPrivate
     gboolean selection_movement;                                    /* selection in progress */
 };
 
-
-/**
- * hildon_text_view_set_buffer:
- * @text_view: a #HildonTextView
- * @buffer: a #GtkTextBuffer
- *
- * Sets @buffer as the buffer being displayed by @text_view. The
- * previous buffer displayed by the text view is unreferenced, and a
- * reference is added to @buffer. If you owned a reference to @buffer
- * before passing it to this function, you must remove that reference
- * yourself
- *
- * Since: 2.2
- *
- * Deprecated: use gtk_text_view_set_buffer() instead
- */
-void
-hildon_text_view_set_buffer                     (HildonTextView *text_view,
-                                                 GtkTextBuffer  *buffer)
-{
-    g_return_if_fail (HILDON_IS_TEXT_VIEW (text_view));
-    g_return_if_fail (GTK_IS_TEXT_BUFFER (buffer));
-    gtk_text_view_set_buffer (GTK_TEXT_VIEW (text_view), buffer);
-}
-
-/**
- * hildon_text_view_get_buffer:
- * @text_view: a #HildonTextView
- *
- * Returns the text buffer in @text_view. The reference count is not
- * incremented; the caller of this function won't own a new reference.
- *
- * Note that the placeholder text (set using
- * hildon_gtk_text_view_set_placeholder_text()) is never contained in
- * this buffer.
- *
- * Returns: a #GtkTextBuffer
- *
- * Since: 2.2
- *
- * Deprecated: use gtk_text_view_get_buffer() instead
- */
-GtkTextBuffer *
-hildon_text_view_get_buffer                     (HildonTextView *text_view)
-{
-    g_return_val_if_fail (HILDON_IS_TEXT_VIEW (text_view), NULL);
-    return gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
-}
-
-/**
- * hildon_text_view_set_placeholder:
- * @text_view: a #HildonTextView
- * @text: the new text
- *
- * Sets the placeholder text in @text_view to @text.
- *
- * Since: 2.2
- *
- * Deprecated: use hildon_gtk_text_view_set_placeholder_text() instead
- */
-void
-hildon_text_view_set_placeholder                (HildonTextView *text_view,
-                                                 const gchar    *text)
-{
-    g_return_if_fail (HILDON_IS_TEXT_VIEW (text_view) && text != NULL);
-#ifdef MAEMO_GTK
-    hildon_gtk_text_view_set_placeholder_text (GTK_TEXT_VIEW (text_view), text);
-#endif
-}
 
 /**
  * hildon_text_view_new:

@@ -81,8 +81,6 @@
 #include                                        <X11/Xatom.h>
 #include                                        <gdk/gdkx.h>
 
-#undef                                          HILDON_DISABLE_DEPRECATED
-
 #include                                        "hildon-banner.h"
 #include                                        "hildon-private.h"
 #include                                        "hildon-defines.h"
@@ -180,16 +178,8 @@ hildon_banner_realize                           (GtkWidget *widget);
 static void 
 hildon_banner_class_init                        (HildonBannerClass *klass);
 
-static void 
-hildon_banner_init                              (HildonBanner *self);
-
 static void
-hildon_banner_ensure_child                      (HildonBanner *self, 
-                                                 GtkWidget *user_widget,
-                                                 guint pos,
-                                                 GType type,
-                                                 const gchar *first_property, 
-                                                 ...);
+hildon_banner_init                              (HildonBanner *self);
 
 static HildonBanner*
 hildon_banner_get_instance_for_widget           (GtkWidget *widget, 
@@ -840,49 +830,6 @@ hildon_banner_init                              (HildonBanner *self)
     gtk_widget_add_events (GTK_WIDGET (self), GDK_BUTTON_PRESS_MASK);
 }
 
-/* Makes sure that icon/progress item contains the desired type
-   of item. If possible, tries to avoid creating a new widget but
-   reuses the existing one */
-static void
-hildon_banner_ensure_child                      (HildonBanner *self, 
-                                                 GtkWidget *user_widget,
-                                                 guint pos,
-                                                 GType type,
-                                                 const gchar *first_property, 
-                                                 ...)
-{
-    GtkWidget *widget;
-    va_list args;
-    HildonBannerPrivate *priv = HILDON_BANNER_GET_PRIVATE (self);
-
-    g_assert (priv);
-
-    widget = priv->main_item;
-    va_start (args, first_property);
-
-    /* Reuse existing widget if possible */
-    if (! user_widget && G_TYPE_CHECK_INSTANCE_TYPE (widget, type))
-    {
-        g_object_set_valist (G_OBJECT (widget), first_property, args);
-    }
-    else
-    {
-        /* We have to abandon old content widget */
-        if (widget)
-            gtk_container_remove (GTK_CONTAINER (priv->layout), widget);
-        
-        /* Use user provided widget or create a new one */
-        priv->main_item = widget = user_widget ? 
-            user_widget : GTK_WIDGET (g_object_new_valist(type, first_property, args));
-        gtk_box_pack_start (GTK_BOX (priv->layout), widget, FALSE, FALSE, 0);
-    }
-
-    /* We make sure that the widget exists in desired position. Different
-       banners place this child widget to different places */
-    gtk_box_reorder_child (GTK_BOX (priv->layout), widget, pos);
-    va_end (args);
-}
-
 /* Creates a new banner instance or uses an existing one */
 static HildonBanner*
 hildon_banner_get_instance_for_widget           (GtkWidget *widget, 
@@ -1084,117 +1031,6 @@ hildon_banner_show_information_with_markup      (GtkWidget *widget,
     return (GtkWidget *) banner;
 }
 
-/**
- * hildon_banner_show_animation:
- * @widget: the #GtkWidget that wants to display banner
- * @animation_name: since Hildon 2.2 this parameter is not used
- *                  anymore and any value that you pass will be
- *                  ignored
- * @text: the text to display.
- *
- * Shows an animated progress notification. It's recommended not to try
- * to show more than one progress notification at a time, since
- * they will appear on top of each other. You can use progress
- * notifications with timed banners. In this case the banners are
- * located so that you can somehow see both.
- *
- * Unlike information banners (created with
- * hildon_banner_show_information()), animation banners are not
- * destroyed automatically using a timeout. You have to destroy them
- * yourself.
- *
- * Please note also that these banners are destroyed automatically if the
- * window they are attached to is closed. The pointer that you receive
- * with this function does not contain additional references, so it
- * can become invalid without warning (this is true for all toplevel
- * windows in gtk). To make sure that the banner does not disappear
- * automatically, you can separately ref the return value (this
- * doesn't prevent the banner from disappearing, just the object from
- * being finalized). In this case you have to call
- * gtk_widget_destroy() followed by g_object_unref().
- *
- * Returns: a #HildonBanner widget. You must call gtk_widget_destroy()
- *          once you are done with the banner.
- *
- * Deprecated: Hildon 2.2: use
- * hildon_gtk_window_set_progress_indicator() instead.
- */
-GtkWidget*
-hildon_banner_show_animation                    (GtkWidget *widget, 
-                                                 const gchar *animation_name, 
-                                                 const gchar *text)
-{
-    HildonBanner *banner;
-    GtkWidget *image_widget;
-    HildonBannerPrivate *priv;
-
-    g_return_val_if_fail (text != NULL, NULL);
-
-    image_widget = hildon_private_create_animation (
-        HILDON_BANNER_ANIMATION_FRAMERATE,
-        HILDON_BANNER_ANIMATION_TMPL,
-        HILDON_BANNER_ANIMATION_NFRAMES);
-
-    /* Prepare banner */
-    banner = hildon_banner_get_instance_for_widget (widget, FALSE);
-    hildon_banner_ensure_child (banner, image_widget, 0,
-            GTK_TYPE_IMAGE, "yalign", 0.0, NULL);
-
-    priv = HILDON_BANNER_GET_PRIVATE (banner);
-    priv->name_suffix = "animation";
-    banner_do_set_text (banner, text, FALSE);
-    hildon_banner_bind_style (banner);
-
-    /* And show it */
-    reshow_banner (banner);
-
-    return (GtkWidget *) banner;
-}
-
-/**
- * hildon_banner_show_progress:
- * @widget: the #GtkWidget that wants to display banner
- * @bar: since Hildon 2.2 this parameter is not used anymore and
- * any value that you pass will be ignored
- * @text: text to display.
- *
- * Shows progress notification. See hildon_banner_show_animation()
- * for more information.
- * 
- * Returns: a #HildonBanner widget. You must call #gtk_widget_destroy
- *          once you are done with the banner.
- *
- * Deprecated: Hildon 2.2: use hildon_gtk_window_set_progress_indicator() instead.
- */
-GtkWidget*
-hildon_banner_show_progress                     (GtkWidget *widget, 
-                                                 GtkProgressBar *bar, 
-                                                 const gchar *text)
-{
-    HildonBanner *banner;
-    HildonBannerPrivate *priv;
-
-    g_return_val_if_fail (text != NULL, NULL);
-
-    /* Prepare banner */
-    banner = hildon_banner_get_instance_for_widget (widget, FALSE);
-    priv = HILDON_BANNER_GET_PRIVATE (banner);
-    g_assert (priv);
-
-    priv->name_suffix = "progress";
-    unpack_main_widget_pack_label (banner);
-    banner_do_set_text (banner, text, FALSE);
-    hildon_banner_bind_style (banner);
-
-    if (priv->parent)
-        hildon_gtk_window_set_progress_indicator (priv->parent, 1);
-
-    /* Show the banner */
-    reshow_banner (banner);
-
-    return GTK_WIDGET (banner);   
-}
-
 
 /**
  * hildon_banner_show_custom_widget:
@@ -1293,27 +1129,6 @@ hildon_banner_set_markup                        (HildonBanner *self,
 }
 
 /**
- * hildon_banner_set_fraction:
- * @self: a #HildonBanner widget
- * @fraction: #gdouble
- *
- * The fraction is the completion of progressbar, 
- * the scale is from 0.0 to 1.0.
- * Sets the amount of fraction the progressbar has.
- *
- * Note that this method only has effect if @self was created with
- * hildon_banner_show_progress()
- *
- * Deprecated: This function does nothing. As of Hildon 2.2, hildon
- * banners don't have progress bars.
- */
-void 
-hildon_banner_set_fraction                      (HildonBanner *self, 
-                                                 gdouble fraction)
-{
-}
-
-/**
  * hildon_banner_set_timeout:
  * @self: a #HildonBanner widget
  * @timeout: timeout to set in miliseconds.
@@ -1340,34 +1155,3 @@ hildon_banner_set_timeout                       (HildonBanner *self,
     priv->timeout = timeout;
 }
 
-/**
- * hildon_banner_set_icon:
- * @self: a #HildonBanner widget
- * @icon_name: the name of icon to use. Can be %NULL for default icon
- *
- * Sets the icon to be used in the banner.
- *
- * Deprecated: This function does nothing. As of hildon 2.2, hildon
- * banners don't allow changing their icons.
- */
-void 
-hildon_banner_set_icon                          (HildonBanner *self, 
-                                                 const gchar  *icon_name)
-{
-}
-
-/**
- * hildon_banner_set_icon_from_file:
- * @self: a #HildonBanner widget
- * @icon_file: the filename of icon to use. Can be %NULL for default icon
- *
- * Sets the icon from its filename to be used in the banner.
- *
- * Deprecated: This function does nothing. As of hildon 2.2, hildon
- * banners don't allow changing their icons.
- */
-void 
-hildon_banner_set_icon_from_file                (HildonBanner *self, 
-                                                 const gchar  *icon_file)
-{
-}

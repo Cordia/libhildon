@@ -125,13 +125,6 @@ hildon_touch_selector_append_column             (HildonTouchSelector *selector,
                                                  GtkTreeModel        *model,
                                                  GtkCellRenderer     *cell_renderer,
                                                  ...);
-#ifndef HILDON_DISABLE_DEPRECATED
-void
-hildon_touch_selector_set_column_attributes     (HildonTouchSelector *selector,
-                                                 gint                 num_column,
-                                                 GtkCellRenderer     *cell_renderer,
-                                                 ...);
-#endif
 
 gboolean
 hildon_touch_selector_remove_column             (HildonTouchSelector *selector,
