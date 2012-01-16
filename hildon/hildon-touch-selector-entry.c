@@ -421,7 +421,10 @@ entry_on_text_changed (GtkEditable * editable,
 
     if (!found && !found_suggestion && priv->smart_match) {
       gchar *ascii_text = g_convert_with_iconv (text, -1, priv->converter, NULL, NULL, NULL);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
       found_suggestion = !g_ascii_strncasecmp (ascii_text, ascii_prefix, prefix_len);
+#pragma GCC diagnostic pop
       if (found_suggestion) {
         iter_suggested = iter;
       }
@@ -446,7 +449,10 @@ entry_on_text_changed (GtkEditable * editable,
   g_signal_handler_unblock (selector, priv->signal_id);
 
   if (priv->smart_match) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
     g_free (ascii_prefix);
+#pragma GCC diagnostic pop
   }
 }
 

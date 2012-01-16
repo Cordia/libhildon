@@ -36,7 +36,7 @@ image_visible_changed_cb                        (GtkWidget  *image,
                                                  GParamSpec *arg1,
                                                  gpointer   oldparent)
 {
-    if (!GTK_WIDGET_VISIBLE (image))
+    if (!gtk_widget_get_visible (image))
         gtk_widget_show (image);
 }
 
@@ -372,7 +372,7 @@ hildon_gtk_window_take_screenshot               (GtkWindow *window,
     XEvent xev = { 0 };
 
     g_return_if_fail (GTK_IS_WINDOW (window));
-    g_return_if_fail (GTK_WIDGET_MAPPED (window));
+    g_return_if_fail (gtk_widget_get_mapped (window));
 
     xev.xclient.type = ClientMessage;
     xev.xclient.serial = 0;
@@ -382,7 +382,7 @@ hildon_gtk_window_take_screenshot               (GtkWindow *window,
     xev.xclient.message_type = XInternAtom (xev.xclient.display, "_HILDON_LOADING_SCREENSHOT", False);
     xev.xclient.format = 32;
     xev.xclient.data.l[0] = take ? 0 : 1;
-    xev.xclient.data.l[1] = GDK_WINDOW_XID (GTK_WIDGET (window)->window);
+    xev.xclient.data.l[1] = GDK_WINDOW_XID (gtk_widget_get_window (GTK_WIDGET (window)));
 
     XSendEvent (xev.xclient.display,
                 xev.xclient.window,
@@ -403,7 +403,7 @@ screenshot_done (Display *dpy, const XEvent *event, GtkWindow *window)
     && event->xclient.message_type == XInternAtom (dpy,
                                            "_HILDON_LOADING_SCREENSHOT",
                                            False)
-    && event->xclient.window == GDK_WINDOW_XID (GTK_WIDGET (window)->window);
+    && event->xclient.window == GDK_WINDOW_XID (gtk_widget_get_window (GTK_WIDGET (window)));
 }
 
 /**
@@ -424,7 +424,7 @@ hildon_gtk_window_take_screenshot_sync          (GtkWindow *window,
   XEvent foo;
   GdkWindow *win;
 
-  win = GTK_WIDGET (window)->window;
+  win = gtk_widget_get_window (GTK_WIDGET (window));
   hildon_gtk_window_take_screenshot (window, take);
   XIfEvent (GDK_DISPLAY_XDISPLAY (gtk_widget_get_display (GTK_WIDGET (window))),
             &foo, (void *)screenshot_done, (XPointer)window);

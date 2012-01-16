@@ -239,77 +239,77 @@ G_BEGIN_DECLS
  *
  * Key definition for the Up hardkey.
  */
-#define HILDON_HARDKEY_UP                        GDK_Up
+#define HILDON_HARDKEY_UP                        GDK_KEY_Up
 
 /**
  * HILDON_HARDKEY_LEFT:
  *
  * Key definition for the Left hardkey.
  */
-#define HILDON_HARDKEY_LEFT                      GDK_Left
+#define HILDON_HARDKEY_LEFT                      GDK_KEY_Left
 
 /**
  * HILDON_HARDKEY_RIGHT:
  *
  * Key definition for the Right hardkey.
  */
-#define HILDON_HARDKEY_RIGHT                     GDK_Right
+#define HILDON_HARDKEY_RIGHT                     GDK_KEY_Right
 
 /**
  * HILDON_HARDKEY_DOWN:
  *
  * Key definition for the Down hardkey.
  */
-#define HILDON_HARDKEY_DOWN                      GDK_Down
+#define HILDON_HARDKEY_DOWN                      GDK_KEY_Down
 
 /**
  * HILDON_HARDKEY_SELECT:
  *
  * Key definition for the Select hardkey.
  */
-#define HILDON_HARDKEY_SELECT                    GDK_Return
+#define HILDON_HARDKEY_SELECT                    GDK_KEY_Return
 
 /**
  * HILDON_HARDKEY_Menu:
  *
  * Key definition for the Menu hardkey.
  */
-#define HILDON_HARDKEY_MENU                      GDK_F4
+#define HILDON_HARDKEY_MENU                      GDK_KEY_F4
 
 /**
  * HILDON_HARDKEY_HOME:
  *
  * Key definition for the Home hardkey.
  */
-#define HILDON_HARDKEY_HOME                      GDK_F5
+#define HILDON_HARDKEY_HOME                      GDK_KEY_F5
 
 /**
  * HILDON_HARDKEY_ESC:
  *
  * Key definition for the Esc hardkey.
  */
-#define HILDON_HARDKEY_ESC                       GDK_Escape
+#define HILDON_HARDKEY_ESC                       GDK_KEY_Escape
 
 /**
  * HILDON_HARDKEY_FULLSCREEN:
  *
  * Key definition for the Fullscreen hardkey.
  */
-#define HILDON_HARDKEY_FULLSCREEN                GDK_F6
+#define HILDON_HARDKEY_FULLSCREEN                GDK_KEY_F6
 
 /**
  * HILDON_HARDKEY_INCREASE:
  *
  * Key definition for the Increase hardkey.
  */
-#define HILDON_HARDKEY_INCREASE                  GDK_F7
+#define HILDON_HARDKEY_INCREASE                  GDK_KEY_F7
 
 /**
  * HILDON_HARDKEY_DECREASE:
  *
  * Key definition for the Decrease hardkey.
  */
-#define HILDON_HARDKEY_DECREASE                  GDK_F8
+#define HILDON_HARDKEY_DECREASE                  GDK_KEY_F8
 
 gint
 hildon_get_icon_pixel_size                      (GtkIconSize size);

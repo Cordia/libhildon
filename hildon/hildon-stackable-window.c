@@ -157,9 +157,9 @@ hildon_stackable_window_map                     (GtkWidget *widget)
 
     /* Set additional property "_HILDON_STACKABLE_WINDOW", to allow the WM to manage
        it as a stackable window. */
-    display = gdk_drawable_get_display (widget->window);
+    display = gdk_window_get_display (gtk_widget_get_window (widget));
     atom = gdk_x11_get_xatom_by_name_for_display (display, "_HILDON_STACKABLE_WINDOW");
-    XChangeProperty (GDK_DISPLAY_XDISPLAY (display), GDK_WINDOW_XID (widget->window), atom,
+    XChangeProperty (GDK_DISPLAY_XDISPLAY (display), GDK_WINDOW_XID (gtk_widget_get_window (widget)), atom,
                      XA_INTEGER, 32, PropModeReplace,
                      (unsigned char *) &val, 1);
 

@@ -554,12 +554,12 @@ on_key_press_event                              (GtkWidget        *widget,
     g_return_val_if_fail (HILDON_IS_LIVE_SEARCH (live_search), FALSE);
     priv = live_search->priv;
 
-    if (GTK_WIDGET_VISIBLE (priv->kb_focus_widget)) {
+    if (gtk_widget_get_visible (priv->kb_focus_widget)) {
         /* If the live search is hidden, Ctrl+whatever is always
          * passed to the focus widget, with the exception of
          * Ctrl + Space, which is given to the entry, so that the input method
          * is allowed to switch the keyboard layout. */
-        if (GTK_WIDGET_VISIBLE (live_search) ||
+        if (gtk_widget_get_visible (live_search) ||
             !(event->state & GDK_CONTROL_MASK ||
               event->keyval == GDK_Control_L ||
               event->keyval == GDK_Control_R) ||
@@ -818,7 +818,7 @@ hildon_live_search_init                         (HildonLiveSearch *self)
                                           HILDON_ICON_SIZE_FINGER);
     gtk_misc_set_padding (GTK_MISC (close), 0, 0);
     close_button = gtk_tool_button_new (close, NULL);
-    GTK_WIDGET_UNSET_FLAGS (close_button, GTK_CAN_FOCUS);
+    gtk_widget_set_can_focus (close_button, FALSE);
 
     close_button_alignment = gtk_alignment_new (0.0f, 0.0f, 1.0f, 1.0f);
     gtk_alignment_set_padding (GTK_ALIGNMENT (close_button_alignment),
@@ -1005,7 +1005,7 @@ hildon_live_search_set_text_column              (HildonLiveSearch *livesearch,
 }
 
 static void
-on_widget_destroy                               (GtkObject *object,
+on_widget_destroy                               (GtkWidget *object,
                                                  gpointer   user_data)
 {
     hildon_live_search_widget_unhook (HILDON_LIVE_SEARCH (user_data));

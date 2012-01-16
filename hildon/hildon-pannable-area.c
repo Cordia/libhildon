@@ -46,16 +46,12 @@
  */
 
 #include <math.h>
-#if USE_CAIRO_SCROLLBARS == 1
 #include <cairo.h>
-#endif
-#include <gdk/gdkx.h>
+#include <gdk/gdk.h>
 
 #include "hildon-pannable-area.h"
 #include "hildon-marshalers.h"
 #include "hildon-enum-types.h"
-
-#define USE_CAIRO_SCROLLBARS 0
 
 #define SCROLL_BAR_MIN_SIZE 5
 #define RATIO_TOLERANCE 0.000001
@@ -155,7 +151,6 @@ struct _HildonPannableAreaPrivate {
   GtkPolicyType vscrollbar_policy;
   GtkPolicyType hscrollbar_policy;
 
-  GdkGC *scrollbars_gc;
   GdkColor scroll_color;
 
   gboolean center_on_child_focus;
@@ -219,8 +214,12 @@ static void hildon_pannable_area_remove_timeouts (GtkWidget * widget);
 static void hildon_pannable_area_dispose (GObject * object);
 static void hildon_pannable_area_realize (GtkWidget * widget);
 static void hildon_pannable_area_unrealize (GtkWidget * widget);
-static void hildon_pannable_area_size_request (GtkWidget * widget,
-                                               GtkRequisition * requisition);
+static void hildon_pannable_area_get_preferred_width (GtkWidget *widget,
+                                                      gint      *minimum,
+                                                      gint      *natural);
+static void hildon_pannable_area_get_preferred_height (GtkWidget *widget,
+                                                       gint      *minimum,
+                                                       gint      *natural);
 static void hildon_pannable_area_size_allocate (GtkWidget * widget,
                                                 GtkAllocation * allocation);
 static void hildon_pannable_area_child_allocate_calculate (GtkWidget * widget,
@@ -233,14 +232,7 @@ static void hildon_pannable_area_unmap (GtkWidget * widget);
 static void hildon_pannable_area_grab_notify (GtkWidget *widget,
                                               gboolean was_grabbed,
                                               gpointer user_data);
-#if USE_CAIRO_SCROLLBARS == 1
 static void rgb_from_gdkcolor (GdkColor *color, gdouble *r, gdouble *g, gdouble *b);
-#else /* USE_CAIRO_SCROLLBARS */
-static void tranparency_color (GdkColor *color,
-                               GdkColor colora,
-                               GdkColor colorb,
-                               gdouble transparency);
-#endif /* USE_CAIRO_SCROLLBARS */
 static void hildon_pannable_draw_vscroll (GtkWidget * widget,
                                           GdkColor *back_color,
                                           GdkColor *scroll_color);
@@ -256,8 +248,8 @@ static void hildon_pannable_area_adjust_value_changed (HildonPannableArea * area
 static void hildon_pannable_area_adjust_changed (HildonPannableArea * area,
                                                  gpointer data);
 static gboolean hildon_pannable_area_scroll_indicator_fade(HildonPannableArea * area);
-static gboolean hildon_pannable_area_expose_event (GtkWidget * widget,
-                                                   GdkEventExpose * event);
+static gboolean hildon_pannable_area_draw (GtkWidget * widget,
+                                           cairo_t   * cr);
 static GdkWindow * hildon_pannable_area_get_topmost (GdkWindow * window,
                                                      gint x, gint y,
                                                      gint * tx, gint * ty,
@@ -339,9 +331,10 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
   widget_class->unrealize = hildon_pannable_area_unrealize;
   widget_class->map = hildon_pannable_area_map;
   widget_class->unmap = hildon_pannable_area_unmap;
-  widget_class->size_request = hildon_pannable_area_size_request;
+  widget_class->get_preferred_width = hildon_pannable_area_get_preferred_width;
+  widget_class->get_preferred_height = hildon_pannable_area_get_preferred_height;
   widget_class->size_allocate = hildon_pannable_area_size_allocate;
-  widget_class->expose_event = hildon_pannable_area_expose_event;
+  widget_class->draw = hildon_pannable_area_draw;
   widget_class->style_set = hildon_pannable_area_style_set;
   widget_class->button_press_event = hildon_pannable_area_button_press_cb;
   widget_class->button_release_event = hildon_pannable_area_button_release_cb;
@@ -715,7 +708,7 @@ hildon_pannable_area_init (HildonPannableArea * area)
 {
   HildonPannableAreaPrivate *priv = PANNABLE_AREA_PRIVATE (area);
 
-  GTK_WIDGET_UNSET_FLAGS (area, GTK_NO_WINDOW);
+  gtk_widget_set_has_window (GTK_WIDGET (area), TRUE);
 
   area->priv = priv;
 
@@ -757,7 +750,7 @@ hildon_pannable_area_init (HildonPannableArea * area)
   priv->center_on_child_focus_pending = FALSE;
   priv->selection_movement = FALSE;
 
-  gtk_style_lookup_color (GTK_WIDGET (area)->style,
+  gtk_style_lookup_color (gtk_widget_get_style (GTK_WIDGET (area)),
 			  "SecondaryTextColor", &priv->scroll_color);
 
   priv->hadjust =
@@ -890,7 +883,7 @@ hildon_pannable_area_set_property (GObject * object,
   case PROP_ENABLED:
     enabled = g_value_get_boolean (value);
 
-    if ((priv->enabled != enabled) && (GTK_WIDGET_REALIZED (object))) {
+    if ((priv->enabled != enabled) && (gtk_widget_get_realized (GTK_WIDGET (object)))) {
       if (enabled)
 	gdk_window_raise (priv->event_window);
       else
@@ -1043,30 +1036,33 @@ hildon_pannable_area_realize (GtkWidget * widget)
   gint attributes_mask;
   gint border_width;
   HildonPannableAreaPrivate *priv;
+  GtkAllocation *allocation = NULL;
 
   priv = HILDON_PANNABLE_AREA (widget)->priv;
 
-  GTK_WIDGET_SET_FLAGS (widget, GTK_REALIZED);
+  gtk_widget_set_realized (widget, TRUE);
 
-  border_width = GTK_CONTAINER (widget)->border_width;
+  border_width = gtk_container_get_border_width (GTK_CONTAINER (widget));
 
-  attributes.x = widget->allocation.x + border_width;
-  attributes.y = widget->allocation.y + border_width;
-  attributes.width = MAX (widget->allocation.width - 2 * border_width, 0);
-  attributes.height = MAX (widget->allocation.height - 2 * border_width, 0);
+  gtk_widget_get_allocation (widget, allocation);
+
+  attributes.x = allocation->x + border_width;
+  attributes.y = allocation->y + border_width;
+  attributes.width = MAX (gtk_widget_get_allocated_width (widget) - 2 * border_width, 0);
+  attributes.height = MAX (gtk_widget_get_allocated_height (widget) - 2 * border_width, 0);
   attributes.window_type = GDK_WINDOW_CHILD;
 
   /* avoid using the hildon_window */
   attributes.visual = gtk_widget_get_visual (widget);
-  attributes.colormap = gtk_widget_get_colormap (widget);
   attributes.event_mask = gtk_widget_get_events (widget) | GDK_EXPOSURE_MASK;
   attributes.wclass = GDK_INPUT_OUTPUT;
 
-  attributes_mask = GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP;
+  attributes_mask = GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL;
 
-  widget->window = gdk_window_new (gtk_widget_get_parent_window (widget),
-                                   &attributes, attributes_mask);
-  gdk_window_set_user_data (widget->window, widget);
+  gtk_widget_set_window (widget,
+                         gdk_window_new (gtk_widget_get_parent_window (widget),
+                                         &attributes, attributes_mask));
+  gdk_window_set_user_data (gtk_widget_get_window (widget), widget);
 
   /* create the events window */
   attributes.x = 0;
@@ -1082,15 +1078,13 @@ hildon_pannable_area_realize (GtkWidget * widget)
 
   attributes_mask = GDK_WA_X | GDK_WA_Y;
 
-  priv->event_window = gdk_window_new (widget->window,
+  priv->event_window = gdk_window_new (gtk_widget_get_window (widget),
 				       &attributes, attributes_mask);
   gdk_window_set_user_data (priv->event_window, widget);
 
-  widget->style = gtk_style_attach (widget->style, widget->window);
-  gtk_style_set_background (widget->style, widget->window, GTK_STATE_NORMAL);
-
-  priv->scrollbars_gc = gdk_gc_new (GDK_DRAWABLE (widget->window));
-  gdk_gc_copy (priv->scrollbars_gc, widget->style->fg_gc[GTK_STATE_INSENSITIVE]);
+  gtk_widget_style_attach (widget);
+  gtk_style_set_background (gtk_widget_get_style (widget),
+                            gtk_widget_get_window (widget), GTK_STATE_NORMAL);
 }
 
 
@@ -1123,7 +1117,7 @@ hildon_pannable_area_unrealize (GtkWidget * widget)
 
   priv = HILDON_PANNABLE_AREA (widget)->priv;
 
-  if (GTK_WIDGET_MAPPED (widget))
+  if (gtk_widget_get_mapped (widget))
       hildon_pannable_area_unmap (widget);
 
   hildon_pannable_area_remove_timeouts (widget);
@@ -1134,55 +1128,58 @@ hildon_pannable_area_unrealize (GtkWidget * widget)
     priv->event_window = NULL;
   }
 
-  gdk_gc_unref (priv->scrollbars_gc);
-
   if (GTK_WIDGET_CLASS (hildon_pannable_area_parent_class)->unrealize)
     (*GTK_WIDGET_CLASS (hildon_pannable_area_parent_class)->unrealize)(widget);
 }
 
 static void
-hildon_pannable_area_size_request (GtkWidget * widget,
-				   GtkRequisition * requisition)
+hildon_pannable_area_get_preferred_width (GtkWidget *widget,
+                                          gint      *minimum,
+                                          gint      *natural)
 {
-  GtkRequisition child_requisition = {0};
+  gint child_minimum, child_natural;
   HildonPannableAreaPrivate *priv = HILDON_PANNABLE_AREA (widget)->priv;
   GtkWidget *child = gtk_bin_get_child (GTK_BIN (widget));
 
-  if (child && GTK_WIDGET_VISIBLE (child))
+  if (child && gtk_widget_get_visible (child))
     {
-      gtk_widget_size_request (child, &child_requisition);
+      gtk_widget_get_preferred_width (child, &child_minimum, &child_natural);
     }
 
   if (priv->hscrollbar_policy == GTK_POLICY_NEVER) {
-    requisition->width = child_requisition.width;
+    *minimum = child_minimum;
+    *natural = child_natural;
   } else {
-    switch (priv->size_request_policy) {
-      case HILDON_SIZE_REQUEST_CHILDREN:
-        requisition->width = MIN (PANNABLE_MAX_WIDTH,
-                                  child_requisition.width);
-        break;
-      case HILDON_SIZE_REQUEST_MINIMUM:
-      default:
-        requisition->width = priv->indicator_width;
-      }
+    *minimum = *natural = priv->indicator_width;
   }
+
+  *minimum += 2 * gtk_container_get_border_width (GTK_CONTAINER (widget));
+  *natural += 2 * gtk_container_get_border_width (GTK_CONTAINER (widget));
+}
+
+static void
+hildon_pannable_area_get_preferred_height (GtkWidget *widget,
+                                           gint      *minimum,
+                                           gint      *natural)
+{
+  gint child_minimum, child_natural;
+  HildonPannableAreaPrivate *priv = HILDON_PANNABLE_AREA (widget)->priv;
+  GtkWidget *child = gtk_bin_get_child (GTK_BIN (widget));
+
+  if (child && gtk_widget_get_visible (child))
+    {
+      gtk_widget_get_preferred_height (child, &child_minimum, &child_natural);
+    }
 
   if (priv->vscrollbar_policy == GTK_POLICY_NEVER) {
-    requisition->height = child_requisition.height;
+    *minimum = child_minimum;
+    *natural = child_natural;
   } else {
-    switch (priv->size_request_policy) {
-      case HILDON_SIZE_REQUEST_CHILDREN:
-        requisition->height = MIN (PANNABLE_MAX_HEIGHT,
-                                   child_requisition.height);
-        break;
-      case HILDON_SIZE_REQUEST_MINIMUM:
-      default:
-        requisition->height = priv->indicator_width;
-      }
+    *minimum = *natural = priv->indicator_width;
   }
 
-  requisition->width += 2 * GTK_CONTAINER (widget)->border_width;
-  requisition->height += 2 * GTK_CONTAINER (widget)->border_width;
+  *minimum += 2 * gtk_container_get_border_width (GTK_CONTAINER (widget));
+  *natural += 2 * gtk_container_get_border_width (GTK_CONTAINER (widget));
 }
 
 static void
@@ -1193,7 +1190,7 @@ hildon_pannable_area_child_allocate_calculate (GtkWidget * widget,
   gint border_width;
   HildonPannableAreaPrivate *priv;
 
-  border_width = GTK_CONTAINER (widget)->border_width;
+  border_width = gtk_container_get_border_width (GTK_CONTAINER (widget));
 
   priv = HILDON_PANNABLE_AREA (widget)->priv;
 
@@ -1231,14 +1228,14 @@ hildon_pannable_area_size_allocate (GtkWidget * widget,
   gint border_width;
   gdouble hv, vv;
 
-  border_width = GTK_CONTAINER (widget)->border_width;
+  border_width = gtk_container_get_border_width (GTK_CONTAINER (widget));
 
-  widget->allocation = *allocation;
+  gtk_widget_set_allocation (widget, allocation);
 
   priv = HILDON_PANNABLE_AREA (widget)->priv;
 
-  if (GTK_WIDGET_REALIZED (widget)) {
-      gdk_window_move_resize (widget->window,
+  if (gtk_widget_get_realized (widget)) {
+      gdk_window_move_resize (gtk_widget_get_window (widget),
 			      allocation->x + border_width,
 			      allocation->y  + border_width,
 			      allocation->width  - border_width * 2,
@@ -1250,7 +1247,7 @@ hildon_pannable_area_size_allocate (GtkWidget * widget,
 			      allocation->height - border_width * 2);
   }
 
-  if (child && GTK_WIDGET_VISIBLE (child)) {
+  if (child && gtk_widget_get_visible (child)) {
 
     hildon_pannable_area_check_scrollbars (HILDON_PANNABLE_AREA (widget));
 
@@ -1268,30 +1265,30 @@ hildon_pannable_area_size_allocate (GtkWidget * widget,
       gtk_widget_size_allocate (child, &child_allocation);
     }
 
-    if (priv->vadjust->page_size >= 0) {
+    if (gtk_adjustment_get_page_size (priv->vadjust) >= 0) {
       priv->accel_vel_y = MIN (priv->vmax,
-                               priv->vadjust->upper/priv->vadjust->page_size*ACCEL_FACTOR);
+                               gtk_adjustment_get_upper (priv->vadjust) / gtk_adjustment_get_page_size (priv->vadjust) * ACCEL_FACTOR);
       priv->accel_vel_x = MIN (priv->vmax,
-                               priv->hadjust->upper/priv->hadjust->page_size*ACCEL_FACTOR);
+                               gtk_adjustment_get_upper (priv->hadjust) / gtk_adjustment_get_page_size (priv->hadjust) * ACCEL_FACTOR);
     }
 
-    hv = priv->hadjust->value;
-    vv = priv->vadjust->value;
+    hv = gtk_adjustment_get_value (priv->hadjust);
+    vv = gtk_adjustment_get_value (priv->vadjust);
 
     /* we have to do this after child size_allocate because page_size is
      * changed when we allocate the size of the children */
     if (priv->overshot_dist_y < 0) {
-      priv->vadjust->value = priv->vadjust->upper - priv->vadjust->page_size;
+      gtk_adjustment_set_value (priv->vadjust, gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_page_size (priv->vadjust));
     }
 
     if (priv->overshot_dist_x < 0) {
-      priv->hadjust->value = priv->hadjust->upper - priv->hadjust->page_size;
+      gtk_adjustment_set_value (priv->hadjust, gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_page_size (priv->hadjust));
     }
 
-    if (hv != priv->hadjust->value)
+    if (hv != gtk_adjustment_get_value (priv->hadjust))
       gtk_adjustment_value_changed (priv->hadjust);
 
-    if (vv != priv->vadjust->value)
+    if (vv != gtk_adjustment_get_value (priv->vadjust))
       gtk_adjustment_value_changed (priv->vadjust);
 
   } else {
@@ -1308,7 +1305,7 @@ hildon_pannable_area_style_set (GtkWidget * widget,
   GTK_WIDGET_CLASS (hildon_pannable_area_parent_class)->
     style_set (widget, previous_style);
 
-  gtk_style_lookup_color (widget->style, "SecondaryTextColor", &priv->scroll_color);
+  gtk_style_lookup_color (gtk_widget_get_style (widget), "SecondaryTextColor", &priv->scroll_color);
   gtk_widget_style_get (widget, "indicator-width", &priv->indicator_width, NULL);
 }
 
@@ -1326,7 +1323,7 @@ hildon_pannable_area_map (GtkWidget * widget)
 
   priv = HILDON_PANNABLE_AREA (widget)->priv;
 
-  gdk_window_show (widget->window);
+  gdk_window_show (gtk_widget_get_window (widget));
 
   if (priv->event_window != NULL && !priv->enabled)
     gdk_window_show (priv->event_window);
@@ -1355,7 +1352,7 @@ hildon_pannable_area_unmap (GtkWidget * widget)
   if (priv->event_window != NULL)
     gdk_window_hide (priv->event_window);
 
-  gdk_window_hide (widget->window);
+  gdk_window_hide (gtk_widget_get_window (widget));
 
   (*GTK_WIDGET_CLASS (hildon_pannable_area_parent_class)->unmap) (widget);
 }
@@ -1384,8 +1381,6 @@ hildon_pannable_area_grab_notify (GtkWidget *widget,
   }
 }
 
-#if USE_CAIRO_SCROLLBARS == 1
-
 static void
 rgb_from_gdkcolor (GdkColor *color, gdouble *r, gdouble *g, gdouble *b)
 {
@@ -1406,7 +1401,7 @@ hildon_pannable_draw_vscroll (GtkWidget * widget,
   gdouble r, g, b;
   gint radius = (priv->vscroll_rect.width/2) - 1;
 
-  cr = gdk_cairo_create(widget->window);
+  cr = gdk_cairo_create(gtk_widget_get_window (widget));
 
   /* Draw the background */
   rgb_from_gdkcolor (back_color, &r, &g, &b);
@@ -1418,20 +1413,20 @@ hildon_pannable_draw_vscroll (GtkWidget * widget,
   cairo_clip (cr);
 
   /* Calculate the scroll bar height and position */
-  y = ((priv->vadjust->value - priv->vadjust->lower) / (priv->vadjust->upper - priv->vadjust->lower)) *
-    (widget->allocation.height -
+  y = ((gtk_adjustment_get_value (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust)) / (gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust))) *
+    (gtk_widget_get_allocated_height (widget) -
      (priv->hscroll_visible ? priv->indicator_width : 0));
-  height = ((((priv->vadjust->value - priv->vadjust->lower) +
-              priv->vadjust->page_size) /
-             (priv->vadjust->upper - priv->vadjust->lower)) *
-            (widget->allocation.height -
+  height = ((((gtk_adjustment_get_value (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust)) +
+              gtk_adjustment_get_page_size (priv->vadjust)) /
+             (gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust))) *
+            (gtk_widget_get_allocated_height (widget) -
              (priv->hscroll_visible ? priv->indicator_width : 0))) - y;
 
   /* Set a minimum height */
   height = MAX (SCROLL_BAR_MIN_SIZE, height);
 
   /* Check the max y position */
-  y = MIN (y, widget->allocation.height -
+  y = MIN (y, gtk_widget_get_allocated_height (widget) -
            (priv->hscroll_visible ? priv->hscroll_rect.height : 0) -
            height);
 
@@ -1468,7 +1463,7 @@ hildon_pannable_draw_hscroll (GtkWidget * widget,
   gdouble r, g, b;
   gint radius = (priv->hscroll_rect.height/2) - 1;
 
-  cr = gdk_cairo_create(widget->window);
+  cr = gdk_cairo_create(gtk_widget_get_window (widget));
 
   /* Draw the background */
   rgb_from_gdkcolor (back_color, &r, &g, &b);
@@ -1480,18 +1475,18 @@ hildon_pannable_draw_hscroll (GtkWidget * widget,
   cairo_clip (cr);
 
   /* calculate the scrollbar width and position */
-  x = ((priv->hadjust->value - priv->hadjust->lower) / (priv->hadjust->upper - priv->hadjust->lower)) *
-    (widget->allocation.width - (priv->vscroll_visible ? priv->indicator_width : 0));
-  width =((((priv->hadjust->value - priv->hadjust->lower) +
-            priv->hadjust->page_size) / (priv->hadjust->upper - priv->hadjust->lower)) *
-          (widget->allocation.width -
+  x = ((gtk_adjustment_get_value (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust)) / (gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust))) *
+    (gtk_widget_get_allocated_width (widget) - (priv->vscroll_visible ? priv->indicator_width : 0));
+  width =((((gtk_adjustment_get_value (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust)) +
+            gtk_adjustment_get_page_size (priv->hadjust)) / (gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust))) *
+          (gtk_widget_get_allocated_width (widget) -
            (priv->vscroll_visible ? priv->indicator_width : 0))) - x;
 
   /* Set a minimum width */
   width = MAX (SCROLL_BAR_MIN_SIZE, width);
 
   /* Check the max x position */
-  x = MIN (x, widget->allocation.width -
+  x = MIN (x, gtk_widget_get_allocated_width (widget) -
            (priv->vscroll_visible ? priv->vscroll_rect.width : 0) -
            width);
 
@@ -1515,119 +1510,6 @@ hildon_pannable_draw_hscroll (GtkWidget * widget,
 
   cairo_destroy(cr);
 }
-
-#else /* USE_CAIRO_SCROLLBARS */
-
-static void
-tranparency_color (GdkColor *color,
-                   GdkColor colora,
-                   GdkColor colorb,
-                   gdouble transparency)
-{
-  gdouble diff;
-
-  diff = colora.red - colorb.red;
-  color->red = colora.red-diff*transparency;
-
-  diff = colora.green - colorb.green;
-  color->green = colora.green-diff*transparency;
-
-  diff = colora.blue - colorb.blue;
-  color->blue = colora.blue-diff*transparency;
-}
-
-static void
-hildon_pannable_draw_vscroll (GtkWidget *widget,
-                              GdkColor *back_color,
-                              GdkColor *scroll_color)
-{
-  HildonPannableAreaPrivate *priv = HILDON_PANNABLE_AREA (widget)->priv;
-  gfloat y, height;
-  GdkColor transp_color;
-  GdkGC *gc = priv->scrollbars_gc;
-
-  gdk_draw_rectangle (widget->window,
-                      widget->style->bg_gc[GTK_STATE_NORMAL],
-                      TRUE,
-                       priv->vscroll_rect.x, priv->vscroll_rect.y,
-                      priv->vscroll_rect.width,
-                      priv->vscroll_rect.height);
-
-  y = ((priv->vadjust->value - priv->vadjust->lower) / (priv->vadjust->upper - priv->vadjust->lower)) *
-    (widget->allocation.height - (priv->hscroll_visible ? priv->indicator_width : 0));
-  height = ((((priv->vadjust->value - priv->vadjust->lower) + priv->vadjust->page_size) /
-             (priv->vadjust->upper - priv->vadjust->lower)) *
-            (widget->allocation.height -
-             (priv->hscroll_visible ? priv->indicator_width : 0))) - y;
-
-  /* Set a minimum height */
-  height = MAX (SCROLL_BAR_MIN_SIZE, height);
-
-  /* Check the max y position */
-  y = MIN (y, widget->allocation.height -
-           (priv->hscroll_visible ? priv->hscroll_rect.height : 0) -
-           height);
-
-  if (priv->scroll_indicator_alpha == 1.0) {
-    transp_color = priv->scroll_color;
-  } else if (priv->scroll_indicator_alpha < 1.0) {
-    tranparency_color (&transp_color, *back_color, *scroll_color,
-                       priv->scroll_indicator_alpha);
-  }
-  gdk_gc_set_rgb_fg_color (gc, &transp_color);
-
-  gdk_draw_rectangle (widget->window, gc,
-                      TRUE, priv->vscroll_rect.x, y,
-                      priv->vscroll_rect.width, height);
-}
-
-static void
-hildon_pannable_draw_hscroll (GtkWidget *widget,
-                              GdkColor *back_color,
-                              GdkColor *scroll_color)
-{
-  HildonPannableAreaPrivate *priv = HILDON_PANNABLE_AREA (widget)->priv;
-  gfloat x, width;
-  GdkColor transp_color;
-  GdkGC *gc = priv->scrollbars_gc;
-
-  gdk_draw_rectangle (widget->window,
-                      widget->style->bg_gc[GTK_STATE_INSENSITIVE],
-                      TRUE,
-                      priv->hscroll_rect.x, priv->hscroll_rect.y,
-                      priv->hscroll_rect.width,
-                      priv->hscroll_rect.height);
-
-  /* calculate the scrollbar width and position */
-  x = ((priv->hadjust->value - priv->hadjust->lower) / (priv->hadjust->upper - priv->hadjust->lower)) *
-    (widget->allocation.width - (priv->vscroll_visible ? priv->indicator_width : 0));
-  width =((((priv->hadjust->value - priv->hadjust->lower) +
-            priv->hadjust->page_size) / (priv->hadjust->upper - priv->hadjust->lower)) *
-          (widget->allocation.width -
-           (priv->vscroll_visible ? priv->indicator_width : 0))) - x;
-
-  /* Set a minimum width */
-  width = MAX (SCROLL_BAR_MIN_SIZE, width);
-
-  /* Check the max x position */
-  x = MIN (x, widget->allocation.width -
-           (priv->vscroll_visible ? priv->vscroll_rect.width : 0) -
-           width);
-
-  if (priv->scroll_indicator_alpha == 1.0) {
-    transp_color = priv->scroll_color;
-  } else if (priv->scroll_indicator_alpha < 1.0) {
-    tranparency_color (&transp_color, *back_color, *scroll_color,
-                       priv->scroll_indicator_alpha);
-  }
-  gdk_gc_set_rgb_fg_color (gc, &transp_color);
-
-  gdk_draw_rectangle (widget->window, gc,
-                      TRUE, x, priv->hscroll_rect.y, width,
-                      priv->hscroll_rect.height);
-}
-
-#endif /* USE_CAIRO_SCROLLBARS */
 
 static gboolean
 launch_fade_in_timeout (GtkWidget * widget)
@@ -1683,7 +1565,7 @@ static void
 hildon_pannable_area_adjust_changed (HildonPannableArea * area,
                                      gpointer data)
 {
-  if (GTK_WIDGET_REALIZED (area))
+  if (gtk_widget_get_realized (GTK_WIDGET (area)))
     hildon_pannable_area_refresh (area);
 }
 
@@ -1696,12 +1578,12 @@ hildon_pannable_area_adjust_value_changed (HildonPannableArea * area,
   gint x = priv->x_offset;
   gint y = priv->y_offset;
 
-  priv->x_offset = priv->hadjust->value;
+  priv->x_offset = gtk_adjustment_get_value (priv->hadjust);
   xdiff = x - priv->x_offset;
-  priv->y_offset = priv->vadjust->value;
+  priv->y_offset = gtk_adjustment_get_value (priv->vadjust);
   ydiff = y - priv->y_offset;
 
-  if ((xdiff || ydiff) && GTK_WIDGET_DRAWABLE (area)) {
+  if ((xdiff || ydiff) && gtk_widget_is_drawable (GTK_WIDGET (area))) {
     hildon_pannable_area_redraw (area);
 
     if ((priv->vscroll_visible) || (priv->hscroll_visible)) {
@@ -1719,14 +1601,14 @@ hildon_pannable_area_redraw (HildonPannableArea * area)
   HildonPannableAreaPrivate *priv = HILDON_PANNABLE_AREA (area)->priv;
 
   /* Redraw scroll indicators */
-  if (GTK_WIDGET_DRAWABLE (area)) {
+  if (gtk_widget_is_drawable (GTK_WIDGET (area))) {
       if (priv->hscroll_visible) {
-        gdk_window_invalidate_rect (GTK_WIDGET (area)->window,
+        gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (area)),
                                     &priv->hscroll_rect, FALSE);
       }
 
       if (priv->vscroll_visible) {
-        gdk_window_invalidate_rect (GTK_WIDGET (area)->window,
+        gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (area)),
                                     &priv->vscroll_rect, FALSE);
       }
   }
@@ -1787,18 +1669,13 @@ hildon_pannable_area_scroll_indicator_fade(HildonPannableArea * area)
 }
 
 static gboolean
-hildon_pannable_area_expose_event (GtkWidget * widget,
-                                   GdkEventExpose * event)
+hildon_pannable_area_draw (GtkWidget * widget,
+                           cairo_t   * cr)
 {
 
   HildonPannableAreaPrivate *priv = HILDON_PANNABLE_AREA (widget)->priv;
-#if USE_CAIRO_SCROLLBARS == 1
-  GdkColor back_color = widget->style->bg[GTK_STATE_NORMAL];
-  GdkColor scroll_color = widget->style->base[GTK_STATE_SELECTED];
-#else /* USE_CAIRO_SCROLLBARS */
-  GdkColor back_color = widget->style->bg[GTK_STATE_NORMAL];
-  GdkColor scroll_color = priv->scroll_color;
-#endif
+  GdkColor back_color = gtk_widget_get_style (widget)->bg[GTK_STATE_NORMAL];
+  GdkColor scroll_color = gtk_widget_get_style (widget)->base[GTK_STATE_SELECTED];
 
   if (G_UNLIKELY (priv->initial_effect)) {
     hildon_pannable_area_initial_effect (widget);
@@ -1821,80 +1698,72 @@ hildon_pannable_area_expose_event (GtkWidget * widget,
     if (priv->overshot_dist_y > 0) {
       gint overshot_height;
 
-      overshot_height = MIN (priv->overshot_dist_y, widget->allocation.height -
+      overshot_height = MIN (priv->overshot_dist_y, gtk_widget_get_allocated_height (widget) -
                              (priv->hscroll_visible ? priv->hscroll_rect.height : 0));
 
-      gdk_draw_rectangle (widget->window,
-                          widget->style->bg_gc[GTK_STATE_NORMAL],
-                          TRUE,
-                          0,
-                          0,
-                          widget->allocation.width -
-                          (priv->vscroll_visible ? priv->vscroll_rect.width : 0),
-                          overshot_height);
+      gtk_style_apply_default_background  (gtk_widget_get_style (widget), cr,
+                                           gtk_widget_get_window (widget), GTK_STATE_NORMAL,
+                                           0, 0,
+                                           gtk_widget_get_allocated_width (widget) -
+                                           (priv->vscroll_visible ? priv->vscroll_rect.width : 0),
+                                           overshot_height);
     } else if (priv->overshot_dist_y < 0) {
       gint overshot_height;
       gint overshot_y;
 
       overshot_height =
         MAX (priv->overshot_dist_y,
-             -(widget->allocation.height -
+             -(gtk_widget_get_allocated_height (widget) -
                (priv->hscroll_visible ? priv->hscroll_rect.height : 0)));
 
-      overshot_y = MAX (widget->allocation.height +
+      overshot_y = MAX (gtk_widget_get_allocated_height (widget) +
                         overshot_height -
                         (priv->hscroll_visible ? priv->hscroll_rect.height : 0), 0);
 
-      gdk_draw_rectangle (widget->window,
-                          widget->style->bg_gc[GTK_STATE_NORMAL],
-                          TRUE,
-                          0,
-                          overshot_y,
-                          widget->allocation.width -
-                          priv->vscroll_rect.width,
-                          -overshot_height);
+      gtk_style_apply_default_background  (gtk_widget_get_style (widget), cr,
+                                           gtk_widget_get_window (widget), GTK_STATE_NORMAL,
+                                           0, overshot_y,
+                                           gtk_widget_get_allocated_width (widget) -
+                                           priv->vscroll_rect.width,
+                                           -overshot_height);
     }
 
     if (priv->overshot_dist_x > 0) {
       gint overshot_width;
 
-      overshot_width = MIN (priv->overshot_dist_x, widget->allocation.width -
+      overshot_width = MIN (priv->overshot_dist_x, gtk_widget_get_allocated_width (widget) -
                              (priv->vscroll_visible ? priv->vscroll_rect.width : 0));
 
-      gdk_draw_rectangle (widget->window,
-			  widget->style->bg_gc[GTK_STATE_NORMAL],
-			  TRUE,
-			  0,
-			  0,
-                          overshot_width,
-			  widget->allocation.height -
-                          (priv->hscroll_visible ? priv->hscroll_rect.height : 0));
+      gtk_style_apply_default_background  (gtk_widget_get_style (widget), cr,
+                                           gtk_widget_get_window (widget), GTK_STATE_NORMAL,
+                                           0, 0,
+                                           overshot_width,
+                                           gtk_widget_get_allocated_height (widget) -
+                                           (priv->hscroll_visible ? priv->hscroll_rect.height : 0));
     } else if (priv->overshot_dist_x < 0) {
       gint overshot_width;
       gint overshot_x;
 
       overshot_width =
         MAX (priv->overshot_dist_x,
-             -(widget->allocation.width -
+             -(gtk_widget_get_allocated_width (widget) -
                (priv->vscroll_visible ? priv->vscroll_rect.width : 0)));
 
-      overshot_x = MAX (widget->allocation.width +
+      overshot_x = MAX (gtk_widget_get_allocated_width (widget) +
                         overshot_width -
                         (priv->vscroll_visible ? priv->vscroll_rect.width : 0), 0);
 
-      gdk_draw_rectangle (widget->window,
-			  widget->style->bg_gc[GTK_STATE_NORMAL],
-			  TRUE,
-                          overshot_x,
-			  0,
-			  -overshot_width,
-			  widget->allocation.height -
-			  priv->hscroll_rect.height);
+      gtk_style_apply_default_background  (gtk_widget_get_style (widget), cr,
+                                           gtk_widget_get_window (widget), GTK_STATE_NORMAL,
+                                           overshot_x, 0,
+                                           -overshot_width,
+                                           gtk_widget_get_allocated_height (widget) -
+                                           priv->hscroll_rect.height);
     }
 
   }
 
-  return GTK_WIDGET_CLASS (hildon_pannable_area_parent_class)->expose_event (widget, event);
+  return GTK_WIDGET_CLASS (hildon_pannable_area_parent_class)->draw (widget, cr);
 }
 
 static GdkWindow *
@@ -1911,7 +1780,9 @@ hildon_pannable_area_get_topmost (GdkWindow * window,
   GList *c, *children;
   GdkWindow *selected_window = NULL;
 
-  gdk_drawable_get_size (GDK_DRAWABLE (window), &width, &height);
+  width = gdk_window_get_width (window);
+  height = gdk_window_get_height (window);
+
   if ((x < 0) || (x >= width) || (y < 0) || (y >= height))
     return NULL;
 
@@ -1929,7 +1800,8 @@ hildon_pannable_area_get_topmost (GdkWindow * window,
     GdkWindow *child = (GdkWindow *) c->data;
     gint wx, wy;
 
-    gdk_drawable_get_size (GDK_DRAWABLE (child), &width, &height);
+    width = gdk_window_get_width (child);
+    height = gdk_window_get_height (child);
     gdk_window_get_position (child, &wx, &wy);
 
     if ((x >= wx) && (x < (wx + width)) && (y >= wy) && (y < (wy + height)) &&
@@ -2034,7 +1906,8 @@ hildon_pannable_area_button_press_cb (GtkWidget * widget,
   if ((ABS (priv->vel_x) <= (priv->vmax * priv->vfast_factor)) &&
       (ABS (priv->vel_y) <= (priv->vmax * priv->vfast_factor)))
     priv->child =
-      hildon_pannable_area_get_topmost (gtk_bin_get_child (GTK_BIN (widget))->window,
+      hildon_pannable_area_get_topmost (
+					gtk_widget_get_window (gtk_bin_get_child (GTK_BIN (widget))),
 					event->x, event->y, &x, &y, GDK_BUTTON_PRESS_MASK);
   else
     priv->child = NULL;
@@ -2054,8 +1927,8 @@ hildon_pannable_area_button_press_cb (GtkWidget * widget,
 
   if (priv->child) {
 
-    gdk_drawable_get_size (priv->child, &priv->child_width,
-                           &priv->child_height);
+    priv->child_width = gdk_window_get_width (priv->child);
+    priv->child_height = gdk_window_get_height (priv->child);
     priv->last_in = TRUE;
 
     g_object_add_weak_pointer ((GObject *) priv->child,
@@ -2091,6 +1964,7 @@ hildon_pannable_area_check_scrollbars (HildonPannableArea * area)
 {
   HildonPannableAreaPrivate *priv = area->priv;
   gboolean prev_hscroll_visible, prev_vscroll_visible;
+  GtkAllocation *allocation = NULL;
 
   prev_hscroll_visible = priv->hscroll_visible;
   prev_vscroll_visible = priv->vscroll_visible;
@@ -2107,8 +1981,8 @@ hildon_pannable_area_check_scrollbars (HildonPannableArea * area)
       priv->hscroll_visible = FALSE;
       break;
     default:
-      priv->hscroll_visible = (priv->hadjust->upper - priv->hadjust->lower >
-                               priv->hadjust->page_size);
+      priv->hscroll_visible = (gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust) >
+                               gtk_adjustment_get_page_size (priv->hadjust));
     }
 
     switch (priv->vscrollbar_policy) {
@@ -2119,13 +1993,13 @@ hildon_pannable_area_check_scrollbars (HildonPannableArea * area)
       priv->vscroll_visible = FALSE;
       break;
     default:
-      priv->vscroll_visible = (priv->vadjust->upper - priv->vadjust->lower >
-                               priv->vadjust->page_size);
+      priv->vscroll_visible = (gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust) >
+                               gtk_adjustment_get_page_size (priv->vadjust));
     }
 
     /* Store the vscroll/hscroll areas for redrawing */
     if (priv->vscroll_visible) {
-      GtkAllocation *allocation = &GTK_WIDGET (area)->allocation;
+      gtk_widget_get_allocation (GTK_WIDGET (area), allocation);
       priv->vscroll_rect.x = allocation->width - priv->indicator_width;
       priv->vscroll_rect.y = 0;
       priv->vscroll_rect.width = priv->indicator_width;
@@ -2133,7 +2007,7 @@ hildon_pannable_area_check_scrollbars (HildonPannableArea * area)
         (priv->hscroll_visible ? priv->indicator_width : 0);
     }
     if (priv->hscroll_visible) {
-      GtkAllocation *allocation = &GTK_WIDGET (area)->allocation;
+      gtk_widget_get_allocation (GTK_WIDGET (area), allocation);
       priv->hscroll_rect.y = allocation->height - priv->indicator_width;
       priv->hscroll_rect.x = 0;
       priv->hscroll_rect.height = priv->indicator_width;
@@ -2149,7 +2023,7 @@ hildon_pannable_area_check_scrollbars (HildonPannableArea * area)
 static void
 hildon_pannable_area_refresh (HildonPannableArea * area)
 {
-  if (GTK_WIDGET_DRAWABLE (area) &&
+  if (gtk_widget_is_drawable (GTK_WIDGET (area)) &&
       hildon_pannable_area_check_scrollbars (area)) {
     HildonPannableAreaPrivate *priv = area->priv;
 
@@ -2194,10 +2068,10 @@ hildon_pannable_axis_scroll (HildonPannableArea *area,
     /* Initiation of the overshoot happens when the finger is released
      * and the current position of the pannable contents are out of range
      */
-    if (dist < adjust->lower) {
+    if (dist < gtk_adjustment_get_lower (adjust)) {
       if (s) *s = FALSE;
 
-      dist = adjust->lower;
+      dist = gtk_adjustment_get_lower (adjust);
 
       if (overshoot_max!=0) {
         *overshooting = 1;
@@ -2209,10 +2083,10 @@ hildon_pannable_axis_scroll (HildonPannableArea *area,
         *vel = 0.0;
         *scroll_to = -1;
       }
-    } else if (dist > adjust->upper - adjust->page_size) {
+    } else if (dist > gtk_adjustment_get_upper (adjust) - gtk_adjustment_get_page_size (adjust)) {
       if (s) *s = FALSE;
 
-      dist = adjust->upper - adjust->page_size;
+      dist = gtk_adjustment_get_upper (adjust) - gtk_adjustment_get_page_size (adjust);
 
       if (overshoot_max!=0) {
         *overshooting = 1;
@@ -2235,7 +2109,7 @@ hildon_pannable_axis_scroll (HildonPannableArea *area,
       }
     }
 
-    adjust->value = dist;
+    gtk_adjustment_set_value (adjust, dist);
   } else {
     if (!priv->button_pressed) {
 
@@ -2293,10 +2167,11 @@ hildon_pannable_axis_scroll (HildonPannableArea *area,
         *overshot_dist = CLAMP ((*overshot_dist) + inc, -1 * overshoot_max, 0);
       } else {
         *overshooting = 0;
-        adjust->value = CLAMP (dist,
-                               adjust->lower,
-                               adjust->upper -
-                               adjust->page_size);
+        gtk_adjustment_set_value (adjust,
+                                  CLAMP (dist,
+                                         gtk_adjustment_get_lower (adjust),
+                                         gtk_adjustment_get_upper (adjust) -
+                                         gtk_adjustment_get_page_size (adjust)));
       }
 
       if (*overshot_dist != overshot_dist_old)
@@ -2317,16 +2192,16 @@ hildon_pannable_area_scroll (HildonPannableArea *area,
   if (gtk_bin_get_child (GTK_BIN (area)) == NULL)
     return;
 
-  vscroll_visible = (priv->vadjust->upper - priv->vadjust->lower >
-	     priv->vadjust->page_size);
-  hscroll_visible = (priv->hadjust->upper - priv->hadjust->lower >
-	     priv->hadjust->page_size);
+  vscroll_visible = (gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust) >
+	     gtk_adjustment_get_page_size (priv->vadjust));
+  hscroll_visible = (gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust) >
+	     gtk_adjustment_get_page_size (priv->hadjust));
 
   sx = TRUE;
   sy = TRUE;
 
-  hv = priv->hadjust->value;
-  vv = priv->vadjust->value;
+  hv = gtk_adjustment_get_value (priv->hadjust);
+  vv = gtk_adjustment_get_value (priv->vadjust);
 
   if (vscroll_visible) {
     hildon_pannable_axis_scroll (area, priv->vadjust, &priv->vel_y, y,
@@ -2346,10 +2221,10 @@ hildon_pannable_area_scroll (HildonPannableArea *area,
     priv->scroll_to_x = -1;
   }
 
-  if (hv != priv->hadjust->value)
+  if (hv != gtk_adjustment_get_value (priv->hadjust))
     gtk_adjustment_value_changed (priv->hadjust);
 
-  if (vv != priv->vadjust->value)
+  if (vv != gtk_adjustment_get_value (priv->vadjust))
     gtk_adjustment_value_changed (priv->vadjust);
 
   /* If the scroll on a particular axis wasn't succesful, reset the
@@ -2381,7 +2256,7 @@ hildon_pannable_area_timeout (HildonPannableArea * area)
 
   hildon_pannable_area_scroll (area, priv->vel_x, priv->vel_y);
 
-  gdk_window_process_updates (GTK_WIDGET (area)->window, FALSE);
+  gdk_window_process_updates (gtk_widget_get_window (GTK_WIDGET (area)), FALSE);
 
   if (!priv->button_pressed) {
     /* Decelerate gradually when pointer is raised */
@@ -2518,14 +2393,14 @@ hildon_pannable_area_check_move (HildonPannableArea *area,
                        HILDON_MOVEMENT_DOWN,
                        (gdouble)priv->ix, (gdouble)priv->iy);
 
-        vscroll_visible = (priv->vadjust->upper - priv->vadjust->lower >
-                   priv->vadjust->page_size);
+        vscroll_visible = (gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust) >
+                   gtk_adjustment_get_page_size (priv->vadjust));
 
         if (!((vscroll_visible)&&
               (priv->mov_mode&HILDON_MOVEMENT_MODE_VERT))) {
 
-          hscroll_visible = (priv->hadjust->upper - priv->hadjust->lower >
-                             priv->hadjust->page_size);
+          hscroll_visible = (gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust) >
+                             gtk_adjustment_get_page_size (priv->hadjust));
 
           /* even in case we do not have to move we check if this
              could be a fake horizontal movement */
@@ -2544,14 +2419,14 @@ hildon_pannable_area_check_move (HildonPannableArea *area,
                        HILDON_MOVEMENT_RIGHT,
                        (gdouble)priv->ix, (gdouble)priv->iy);
 
-        hscroll_visible = (priv->hadjust->upper - priv->hadjust->lower >
-                           priv->hadjust->page_size);
+        hscroll_visible = (gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust) >
+                           gtk_adjustment_get_page_size (priv->hadjust));
 
         if (!((hscroll_visible)&&
               (priv->mov_mode&HILDON_MOVEMENT_MODE_HORIZ))) {
 
-          vscroll_visible = (priv->vadjust->upper - priv->vadjust->lower >
-                             priv->vadjust->page_size);
+          vscroll_visible = (gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust) >
+                             gtk_adjustment_get_page_size (priv->vadjust));
 
           /* even in case we do not have to move we check if this
              could be a fake vertical movement */
@@ -2623,11 +2498,11 @@ hildon_pannable_area_handle_move (HildonPannableArea *area,
     priv->ey = event->y;
     priv->vel_x = ((*x > 0) ? 1 : -1) *
       (((ABS (*x) /
-         (gdouble) GTK_WIDGET (area)->allocation.width) *
+         (gdouble) gtk_widget_get_allocated_width (GTK_WIDGET (area))) *
         (priv->vmax - priv->vmin)) + priv->vmin);
     priv->vel_y = ((*y > 0) ? 1 : -1) *
       (((ABS (*y) /
-         (gdouble) GTK_WIDGET (area)->allocation.height) *
+         (gdouble) gtk_widget_get_allocated_width (GTK_WIDGET (area))) *
         (priv->vmax - priv->vmin)) + priv->vmin);
     break;
   case HILDON_PANNABLE_AREA_MODE_AUTO:
@@ -2690,7 +2565,7 @@ hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
 
   if ((!priv->enabled) || (!priv->button_pressed) ||
       ((event->time == priv->last_time) && (priv->last_type == 2))) {
-    gdk_window_get_pointer (widget->window, NULL, NULL, 0);
+    gdk_window_get_pointer (gtk_widget_get_window (widget), NULL, NULL, 0);
     return TRUE;
   }
 
@@ -2744,7 +2619,7 @@ hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
       gdk_event_free ((GdkEvent *) event);
   }
 
-  gdk_window_get_pointer (widget->window, NULL, NULL, 0);
+  gdk_window_get_pointer (gtk_widget_get_window (widget), NULL, NULL, 0);
 
   return TRUE;
 }
@@ -2924,7 +2799,8 @@ hildon_pannable_area_button_release_cb (GtkWidget * widget,
   }
 
   child =
-    hildon_pannable_area_get_topmost (gtk_bin_get_child (GTK_BIN (widget))->window,
+    hildon_pannable_area_get_topmost (
+				      gtk_widget_get_window (gtk_bin_get_child (GTK_BIN (widget))),
 				      event->x, event->y, &x, &y, GDK_BUTTON_RELEASE_MASK);
 
   event = (GdkEventButton *) gdk_event_copy ((GdkEvent *) event);
@@ -3011,13 +2887,13 @@ hildon_pannable_area_scroll_cb (GtkWidget *widget,
       gdouble delta, new_value;
 
       /* from gtkrange.c calculate delta*/
-      delta = pow (adj->page_size, 2.0 / 3.0);
+      delta = pow (gtk_adjustment_get_page_size (adj), 2.0 / 3.0);
 
       if (event->direction == GDK_SCROLL_UP ||
           event->direction == GDK_SCROLL_LEFT)
         delta = - delta;
 
-      new_value = CLAMP (adj->value + delta, adj->lower, adj->upper - adj->page_size);
+      new_value = CLAMP (gtk_adjustment_get_value (adj) + delta, gtk_adjustment_get_lower (adj), gtk_adjustment_get_upper (adj) - gtk_adjustment_get_page_size (adj));
 
       gtk_adjustment_set_value (adj, new_value);
     }
@@ -3040,17 +2916,22 @@ static void
 hildon_pannable_area_add (GtkContainer *container, GtkWidget *child)
 {
   HildonPannableAreaPrivate *priv = HILDON_PANNABLE_AREA (container)->priv;
+  GtkScrollable *scroll = GTK_SCROLLABLE (child);
 
   g_return_if_fail (gtk_bin_get_child (GTK_BIN (container)) == NULL);
 
   gtk_widget_set_parent (child, GTK_WIDGET (container));
-  GTK_BIN (container)->child = child;
+  gtk_container_add (container, child);
 
   g_signal_connect_after (child, "map-event",
                           G_CALLBACK (hildon_pannable_area_child_mapped),
                           container);
 
-  if (!gtk_widget_set_scroll_adjustments (child, priv->hadjust, priv->vadjust)) {
+  if (scroll != NULL) {
+    gtk_scrollable_set_hadjustment (scroll, priv->hadjust);
+    gtk_scrollable_set_vadjustment (scroll, priv->vadjust);
+  }
+  else {
     g_warning ("%s: cannot add non scrollable widget, "
                "wrap it in a viewport", __FUNCTION__);
   }
@@ -3065,7 +2946,7 @@ hildon_pannable_area_center_on_child_focus      (HildonPannableArea *area)
 
   window = gtk_widget_get_toplevel (GTK_WIDGET (area));
 
-  if (GTK_WIDGET_TOPLEVEL (window)) {
+  if (gtk_widget_is_toplevel (window)) {
     focused_child = gtk_window_get_focus (GTK_WINDOW (window));
   }
 
@@ -3092,11 +2973,15 @@ hildon_pannable_area_set_focus_child            (GtkContainer     *container,
 static void
 hildon_pannable_area_remove (GtkContainer *container, GtkWidget *child)
 {
+  GtkScrollable *scroll = GTK_SCROLLABLE (child);
   g_return_if_fail (HILDON_IS_PANNABLE_AREA (container));
   g_return_if_fail (child != NULL);
   g_return_if_fail (gtk_bin_get_child (GTK_BIN (container)) == child);
 
-  gtk_widget_set_scroll_adjustments (child, NULL, NULL);
+  if (scroll != NULL) {
+    gtk_scrollable_set_hadjustment (scroll, NULL);
+    gtk_scrollable_set_vadjustment (scroll, NULL);
+  }
 
   g_signal_handlers_disconnect_by_func (child,
                                         hildon_pannable_area_child_mapped,
@@ -3219,16 +3104,16 @@ hildon_pannable_area_add_with_viewport (HildonPannableArea * area,
 
   g_return_if_fail (HILDON_IS_PANNABLE_AREA (area));
   g_return_if_fail (GTK_IS_WIDGET (child));
-  g_return_if_fail (child->parent == NULL);
+  g_return_if_fail (gtk_widget_get_parent (child) == NULL);
 
   bin = GTK_BIN (area);
 
-  if (bin->child != NULL)
+  if (gtk_bin_get_child (bin) != NULL)
     {
-      g_return_if_fail (GTK_IS_VIEWPORT (bin->child));
-      g_return_if_fail (GTK_BIN (bin->child)->child == NULL);
+      g_return_if_fail (GTK_IS_VIEWPORT (gtk_bin_get_child (bin)));
+      g_return_if_fail (gtk_bin_get_child (GTK_BIN (gtk_bin_get_child (bin))) == NULL);
 
-      viewport = bin->child;
+      viewport = gtk_bin_get_child (bin);
     }
   else
     {
@@ -3295,15 +3180,15 @@ hildon_pannable_area_scroll_to (HildonPannableArea *area,
   gint dist_x, dist_y;
   gboolean hscroll_visible, vscroll_visible;
 
-  g_return_if_fail (GTK_WIDGET_REALIZED (area));
+  g_return_if_fail (gtk_widget_get_realized (GTK_WIDGET (area)));
   g_return_if_fail (HILDON_IS_PANNABLE_AREA (area));
 
   priv = area->priv;
 
-  vscroll_visible = (priv->vadjust->upper - priv->vadjust->lower >
-	     priv->vadjust->page_size);
-  hscroll_visible = (priv->hadjust->upper - priv->hadjust->lower >
-	     priv->hadjust->page_size);
+  vscroll_visible = (gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust) >
+	     gtk_adjustment_get_page_size (priv->vadjust));
+  hscroll_visible = (gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust) >
+	     gtk_adjustment_get_page_size (priv->hadjust));
 
   if (((!vscroll_visible)&&(!hscroll_visible)) ||
       (x == -1 && y == -1)) {
@@ -3313,16 +3198,16 @@ hildon_pannable_area_scroll_to (HildonPannableArea *area,
   if (priv->mode == HILDON_PANNABLE_AREA_MODE_PUSH)
     hildon_pannable_area_jump_to (area, x, y);
 
-  width = priv->hadjust->upper - priv->hadjust->lower;
-  height = priv->vadjust->upper - priv->vadjust->lower;
+  width = gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust);
+  height = gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust);
 
   g_return_if_fail (x < width || y < height);
 
   if ((x > -1)&&(hscroll_visible)) {
-    priv->scroll_to_x = CLAMP (x - priv->hadjust->page_size/2,
-                               priv->hadjust->lower,
-                               priv->hadjust->upper - priv->hadjust->page_size);
-    dist_x = priv->scroll_to_x - priv->hadjust->value;
+    priv->scroll_to_x = CLAMP (x - gtk_adjustment_get_page_size (priv->hadjust)/2,
+                               gtk_adjustment_get_lower (priv->hadjust),
+                               gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_page_size (priv->hadjust));
+    dist_x = priv->scroll_to_x - gtk_adjustment_get_value (priv->hadjust);
     if (dist_x == 0) {
       priv->scroll_to_x = -1;
     } else {
@@ -3333,10 +3218,10 @@ hildon_pannable_area_scroll_to (HildonPannableArea *area,
   }
 
   if ((y > -1)&&(vscroll_visible)) {
-    priv->scroll_to_y = CLAMP (y - priv->vadjust->page_size/2,
-                               priv->vadjust->lower,
-                               priv->vadjust->upper - priv->vadjust->page_size);
-    dist_y = priv->scroll_to_y - priv->vadjust->value;
+    priv->scroll_to_y = CLAMP (y - gtk_adjustment_get_page_size (priv->vadjust)/2,
+                               gtk_adjustment_get_lower (priv->vadjust),
+                               gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_page_size (priv->vadjust));
+    dist_y = priv->scroll_to_y - gtk_adjustment_get_value (priv->vadjust);
     if (dist_y == 0) {
       priv->scroll_to_y = -1;
     } else {
@@ -3387,7 +3272,7 @@ hildon_pannable_area_jump_to (HildonPannableArea *area,
   gdouble hv, vv;
 
   g_return_if_fail (HILDON_IS_PANNABLE_AREA (area));
-  g_return_if_fail (GTK_WIDGET_REALIZED (area));
+  g_return_if_fail (gtk_widget_get_realized (GTK_WIDGET (area)));
   g_return_if_fail (x >= -1 && y >= -1);
 
   if (x == -1 && y == -1) {
@@ -3396,36 +3281,38 @@ hildon_pannable_area_jump_to (HildonPannableArea *area,
 
   priv = area->priv;
 
-  width = priv->hadjust->upper - priv->hadjust->lower;
-  height = priv->vadjust->upper - priv->vadjust->lower;
+  width = gtk_adjustment_get_upper (priv->hadjust) - gtk_adjustment_get_lower (priv->hadjust);
+  height = gtk_adjustment_get_upper (priv->vadjust) - gtk_adjustment_get_lower (priv->vadjust);
 
   g_return_if_fail (x < width || y < height);
 
-  hv = priv->hadjust->value;
-  vv = priv->vadjust->value;
+  hv = gtk_adjustment_get_value (priv->hadjust);
+  vv = gtk_adjustment_get_value (priv->vadjust);
 
   if (x != -1) {
-    gdouble jump_to = x - priv->hadjust->page_size/2;
+    gdouble jump_to = x - gtk_adjustment_get_page_size (priv->hadjust)/2;
 
-    priv->hadjust->value = CLAMP (jump_to,
-                                  priv->hadjust->lower,
-                                  priv->hadjust->upper -
-                                  priv->hadjust->page_size);
+    gtk_adjustment_set_value (priv->hadjust,
+                              CLAMP (jump_to,
+                                     gtk_adjustment_get_lower (priv->hadjust),
+                                     gtk_adjustment_get_upper (priv->hadjust) -
+                                     gtk_adjustment_get_page_size (priv->hadjust)));
   }
 
   if (y != -1) {
-    gdouble jump_to =  y - priv->vadjust->page_size/2;
+    gdouble jump_to =  y - gtk_adjustment_get_page_size (priv->vadjust)/2;
 
-    priv->vadjust->value = CLAMP (jump_to,
-                                  priv->vadjust->lower,
-                                  priv->vadjust->upper -
-                                  priv->vadjust->page_size);
+    gtk_adjustment_set_value (priv->vadjust,
+                              CLAMP (jump_to,
+                                     gtk_adjustment_get_lower (priv->vadjust),
+                                     gtk_adjustment_get_upper (priv->vadjust) -
+                                     gtk_adjustment_get_page_size (priv->vadjust)));
   }
 
-  if (hv != priv->hadjust->value)
+  if (hv != gtk_adjustment_get_value (priv->hadjust))
     gtk_adjustment_value_changed (priv->hadjust);
 
-  if (vv != priv->vadjust->value)
+  if (vv != gtk_adjustment_get_value (priv->vadjust))
     gtk_adjustment_value_changed (priv->vadjust);
 
   hildon_pannable_area_launch_fade_timeout (area, 1.0);
@@ -3471,20 +3358,20 @@ hildon_pannable_area_scroll_to_child (HildonPannableArea *area, GtkWidget *child
   GtkWidget *bin_child;
   gint x, y;
 
-  g_return_if_fail (GTK_WIDGET_REALIZED (area));
+  g_return_if_fail (gtk_widget_get_realized (GTK_WIDGET (area)));
   g_return_if_fail (HILDON_IS_PANNABLE_AREA (area));
   g_return_if_fail (GTK_IS_WIDGET (child));
   g_return_if_fail (gtk_widget_is_ancestor (child, GTK_WIDGET (area)));
 
-  if (GTK_BIN (area)->child == NULL)
+  if (gtk_bin_get_child (GTK_BIN (area)) == NULL)
     return;
 
   /* We need to get to check the child of the inside the area */
-  bin_child = GTK_BIN (area)->child;
+  bin_child = gtk_bin_get_child (GTK_BIN (area));
 
   /* we check if we added a viewport */
   if (GTK_IS_VIEWPORT (bin_child)) {
-    bin_child = GTK_BIN (bin_child)->child;
+    bin_child = gtk_bin_get_child (GTK_BIN (bin_child));
   }
 
   if (gtk_widget_translate_coordinates (child, bin_child, 0, 0, &x, &y))
@@ -3514,7 +3401,7 @@ hildon_pannable_area_jump_to_child (HildonPannableArea *area, GtkWidget *child)
   GtkWidget *bin_child;
   gint x, y;
 
-  g_return_if_fail (GTK_WIDGET_REALIZED (area));
+  g_return_if_fail (gtk_widget_get_realized (GTK_WIDGET (area)));
   g_return_if_fail (HILDON_IS_PANNABLE_AREA (area));
   g_return_if_fail (GTK_IS_WIDGET (child));
   g_return_if_fail (gtk_widget_is_ancestor (child, GTK_WIDGET (area)));
@@ -3555,7 +3442,7 @@ hildon_pannable_get_child_widget_at (HildonPannableArea *area,
   GtkWidget *child_widget = NULL;
 
   window = hildon_pannable_area_get_topmost
-    (gtk_bin_get_child (GTK_BIN (area))->window,
+    (gtk_widget_get_window (gtk_bin_get_child (GTK_BIN (area))),
      x, y, NULL, NULL, GDK_ALL_EVENTS_MASK);
 
   gdk_window_get_user_data (window, (gpointer) &child_widget);

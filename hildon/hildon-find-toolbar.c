@@ -259,7 +259,7 @@ hildon_find_toolbar_get_property                (GObject *object,
             break;
 
         case PROP_COLUMN:
-            c_n = gtk_combo_box_entry_get_text_column (priv->entry_combo_box);
+            c_n = gtk_combo_box_get_entry_text_column (priv->entry_combo_box);
             g_value_set_int (value, c_n);
             break;
 
@@ -309,7 +309,7 @@ hildon_find_toolbar_set_property                (GObject *object,
             break;
 
         case PROP_COLUMN:
-            gtk_combo_box_entry_set_text_column (priv->entry_combo_box,
+            gtk_combo_box_set_entry_text_column (priv->entry_combo_box,
                     g_value_get_int (value));
             break;
 
@@ -329,12 +329,12 @@ hildon_find_toolbar_set_property                (GObject *object,
                    combobox popup arrow, so we'll just recreate the filter. */
                 hildon_find_toolbar_apply_filter (self, model);
 
-                if (gtk_combo_box_entry_get_text_column (priv->entry_combo_box) == -1)
+                if (gtk_combo_box_get_entry_text_column (priv->entry_combo_box) == -1)
                 {
                     /* FIXME: This is only for backwards compatibility, although
                        probably nothing actually relies on it. The behavior was only
                        an accidental side effect of original code */
-                    gtk_combo_box_entry_set_text_column (priv->entry_combo_box, 0);
+                    gtk_combo_box_set_entry_text_column (priv->entry_combo_box, 0);
                 }
             }
             break;
@@ -653,7 +653,7 @@ hildon_find_toolbar_init                        (HildonFindToolbar *self)
     gtk_toolbar_insert (GTK_TOOLBAR (self), label_container, -1);
 
     /* ComboBoxEntry for search prefix string / history list */
-    priv->entry_combo_box = GTK_COMBO_BOX_ENTRY (gtk_combo_box_entry_new ());
+    priv->entry_combo_box = GTK_COMBO_BOX (gtk_combo_box_new_with_entry ());
 
     entry_combo_box_container = gtk_tool_item_new ();
     alignment = GTK_ALIGNMENT (gtk_alignment_new (0, 0.5, 1, 0));
@@ -684,9 +684,9 @@ hildon_find_toolbar_init                        (HildonFindToolbar *self)
             G_CALLBACK(hildon_find_toolbar_emit_close), self);
     gtk_widget_show_all(GTK_WIDGET(priv->close_button));
     gtk_toolbar_insert (GTK_TOOLBAR(self), priv->close_button, -1);
-    if ( GTK_WIDGET_CAN_FOCUS( GTK_BIN(priv->close_button)->child) )
-        GTK_WIDGET_UNSET_FLAGS(
-                GTK_BIN(priv->close_button)->child, GTK_CAN_FOCUS);
+    if ( gtk_widget_get_can_focus ( gtk_bin_get_child (GTK_BIN (priv->close_button)) ) )
+        gtk_widget_set_can_focus (
+                gtk_bin_get_child (GTK_BIN (priv->close_button)), FALSE);
 }
 
 /**

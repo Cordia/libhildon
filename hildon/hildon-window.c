@@ -86,7 +86,6 @@
 #include                                        <X11/Xatom.h>
 #include                                        <gdk/gdkkeysyms.h>
 #include                                        <gdk/gdkx.h>
-#include                                        <gtk/gtkprivate.h>
 
 #include                                        "hildon-window.h"
 #include                                        "hildon-window-private.h"
@@ -134,8 +133,8 @@ hildon_window_menu_popup_func_full              (GtkMenu *menu,
                                                  gboolean *push_in,
                                                  GtkWidget *widget);
 static gboolean
-hildon_window_expose                            (GtkWidget *widget, 
-                                                 GdkEventExpose *event);
+hildon_window_draw                              (GtkWidget *widget, 
+                                                 cairo_t   *cr);
 static void 
 hildon_window_forall                            (GtkContainer *container,
                                                  gboolean include_internals,
@@ -148,8 +147,13 @@ static void
 hildon_window_size_allocate                     (GtkWidget * widget,
                                                  GtkAllocation *allocation);
 static void
-hildon_window_size_request                      (GtkWidget * widget,
-                                                 GtkRequisition *requisition);
+hildon_window_get_preferred_width               (GtkWidget *widget, 
+                                                 gint      *minimal_width,
+                                                 gint      *natural_width);
+static void
+hildon_window_get_preferred_height              (GtkWidget *widget, 
+                                                 gint      *minimal_height,
+                                                 gint      *natural_height);
 static void
 hildon_window_finalize                          (GObject *obj_self);
 
@@ -169,7 +173,7 @@ static void
 hildon_window_update_markup                     (HildonWindow *window);
 
 static void
-hildon_window_destroy                           (GtkObject *obj);
+hildon_window_destroy                           (GtkWidget *obj);
 
 static void
 hildon_window_realize                           (GtkWidget *widget);
@@ -222,15 +226,15 @@ visible_toolbar                                 (gpointer data,
 
 static void
 paint_toolbar                                   (GtkWidget *widget, 
-                                                 GtkBox *box, 
-                                                 GdkEventExpose * event, 
-                                                 gboolean fullscreen);
+                                                 GtkBox    *box, 
+                                                 cairo_t   *cr, 
+                                                 gboolean   fullscreen);
 
 static void
 paint_edit_toolbar                              (GtkWidget *widget,
                                                  GtkWidget *toolbar,
-                                                 GdkEventExpose *event,
-                                                 gboolean fullscreen);
+                                                 cairo_t   *cr,
+                                                 gboolean   fullscreen);
 
 enum
 {
@@ -260,8 +264,9 @@ hildon_window_class_init                        (HildonWindowClass * window_clas
     object_class->set_property          = hildon_window_set_property;
     object_class->notify                = hildon_window_notify;
     widget_class->size_allocate         = hildon_window_size_allocate;
-    widget_class->size_request          = hildon_window_size_request;
-    widget_class->expose_event          = hildon_window_expose;
+    widget_class->get_preferred_width   = hildon_window_get_preferred_width;
+    widget_class->get_preferred_height  = hildon_window_get_preferred_height;
+    widget_class->draw                  = hildon_window_draw;
     widget_class->show_all              = hildon_window_show_all;
     widget_class->realize               = hildon_window_realize;
     widget_class->unrealize             = hildon_window_unrealize;
@@ -269,6 +274,7 @@ hildon_window_class_init                        (HildonWindowClass * window_clas
     widget_class->window_state_event    = hildon_window_window_state_event;
     widget_class->map                   = hildon_window_map;
     widget_class->unmap                 = hildon_window_unmap;
+    widget_class->destroy               = hildon_window_destroy;
 
     /* now the object stuff */
     object_class->finalize              = hildon_window_finalize;
@@ -278,9 +284,6 @@ hildon_window_class_init                        (HildonWindowClass * window_clas
 
     /* To this class */
     window_class->toggle_menu           = hildon_window_toggle_menu_real;
-
-    /* gtkobject stuff*/
-    GTK_OBJECT_CLASS (window_class)->destroy = hildon_window_destroy; 
 
     g_type_class_add_private (window_class,
             sizeof (struct _HildonWindowPrivate));
@@ -392,10 +395,10 @@ hildon_window_realize                           (GtkWidget *widget)
         gtk_widget_realize (priv->edit_toolbar);
 
     /* catch the custom button signal from mb to display the menu */
-    gdk_window_add_filter (widget->window, hildon_window_event_filter, widget);
+    gdk_window_add_filter (gtk_widget_get_window (widget), hildon_window_event_filter, widget);
 
-    window = GDK_WINDOW_XID (widget->window);
-    disp = GDK_WINDOW_XDISPLAY (widget->window);
+    window = GDK_WINDOW_XID (gtk_widget_get_window (widget));
+    disp = GDK_WINDOW_XDISPLAY (gtk_widget_get_window (widget));
 
     /* Enable custom button that is used for menu */
     XGetWMProtocols (disp, window, &old_atoms, &atom_count);
@@ -412,7 +415,7 @@ hildon_window_realize                           (GtkWidget *widget)
     g_free(new_atoms);
 
     /* rely on GDK to set the window group to its default */
-    gdk_window_set_group (widget->window, NULL);
+    gdk_window_set_group (gtk_widget_get_window (widget), NULL);
 
     if (priv->program) {
         gboolean can_hibernate = hildon_program_get_can_hibernate (priv->program);
@@ -435,7 +438,7 @@ hildon_window_unrealize                         (GtkWidget *widget)
     HildonWindowPrivate *priv = HILDON_WINDOW_GET_PRIVATE (widget);
     g_assert (priv != NULL);
 
-    gdk_window_remove_filter (widget->window, hildon_window_event_filter,
+    gdk_window_remove_filter (gtk_widget_get_window (widget), hildon_window_event_filter,
             widget);
 
     hildon_window_update_topmost (HILDON_WINDOW (widget), 0);
@@ -457,10 +460,10 @@ hildon_window_map                             (GtkWidget *widget)
   if (GTK_WIDGET_CLASS (hildon_window_parent_class)->map)
     GTK_WIDGET_CLASS (hildon_window_parent_class)->map (widget);
 
-  if (priv->vbox != NULL && GTK_WIDGET_VISIBLE (priv->vbox))
+  if (priv->vbox != NULL && gtk_widget_get_visible (priv->vbox))
     gtk_widget_map (priv->vbox);
 
-  if (priv->edit_toolbar != NULL && GTK_WIDGET_VISIBLE (priv->edit_toolbar))
+  if (priv->edit_toolbar != NULL && gtk_widget_get_visible (priv->edit_toolbar))
     gtk_widget_map (priv->edit_toolbar);
 }
 
@@ -566,8 +569,8 @@ hildon_window_get_borders                       (HildonWindow *window)
 }
 
 static gboolean
-hildon_window_expose                            (GtkWidget *widget, 
-                                                 GdkEventExpose * event)
+hildon_window_draw                              (GtkWidget *widget, 
+                                                 cairo_t   *cr)
 {
     HildonWindowPrivate *priv = HILDON_WINDOW_GET_PRIVATE (widget);
     g_assert (priv);
@@ -584,21 +587,19 @@ hildon_window_expose                            (GtkWidget *widget,
         tb = priv->toolbar_borders;
     }
 
-    tb_height = bx->allocation.height + tb->top + tb->bottom;
+    tb_height = gtk_widget_get_allocated_height (bx) + tb->top + tb->bottom;
 
-    paint_toolbar (widget, box,
-            event, priv->fullscreen);
+    paint_toolbar (widget, box, cr, priv->fullscreen);
 
     if (priv->edit_toolbar != NULL)
     {
-        paint_edit_toolbar (widget, priv->edit_toolbar,
-                            event, priv->fullscreen);
+        paint_edit_toolbar (widget, priv->edit_toolbar, cr, priv->fullscreen);
     }
 
     if (! priv->fullscreen) {
 
         /* Draw the left and right window border */
-        gint side_borders_height = widget->allocation.height - b->top;
+        gint side_borders_height = gtk_widget_get_allocated_height (widget) - b->top;
 
         if (priv->visible_toolbars)
             side_borders_height -= tb_height;
@@ -607,42 +608,32 @@ hildon_window_expose                            (GtkWidget *widget,
 
         if (b->left > 0) 
         {
-            gtk_paint_box (widget->style, widget->window,
-                    GTK_WIDGET_STATE(widget), GTK_SHADOW_OUT,
-                    &event->area, widget, "left-border",
-                    widget->allocation.x, widget->allocation.y +
-                    b->top, b->left, side_borders_height);
+            gtk_render_frame (gtk_widget_get_style_context (widget), cr,
+                              0, b->top,
+                              b->left, side_borders_height);
         } 
 
         if (b->right > 0)
         {
-            gtk_paint_box (widget->style, widget->window,
-                    GTK_WIDGET_STATE(widget), GTK_SHADOW_OUT,
-                    &event->area, widget, "right-border",
-                    widget->allocation.x + widget->allocation.width -
-                    b->right, widget->allocation.y + b->top,
-                    b->right, side_borders_height);
+            gtk_render_frame (gtk_widget_get_style_context (widget), cr,
+                              gtk_widget_get_allocated_width (widget) - b->right, b->top,
+                              b->right, side_borders_height);
         }
 
         /* If no toolbar, draw the bottom window border */
         if (! priv->visible_toolbars && b->bottom > 0)
         {
-            gtk_paint_box (widget->style, widget->window,
-                    GTK_WIDGET_STATE(widget), GTK_SHADOW_OUT,
-                    &event->area, widget, "bottom-border",
-                    widget->allocation.x, widget->allocation.y +
-                    (widget->allocation.height - b->bottom),
-                    widget->allocation.width, b->bottom);
+            gtk_render_frame (gtk_widget_get_style_context (widget), cr,
+                              0, gtk_widget_get_allocated_height (widget) - b->bottom,
+                              gtk_widget_get_allocated_width (widget), b->bottom);
         }
 
         /* Draw the top border */
         if (b->top > 0)
         {
-            gtk_paint_box (widget->style, widget->window,
-                    GTK_WIDGET_STATE(widget), GTK_SHADOW_OUT,
-                    &event->area, widget, "top-border",
-                    widget->allocation.x, widget->allocation.y,
-                    widget->allocation.width, b->top);
+            gtk_render_frame (gtk_widget_get_style_context (widget), cr,
+                              0, 0,
+                              gtk_widget_get_allocated_width (widget), b->top);
         } 
 
 
@@ -650,43 +641,66 @@ hildon_window_expose                            (GtkWidget *widget,
 
     /* don't draw the window stuff as it overwrites our borders with a blank
      * rectangle. Instead start with the drawing of the GtkBin */
-    GTK_WIDGET_CLASS (g_type_class_peek_parent (hildon_window_parent_class))->expose_event (widget, event);
-
-    /* FIXME Not sure why this is commented out 
-     * GTK_WIDGET_CLASS (hildon_window_parent_class))->
-     *  expose_event (widget, event); 
-     */
+    GTK_WIDGET_CLASS (g_type_class_peek_parent (hildon_window_parent_class))->draw (widget, cr);
 
     return FALSE;
 }
 
 static void
-hildon_window_size_request                      (GtkWidget *widget, 
-                                                 GtkRequisition *requisition)
+hildon_window_get_preferred_width               (GtkWidget *widget, 
+                                                 gint      *minimal_width,
+                                                 gint      *natural_width)
 {
     GdkScreen *screen = gtk_widget_get_screen (widget);
     HildonWindowPrivate *priv = HILDON_WINDOW_GET_PRIVATE (widget);
     GtkWidget *child;
-    GtkRequisition req;
+    gint minimal, natural;
     g_assert (priv);
 
     child = gtk_bin_get_child (GTK_BIN (widget));
 
-    if (child != NULL && GTK_WIDGET_VISIBLE (child))
-        gtk_widget_size_request (child, &req);
+    if (child != NULL && gtk_widget_get_visible (child))
+        gtk_widget_get_preferred_width (child, &minimal, &natural);
 
-    if (priv->vbox != NULL && GTK_WIDGET_VISIBLE (priv->vbox))
-        gtk_widget_size_request (priv->vbox, &req);
+    if (priv->vbox != NULL && gtk_widget_get_visible (priv->vbox))
+        gtk_widget_get_preferred_width (priv->vbox, &minimal, &natural);
 
-    if (priv->edit_toolbar != NULL && GTK_WIDGET_VISIBLE (priv->edit_toolbar))
-        gtk_widget_size_request (priv->edit_toolbar, &req);
+    if (priv->edit_toolbar != NULL && gtk_widget_get_visible (priv->edit_toolbar))
+        gtk_widget_get_preferred_width (priv->edit_toolbar, &minimal, &natural);
 
     /* Request the full size of the screen */
-    requisition->width = gdk_screen_get_width (screen);
-    requisition->height = gdk_screen_get_height (screen);
+    *minimal_width = *natural_width = gdk_screen_get_width (screen);
+}
+
+static void
+hildon_window_get_preferred_height              (GtkWidget *widget, 
+                                                 gint      *minimal_height,
+                                                 gint      *natural_height)
+{
+    GdkScreen *screen = gtk_widget_get_screen (widget);
+    HildonWindowPrivate *priv = HILDON_WINDOW_GET_PRIVATE (widget);
+    GtkWidget *child;
+    gint minimal, natural;
+    g_assert (priv);
+
+    child = gtk_bin_get_child (GTK_BIN (widget));
+
+    if (child != NULL && gtk_widget_get_visible (child))
+        gtk_widget_get_preferred_height (child, &minimal, &natural);
+
+    if (priv->vbox != NULL && gtk_widget_get_visible (priv->vbox))
+        gtk_widget_get_preferred_height (priv->vbox, &minimal, &natural);
+
+    if (priv->edit_toolbar != NULL && gtk_widget_get_visible (priv->edit_toolbar))
+        gtk_widget_get_preferred_height (priv->edit_toolbar, &minimal, &natural);
+
+    /* Request the full size of the screen */
+    *minimal_height = gdk_screen_get_height (screen);
 
     if (! priv->fullscreen)
-        requisition->height -= HILDON_WINDOW_TITLEBAR_HEIGHT;
+        *minimal_height -= HILDON_WINDOW_TITLEBAR_HEIGHT;
+
+    *natural_height = *minimal_height;
 }
 
 static void
@@ -708,10 +722,10 @@ hildon_window_size_allocate                     (GtkWidget *widget,
 
     tb = priv->toolbar_borders;
 
-    widget->allocation = *allocation;
+    gtk_widget_size_allocate (widget, allocation);
 
     /* Calculate allocation of edit toolbar */
-    if (priv->edit_toolbar != NULL && GTK_WIDGET_VISIBLE (priv->edit_toolbar))
+    if (priv->edit_toolbar != NULL && gtk_widget_get_visible (priv->edit_toolbar))
     {
         GtkRequisition req;
         gtk_widget_get_child_requisition (priv->edit_toolbar, &req);
@@ -729,7 +743,7 @@ hildon_window_size_allocate                     (GtkWidget *widget,
     }
 
     /* Calculate allocation of normal toolbars */
-    if (priv->vbox != NULL && GTK_WIDGET_VISIBLE (priv->vbox))
+    if (priv->vbox != NULL && gtk_widget_get_visible (priv->vbox))
     {
         GtkRequisition req;
         gtk_widget_get_child_requisition (priv->vbox, &req);
@@ -746,7 +760,7 @@ hildon_window_size_allocate                     (GtkWidget *widget,
     }
 
     /* Calculate allocation of the child widget */
-    if (child != NULL && GTK_WIDGET_VISIBLE (child))
+    if (child != NULL && gtk_widget_get_visible (child))
     {
         guint border_width = gtk_container_get_border_width (GTK_CONTAINER (widget));
         alloc.x += border_width;
@@ -782,8 +796,8 @@ hildon_window_size_allocate                     (GtkWidget *widget,
         gint draw_from_y = MIN (priv->previous_vbox_y, box_alloc.y) - tb->top;
 
         gtk_widget_queue_draw_area (widget, 0, draw_from_y, 
-                widget->allocation.width,
-                widget->allocation.height - draw_from_y);
+                gtk_widget_get_allocated_width (widget),
+                gtk_widget_get_allocated_height (widget) - draw_from_y);
 
         priv->previous_vbox_y = box_alloc.y;
     }
@@ -829,7 +843,7 @@ hildon_window_show_all                          (GtkWidget *widget)
 }
 
 static void
-hildon_window_destroy                           (GtkObject *obj)
+hildon_window_destroy                           (GtkWidget *obj)
 {
     HildonWindow *self = HILDON_WINDOW (obj);
     HildonWindowPrivate *priv = HILDON_WINDOW_GET_PRIVATE (obj);
@@ -844,7 +858,7 @@ hildon_window_destroy                           (GtkObject *obj)
         {
             GtkWidget * common_toolbar = 
                 GTK_WIDGET (hildon_program_get_common_toolbar (priv->program));
-            if (common_toolbar && common_toolbar->parent == priv->vbox)
+            if (common_toolbar && gtk_widget_get_parent (common_toolbar) == priv->vbox)
             {
                 gtk_container_remove (GTK_CONTAINER (priv->vbox),
                         common_toolbar);
@@ -876,7 +890,7 @@ hildon_window_destroy                           (GtkObject *obj)
     {
         if (GTK_IS_MENU (menu_node->data))
         {
-            if (GTK_WIDGET_VISIBLE (GTK_WIDGET (menu_node->data)))
+            if (gtk_widget_get_visible (GTK_WIDGET (menu_node->data)))
             {
                 gtk_menu_popdown (GTK_MENU (menu_node->data));
                 gtk_menu_shell_deactivate (GTK_MENU_SHELL (menu_node->data));
@@ -886,7 +900,7 @@ hildon_window_destroy                           (GtkObject *obj)
             /* Destroy it, but only if it's not a common menu */
             if (priv->program && 
                 hildon_program_get_common_menu (priv->program) != menu_node->data) {
-                    gtk_object_destroy (GTK_OBJECT (menu_node->data));
+                    gtk_widget_destroy (GTK_WIDGET (menu_node->data));
                     g_object_unref (menu_node->data);
             }
         }
@@ -903,7 +917,7 @@ hildon_window_destroy                           (GtkObject *obj)
 
     gtk_widget_set_events (GTK_WIDGET(obj), 0);
 
-    GTK_OBJECT_CLASS (hildon_window_parent_class)->destroy (obj);
+    GTK_WIDGET_CLASS (hildon_window_parent_class)->destroy (obj);
 }
 
 static void
@@ -926,65 +940,62 @@ static void
 visible_toolbar                                 (gpointer data, 
                                                  gpointer user_data)
 {
-    if (GTK_WIDGET_VISIBLE (((GtkBoxChild *)data)->widget))
+    if (gtk_widget_get_visible ((GtkWidget *)data))
         (*((gint *)user_data))++;
 }
 
 static void
 paint_toolbar                                   (GtkWidget *widget, 
-                                                 GtkBox *box, 
-                                                 GdkEventExpose * event, 
-                                                 gboolean fullscreen)
+                                                 GtkBox    *box, 
+                                                 cairo_t   *cr, 
+                                                 gboolean   fullscreen)
 {
     gint toolbar_num = 0; 
     gint count;
+    GtkAllocation *box_allocation = NULL;
 
     /* collect info to help on painting the boxes */
-    g_list_foreach (box->children, visible_toolbar, 
-            (gpointer) &toolbar_num);
+    g_list_foreach (gtk_container_get_children (GTK_CONTAINER (box)),
+                    visible_toolbar, (gpointer) &toolbar_num);
 
     if(toolbar_num <= 0)
         return;
 
+    gtk_widget_get_allocation (GTK_WIDGET (box), box_allocation);
+
     /*top most toolbar painting*/
-    gtk_paint_box (widget->style, widget->window,
-            GTK_WIDGET_STATE(widget), GTK_SHADOW_OUT,
-            &event->area, widget, "toolbar-primary",
-            widget->allocation.x,
-            GTK_WIDGET(box)->allocation.y,
-            widget->allocation.width,
-            TOOLBAR_HEIGHT);
+    gtk_render_frame (gtk_widget_get_style_context (widget), cr,
+                      0, box_allocation->y,
+                      gtk_widget_get_allocated_width (widget), TOOLBAR_HEIGHT);
 
     /*multi toolbar painting*/
     for (count = 0; count < toolbar_num - 1; count++)
     {
-            gtk_paint_box (widget->style, widget->window,
-                           GTK_WIDGET_STATE(widget), GTK_SHADOW_OUT,
-                           &event->area, widget, "toolbar-secondary",
-                           widget->allocation.x,
-                           GTK_WIDGET(box)->allocation.y +
-                           (1 + count) * (TOOLBAR_HEIGHT),
-                           widget->allocation.width,
-                           TOOLBAR_HEIGHT);
+        gtk_render_frame (gtk_widget_get_style_context (widget), cr,
+                          0, box_allocation->y +
+                          (1 + count) * (TOOLBAR_HEIGHT),
+                          gtk_widget_get_allocated_width (widget), TOOLBAR_HEIGHT);
     }
 }
 
 static void
 paint_edit_toolbar                              (GtkWidget *widget,
                                                  GtkWidget *toolbar,
-                                                 GdkEventExpose *event,
-                                                 gboolean fullscreen)
+                                                 cairo_t   *cr,
+                                                 gboolean   fullscreen)
 {
-    if (!GTK_WIDGET_VISIBLE (toolbar))
+    GtkAllocation *toolbar_allocation = NULL;
+
+    if (!gtk_widget_get_visible (toolbar))
         return;
 
-    gtk_paint_box (widget->style, widget->window,
-                   GTK_WIDGET_STATE (widget), GTK_SHADOW_OUT,
-                   &event->area, widget, "toolbar-edit-mode",
-                   toolbar->allocation.x,
-                   toolbar->allocation.y,
-                   toolbar->allocation.width,
-                   toolbar->allocation.height);
+    gtk_widget_get_allocation (toolbar, toolbar_allocation);
+
+    gtk_render_frame (gtk_widget_get_style_context (widget), cr,
+                      toolbar_allocation->x,
+                      toolbar_allocation->y,
+                      toolbar_allocation->width,
+                      toolbar_allocation->height);
 }
 
 /*
@@ -1006,12 +1017,13 @@ hildon_window_get_active_window                 (void)
         unsigned char *char_pointer;
     } win;
     Atom active_app_atom = 
-        XInternAtom (GDK_DISPLAY (), "_MB_CURRENT_APP_WINDOW", False);
+        XInternAtom (GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()), "_MB_CURRENT_APP_WINDOW", False);
 
     win.win = NULL;
 
     gdk_error_trap_push ();
-    status = XGetWindowProperty (GDK_DISPLAY(), GDK_ROOT_WINDOW(),
+    status = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()),
+            GDK_ROOT_WINDOW(),
             active_app_atom, 0L, 16L,
             0, XA_WINDOW, &realtype, &format,
             &n, &extra, &win.char_pointer);
@@ -1038,7 +1050,8 @@ static int
 xclient_message_type_check                      (XClientMessageEvent *cm, 
                                                  const gchar *name)
 {
-    return cm->message_type == XInternAtom(GDK_DISPLAY(), name, FALSE);
+    return cm->message_type == XInternAtom(
+            GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()), name, FALSE);
 }
 
 /*
@@ -1067,7 +1080,8 @@ hildon_window_event_filter                      (GdkXEvent *xevent,
     {
         XPropertyEvent *pevent = xevent;
         Atom active_app_atom = 
-            XInternAtom (GDK_DISPLAY (), "_MB_CURRENT_APP_WINDOW", False);
+            XInternAtom (GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()),
+                         "_MB_CURRENT_APP_WINDOW", False);
 
         if (pevent->atom == active_app_atom)
         {
@@ -1134,15 +1148,18 @@ static void
 set_legacy_menu_type                            (GtkMenu  *menu,
                                                  gboolean  set)
 {
-    GdkWindow *gdkwin = GTK_WIDGET (menu->toplevel)->window;
-    GdkAtom property = gdk_atom_intern_static_string (LEGACY_MENU_PROPERTY_NAME);
-    if (set) {
-        GdkAtom type = gdk_x11_xatom_to_atom (XA_ATOM);
-        GdkAtom value = gdk_atom_intern_static_string (LEGACY_MENU_PROPERTY_VALUE);
-        gdk_property_change (gdkwin, property, type, 32,
-                             GDK_PROP_MODE_REPLACE, (const guchar *) &value, 1);
-    } else {
-        gdk_property_delete (gdkwin, property);
+    GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (menu));
+    if (gtk_widget_is_toplevel (toplevel)) {
+        GdkWindow *gdkwin = gtk_widget_get_window (toplevel);
+        GdkAtom property = gdk_atom_intern_static_string (LEGACY_MENU_PROPERTY_NAME);
+        if (set) {
+            GdkAtom type = gdk_x11_xatom_to_atom (XA_ATOM);
+            GdkAtom value = gdk_atom_intern_static_string (LEGACY_MENU_PROPERTY_VALUE);
+            gdk_property_change (gdkwin, property, type, 32,
+                                 GDK_PROP_MODE_REPLACE, (const guchar *) &value, 1);
+        } else {
+            gdk_property_delete (gdkwin, property);
+        }
     }
 }
 
@@ -1172,7 +1189,7 @@ hildon_window_menu_popup_func                   (GtkMenu *menu,
 {
     gint window_x = 0;
     gint window_y = 0;
-    GdkWindow *window = GTK_WIDGET(widget)->window;
+    GdkWindow *window = gtk_widget_get_window (GTK_WIDGET (widget));
 
     if (window)
     {
@@ -1184,7 +1201,8 @@ hildon_window_menu_popup_func                   (GtkMenu *menu,
 
     if (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL)
     {
-        *x = GTK_WIDGET (widget)->allocation.width + window_x - GTK_WIDGET (menu)->allocation.width - *x;
+        *x = gtk_widget_get_allocated_width (widget) + window_x
+           - gtk_widget_get_allocated_width (GTK_WIDGET (menu)) - *x;
     }
     else
         *x += window_x;
@@ -1204,7 +1222,8 @@ hildon_window_menu_popup_func_full              (GtkMenu *menu,
             "vertical-offset", y, NULL);
 
     if (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL)
-        *x = GTK_WIDGET (widget)->allocation.width - GTK_WIDGET (menu)->allocation.width - *x;
+        *x = gtk_widget_get_allocated_width (widget)
+           - gtk_widget_get_allocated_width (GTK_WIDGET (menu)) - *x;
     else
         *x = MAX (0, *x);
 
@@ -1320,7 +1339,7 @@ hildon_window_set_can_hibernate_property        (HildonWindow *self,
 
     g_return_if_fail(self && HILDON_IS_WINDOW (self));
 
-    if (!GTK_WIDGET_REALIZED ((GTK_WIDGET (self))))
+    if (!gtk_widget_get_realized (GTK_WIDGET (self)))
     {
         return;
     }
@@ -1331,14 +1350,14 @@ hildon_window_set_can_hibernate_property        (HildonWindow *self,
 
     if (can_hibernate)
     {
-        gdk_property_change (GTK_WIDGET (self)->window, killable_atom,
+        gdk_property_change (gtk_widget_get_window (GTK_WIDGET (self)), killable_atom,
                 (GdkAtom)31/* XA_STRING */, 8,
                 GDK_PROP_MODE_REPLACE, (const guchar *)CAN_HIBERNATE,
                 CAN_HIBERNATE_LENGTH);
     }
     else
     {
-        gdk_property_delete (GTK_WIDGET (self)->window, killable_atom);
+        gdk_property_delete (gtk_widget_get_window (GTK_WIDGET (self)), killable_atom);
     }
 
 }
@@ -1360,23 +1379,25 @@ hildon_window_take_common_toolbar               (HildonWindow *self)
         GtkWidget *common_toolbar =  
             GTK_WIDGET (hildon_program_get_common_toolbar (priv->program));
 
-        if (common_toolbar && common_toolbar->parent != priv->vbox)
-        {
-            g_object_ref (common_toolbar);
-            if (common_toolbar->parent)
+        if (common_toolbar) {
+            GtkWidget *parent = gtk_widget_get_parent (common_toolbar);
+            if (parent != priv->vbox)
             {
-                gtk_container_remove (GTK_CONTAINER (common_toolbar->parent),
-                        common_toolbar);
+                g_object_ref (common_toolbar);
+                if (parent)
+                {
+                    gtk_container_remove (GTK_CONTAINER (parent),
+                            common_toolbar);
+                }
+
+                gtk_box_pack_end (GTK_BOX(priv->vbox), common_toolbar,
+                        TRUE, TRUE, 0);
+                g_object_unref (common_toolbar);
+
+                gtk_widget_set_size_request (common_toolbar, -1, TOOLBAR_HEIGHT);
+
+                gtk_widget_show  (priv->vbox);
             }
-
-            gtk_box_pack_end (GTK_BOX(priv->vbox), common_toolbar,
-                    TRUE, TRUE, 0);
-            g_object_unref (common_toolbar);
-
-            gtk_widget_set_size_request (common_toolbar, -1, TOOLBAR_HEIGHT);
-
-            gtk_widget_show  (priv->vbox);
-
         }
     }
 }
@@ -1395,7 +1416,7 @@ hildon_window_update_topmost                    (HildonWindow *self,
     g_return_if_fail (HILDON_IS_WINDOW (self));
     g_assert (priv);
 
-    my_window = GTK_WIDGET (self)->window;
+    my_window = gtk_widget_get_window (GTK_WIDGET (self));
 
     if (my_window && window_id == GDK_WINDOW_XID (my_window))
     {
@@ -1412,9 +1433,9 @@ hildon_window_update_topmost                    (HildonWindow *self,
         GtkWidget *focus = gtk_window_get_focus (GTK_WINDOW (self));
 
         if (GTK_IS_ENTRY (focus))
-            gtk_im_context_focus_out (GTK_ENTRY (focus)->im_context);
+            gtk_entry_reset_im_context (GTK_ENTRY (focus));
         if (GTK_IS_TEXT_VIEW (focus))
-            gtk_im_context_focus_out (GTK_TEXT_VIEW (focus)->im_context);
+            gtk_text_view_reset_im_context (GTK_TEXT_VIEW (focus));
 
         priv->is_topmost = FALSE;
         hildon_window_is_topmost_notify (self);
@@ -1469,7 +1490,7 @@ hildon_window_toggle_gtk_menu                   (HildonWindow *self,
         g_object_unref (menu);
     }
 
-    if (GTK_WIDGET_MAPPED (menu))
+    if (gtk_widget_get_mapped (GTK_WIDGET (menu)))
     {
         gtk_menu_popdown (menu);
         gtk_menu_shell_deactivate (GTK_MENU_SHELL (menu));
@@ -1486,7 +1507,7 @@ hildon_window_toggle_gtk_menu                   (HildonWindow *self,
             g_list_free (menu_children);
 
             /* Set the 'legacy app menu' property when the widget is realized */
-            if (GTK_WIDGET_REALIZED (menu)) {
+            if (gtk_widget_get_realized (GTK_WIDGET (menu))) {
                 set_legacy_menu_type (menu, TRUE);
             } else {
                 g_signal_connect (menu, "realize",
@@ -1534,7 +1555,7 @@ hildon_window_toggle_app_menu                   (HildonWindow  *self,
         gtk_widget_hide (GTK_WIDGET (menu));
     }
 
-    if (GTK_WIDGET_MAPPED (menu))
+    if (gtk_widget_get_mapped (GTK_WIDGET (menu)))
     {
         gtk_widget_hide (GTK_WIDGET (menu));
     }
@@ -1621,7 +1642,7 @@ hildon_window_add_with_scrollbar                (HildonWindow *self,
 
     g_return_if_fail (HILDON_IS_WINDOW (self));
     g_return_if_fail (GTK_IS_WIDGET (child));
-    g_return_if_fail (child->parent == NULL);
+    g_return_if_fail (gtk_widget_get_parent (child) == NULL);
 
     scrolledw = GTK_SCROLLED_WINDOW (gtk_scrolled_window_new (NULL, NULL));
     gtk_scrolled_window_set_policy (scrolledw, GTK_POLICY_NEVER,
@@ -1633,7 +1654,7 @@ hildon_window_add_with_scrollbar                (HildonWindow *self,
     else
     {
         if (GTK_IS_CONTAINER (child) )
-            gtk_container_set_focus_vadjustment (GTK_CONTAINER(child),
+            gtk_container_set_focus_vadjustment (GTK_CONTAINER (child),
                     gtk_scrolled_window_get_vadjustment (scrolledw) );
         gtk_scrolled_window_add_with_viewport (scrolledw, child);
     }
@@ -1645,7 +1666,7 @@ static void
 calculate_visible_toolbars                      (gpointer data,
                                                  gpointer user_data)
 {
-  if (GTK_WIDGET_VISIBLE (GTK_WIDGET (((GtkBoxChild *)data)->widget)))
+  if (gtk_widget_get_visible ((GtkWidget *)data))
     (*((gint *)user_data)) ++;
 }
 
@@ -1660,8 +1681,8 @@ toolbar_visible_notify                          (GtkWidget *toolbar, GParamSpec 
   /* Recalculate from scratch the value just in case */
   priv->visible_toolbars = 0;
 
-  g_list_foreach (GTK_BOX (priv->vbox)->children, calculate_visible_toolbars, 
-                  &priv->visible_toolbars);
+  g_list_foreach (gtk_container_get_children (GTK_CONTAINER (priv->vbox)),
+                  calculate_visible_toolbars, &priv->visible_toolbars);
 
   if (priv->visible_toolbars == 0)
     gtk_widget_hide (priv->vbox);
@@ -1700,7 +1721,7 @@ hildon_window_add_toolbar                       (HildonWindow *self,
     g_signal_connect (G_OBJECT (toolbar), "notify::visible",
                       G_CALLBACK (toolbar_visible_notify), self);
 
-    if (GTK_WIDGET_VISIBLE (toolbar))
+    if (gtk_widget_get_visible (GTK_WIDGET (toolbar)))
       {
         priv->visible_toolbars++;
         gtk_widget_show (priv->vbox);
@@ -1728,7 +1749,7 @@ hildon_window_remove_toolbar                    (HildonWindow *self,
     
     priv = HILDON_WINDOW_GET_PRIVATE (self);
 
-    if (GTK_WIDGET_VISIBLE (toolbar))
+    if (gtk_widget_get_visible (GTK_WIDGET (toolbar)))
       {
         if (--(priv->visible_toolbars) == 0)
           gtk_widget_hide (priv->vbox);
@@ -1992,7 +2013,7 @@ hildon_window_update_markup                     (HildonWindow *window)
     HildonWindowPrivate *priv = HILDON_WINDOW_GET_PRIVATE (window);
     GdkAtom markup_atom = gdk_atom_intern ("_HILDON_WM_NAME", FALSE);
     GdkAtom utf8_atom = gdk_atom_intern ("UTF8_STRING", FALSE);
-    GdkWindow *gdkwin = GTK_WIDGET (window)->window;
+    GdkWindow *gdkwin = gtk_widget_get_window (GTK_WIDGET (window));
 
     if (priv->markup) {
         gdk_property_change (gdkwin, markup_atom, utf8_atom, 8,
@@ -2058,7 +2079,7 @@ hildon_window_set_markup                        (HildonWindow *window,
     g_free (priv->markup);
     priv->markup = new_markup;
 
-    if (GTK_WIDGET_REALIZED (window))
+    if (gtk_widget_get_realized (GTK_WIDGET (window)))
         hildon_window_update_markup (window);
 
     g_object_notify (G_OBJECT (window), "markup");

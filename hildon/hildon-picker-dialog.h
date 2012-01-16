@@ -21,7 +21,6 @@
 #ifndef                                         __HILDON_PICKER_DIALOG_H__
 #define                                         __HILDON_PICKER_DIALOG_H__
 
-#include                                        "hildon-dialog.h"
 #include                                        "hildon-touch-selector.h"
 
 G_BEGIN_DECLS
@@ -53,7 +52,7 @@ typedef struct                                  _HildonPickerDialogPrivate Hildo
 
 struct                                          _HildonPickerDialog
 {
-  HildonDialog parent_instance;
+  GtkDialog parent_instance;
 
   /*< private > */
   HildonPickerDialogPrivate *priv;
@@ -61,7 +60,7 @@ struct                                          _HildonPickerDialog
 
 struct                                          _HildonPickerDialogClass
 {
-  HildonDialogClass parent_class;
+  GtkDialogClass parent_class;
 
   gboolean (* set_selector)                     (HildonPickerDialog  *dialog,
                                                  HildonTouchSelector *selector);

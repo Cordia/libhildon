@@ -32,7 +32,7 @@ typedef struct                                  _HildonFindToolbarPrivate Hildon
 struct                                          _HildonFindToolbarPrivate
 {
   GtkWidget*		label;
-  GtkComboBoxEntry*	entry_combo_box;
+  GtkComboBox*		entry_combo_box;
   GtkToolItem*		separator;
   GtkToolItem*		close_button;
 

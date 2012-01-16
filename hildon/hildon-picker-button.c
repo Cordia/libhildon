@@ -218,7 +218,7 @@ _selection_changed (HildonPickerButton *button)
   HildonPickerButtonPrivate *priv = GET_PRIVATE (button);
 
   if (!GTK_IS_WINDOW (priv->dialog) ||
-      !GTK_WIDGET_VISIBLE (GTK_WINDOW (priv->dialog))) {
+      !gtk_widget_get_visible (GTK_WIDGET (priv->dialog))) {
     gchar *value = hildon_touch_selector_get_current_text (HILDON_TOUCH_SELECTOR (priv->selector));
     if (value) {
       hildon_button_set_value (HILDON_BUTTON (button), value);
@@ -264,7 +264,7 @@ hildon_picker_button_clicked (GtkButton * button)
   /* Create the dialog if it doesn't exist already.  */
   if (!priv->dialog) {
     parent = gtk_widget_get_toplevel (GTK_WIDGET (button));
-    if (GTK_WIDGET_TOPLEVEL (parent)) {
+    if (gtk_widget_is_toplevel (parent)) {
       priv->dialog = hildon_picker_dialog_new (GTK_WINDOW (parent));
     } else {
       priv->dialog = hildon_picker_dialog_new (NULL);

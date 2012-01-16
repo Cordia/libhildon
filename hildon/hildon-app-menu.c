@@ -194,7 +194,7 @@ hildon_app_menu_insert                          (HildonAppMenu *menu,
     /* Add the item to the menu */
     g_object_ref_sink (item);
     priv->buttons = g_list_insert (priv->buttons, item, position);
-    if (GTK_WIDGET_VISIBLE (item))
+    if (gtk_widget_get_visible (item))
         hildon_app_menu_repack_items (menu, position);
 
     /* Enable accelerators */
@@ -304,7 +304,7 @@ hildon_app_menu_add_filter                      (HildonAppMenu *menu,
     /* Add the filter to the menu */
     g_object_ref_sink (filter);
     priv->filters = g_list_append (priv->filters, filter);
-    if (GTK_WIDGET_VISIBLE (filter))
+    if (gtk_widget_get_visible (filter))
         hildon_app_menu_repack_filters (menu);
 
     /* Enable accelerators */
@@ -379,7 +379,7 @@ hildon_app_menu_set_parent_window              (HildonAppMenu *self,
 
     priv->parent_window = parent_window;
 
-    if (parent_window == NULL && GTK_WIDGET_VISIBLE (self))
+    if (parent_window == NULL && gtk_widget_get_visible (self))
         gtk_widget_hide (GTK_WIDGET (self));
 }
 
@@ -413,7 +413,7 @@ can_activate_accel                              (GtkWidget *widget,
                                                  guint      signal_id,
                                                  gpointer   user_data)
 {
-    return GTK_WIDGET_VISIBLE (widget);
+    return gtk_widget_get_visible (widget);
 }
 
 static void
@@ -508,13 +508,13 @@ hildon_app_menu_find_intruder                   (gpointer data)
         gboolean intruder_found = FALSE;
         GdkScreen *screen = gtk_widget_get_screen (widget);
         GList *stack = gdk_screen_get_window_stack (screen);
-        GList *parent_pos = g_list_find (stack, GTK_WIDGET (priv->parent_window)->window);
+        GList *parent_pos = g_list_find (stack, gtk_widget_get_window (GTK_WIDGET (priv->parent_window)));
         GList *toplevels = gtk_window_list_toplevels ();
         GList *i;
 
         for (i = toplevels; i != NULL && !intruder_found; i = i->next) {
             if (i->data != widget && i->data != priv->parent_window) {
-                if (g_list_find (parent_pos, GTK_WIDGET (i->data)->window)) {
+                if (g_list_find (parent_pos, gtk_widget_get_window (GTK_WIDGET (i->data)))) {
                     /* HildonBanners are not closed automatically when
                      * a new window appears, so we must close them by
                      * hand to make the AppMenu work as expected.
@@ -559,7 +559,7 @@ hildon_app_menu_grab_notify                     (GtkWidget *widget,
     if (GTK_WIDGET_CLASS (hildon_app_menu_parent_class)->grab_notify)
         GTK_WIDGET_CLASS (hildon_app_menu_parent_class)->grab_notify (widget, was_grabbed);
 
-    if (!was_grabbed && GTK_WIDGET_VISIBLE (widget))
+    if (!was_grabbed && gtk_widget_get_visible (widget))
         gtk_widget_hide (widget);
 }
 
@@ -660,14 +660,14 @@ hildon_app_menu_realize                         (GtkWidget *widget)
 
     GTK_WIDGET_CLASS (hildon_app_menu_parent_class)->realize (widget);
 
-    gdk_window_set_decorations (widget->window, GDK_DECOR_BORDER);
+    gdk_window_set_decorations (gtk_widget_get_window (widget), GDK_DECOR_BORDER);
 
-    gdkdisplay = gdk_drawable_get_display (widget->window);
-    xdisplay = GDK_WINDOW_XDISPLAY (widget->window);
+    gdkdisplay = gdk_window_get_display (gtk_widget_get_window (widget));
+    xdisplay = GDK_WINDOW_XDISPLAY (gtk_widget_get_window (widget));
 
     property = gdk_x11_get_xatom_by_name_for_display (gdkdisplay, "_NET_WM_WINDOW_TYPE");
     window_type = XInternAtom (xdisplay, "_HILDON_WM_WINDOW_TYPE_APP_MENU", False);
-    XChangeProperty (xdisplay, GDK_WINDOW_XID (widget->window), property,
+    XChangeProperty (xdisplay, GDK_WINDOW_XID (gtk_widget_get_window (widget)), property,
                      XA_ATOM, 32, PropModeReplace, (guchar *) &window_type, 1);
 
     /* Detect any screen changes */
@@ -726,8 +726,8 @@ hildon_app_menu_apply_style                     (GtkWidget *widget)
     }
     priv->width_request = gdk_screen_get_width (screen) - external_border * 2;
 
-    if (widget->window)
-      gdk_window_move_resize (widget->window,
+    if (gtk_widget_get_window (widget))
+      gdk_window_move_resize (gtk_widget_get_window (widget),
                               external_border, 0, 1, 1);
 
     gtk_widget_queue_resize (widget);
@@ -760,7 +760,7 @@ hildon_app_menu_repack_filters                  (HildonAppMenu *menu)
 
     for (iter = priv->filters; iter != NULL; iter = iter->next) {
         GtkWidget *filter = GTK_WIDGET (iter->data);
-        if (GTK_WIDGET_VISIBLE (filter)) {
+        if (gtk_widget_get_visible (filter)) {
             gtk_box_pack_start (GTK_BOX (priv->filters_hbox), filter, TRUE, TRUE, 0);
             g_object_unref (filter);
             /* GtkButton must be realized for accelerators to work */
@@ -787,7 +787,7 @@ hildon_app_menu_repack_items                    (HildonAppMenu *menu,
     i = nvisible = 0;
     for (iter = priv->buttons; iter != NULL; iter = iter->next) {
         /* Count number of visible items */
-        if (GTK_WIDGET_VISIBLE (iter->data))
+        if (gtk_widget_get_visible (iter->data))
             nvisible++;
         /* Remove buttons from their parent */
         if (start_from != -1 && i >= start_from) {
@@ -813,7 +813,7 @@ hildon_app_menu_repack_items                    (HildonAppMenu *menu,
     row = col = 0;
     for (iter = priv->buttons; iter != NULL; iter = iter->next) {
         GtkWidget *item = GTK_WIDGET (iter->data);
-        if (GTK_WIDGET_VISIBLE (item)) {
+        if (gtk_widget_get_visible (item)) {
             /* Don't add an item to the table if it's already there */
             if (gtk_widget_get_parent (item) == NULL) {
                 gtk_table_attach_defaults (priv->table, item, col, col + 1, row, row + 1);
@@ -854,10 +854,10 @@ hildon_app_menu_has_visible_children (HildonAppMenu *menu)
 
     /* Don't show menu if it doesn't contain visible items */
     for (i = priv->buttons; i && !show_menu; i = i->next)
-        show_menu = GTK_WIDGET_VISIBLE (i->data);
+        show_menu = gtk_widget_get_visible (i->data);
 
     for (i = priv->filters; i && !show_menu; i = i->next)
-	    show_menu = GTK_WIDGET_VISIBLE (i->data);
+	    show_menu = gtk_widget_get_visible (i->data);
 
     return show_menu;
 }

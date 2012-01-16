@@ -248,14 +248,8 @@ static void
 hildon_date_selector_class_init (HildonDateSelectorClass * class)
 {
   GObjectClass *gobject_class;
-  GtkObjectClass *object_class;
-  GtkWidgetClass *widget_class;
-  GtkContainerClass *container_class;
 
   gobject_class = (GObjectClass *) class;
-  object_class = (GtkObjectClass *) class;
-  widget_class = (GtkWidgetClass *) class;
-  container_class = (GtkContainerClass *) class;
 
   /* GObject */
   gobject_class->finalize = hildon_date_selector_finalize;
@@ -295,7 +289,7 @@ hildon_date_selector_class_init (HildonDateSelectorClass * class)
 
   /* signals */
 
-  g_type_class_add_private (object_class, sizeof (HildonDateSelectorPrivate));
+  g_type_class_add_private (class, sizeof (HildonDateSelectorPrivate));
 }
 
 static void
@@ -369,7 +363,7 @@ hildon_date_selector_init (HildonDateSelector * selector)
 {
   selector->priv = HILDON_DATE_SELECTOR_GET_PRIVATE (selector);
 
-  GTK_WIDGET_SET_FLAGS (GTK_WIDGET (selector), GTK_NO_WINDOW);
+  gtk_widget_set_has_window (GTK_WIDGET (selector), FALSE);
   gtk_widget_set_redraw_on_allocate (GTK_WIDGET (selector), FALSE);
 
   hildon_touch_selector_set_print_func (HILDON_TOUCH_SELECTOR (selector),
@@ -558,13 +552,10 @@ static GtkTreeModel *
 _create_year_model (HildonDateSelector * selector)
 {
   GtkListStore *store_years = NULL;
-  gint real_year = 0;
   gint i = 0;
   static gchar label[255];
   struct tm tm = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   GtkTreeIter iter;
-
-  real_year = selector->priv->creation_year;
 
   store_years = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_INT);
   for (i = selector->priv->min_year; i < selector->priv->max_year + 1; i++) {

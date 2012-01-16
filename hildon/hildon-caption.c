@@ -57,9 +57,15 @@ hildon_caption_class_init                       (HildonCaptionClass *caption_cla
 static void
 hildon_caption_init                             (HildonCaption *caption);
 
-static void 
-hildon_caption_size_request                     (GtkWidget *widget, 
-                                                 GtkRequisition *requisition);
+static void
+hildon_caption_get_preferred_width              (GtkWidget *widget,
+                                                 gint      *minimal_width,
+                                                 gint      *natural_width);
+
+static void
+hildon_caption_get_preferred_height             (GtkWidget *widget,
+                                                 gint      *minimal_height,
+                                                 gint      *natural_height);
 
 static void 
 hildon_caption_size_allocate                    (GtkWidget *widget, 
@@ -99,7 +105,7 @@ hildon_caption_get_property                     (GObject *object,
                                                  GParamSpec *pspec);
 
 static void 
-hildon_caption_destroy                          (GtkObject *self);
+hildon_caption_destroy                          (GtkWidget *self);
 
 static gboolean 
 hildon_caption_button_press                     (GtkWidget *widget, 
@@ -190,17 +196,18 @@ hildon_caption_class_init                       (HildonCaptionClass *caption_cla
     gobject_class->get_property                 = hildon_caption_get_property;
     gobject_class->set_property                 = hildon_caption_set_property;
     caption_class->activate                     = (gpointer) hildon_caption_activate;
-    GTK_OBJECT_CLASS(caption_class)->destroy    = hildon_caption_destroy;
 
     container_class->forall                     = hildon_caption_forall;
     container_class->set_child_property         = hildon_caption_set_child_property;
     container_class->get_child_property         = hildon_caption_get_child_property;
 
     widget_class->hierarchy_changed             = hildon_caption_hierarchy_changed;
-    widget_class->size_request                  = hildon_caption_size_request;
+    widget_class->get_preferred_width           = hildon_caption_get_preferred_width;
+    widget_class->get_preferred_height          = hildon_caption_get_preferred_height;
     widget_class->size_allocate                 = hildon_caption_size_allocate;
     widget_class->button_press_event            = hildon_caption_button_press;
     widget_class->grab_focus                    = hildon_caption_grab_focus;
+    widget_class->destroy                       = hildon_caption_destroy;
 
     /* Create new signals and properties */
     widget_class->activate_signal = g_signal_new ("activate",
@@ -305,7 +312,7 @@ hildon_caption_class_init                       (HildonCaptionClass *caption_cla
 
 /* Destroy can be called multiple times, remember to set pointers to NULL */
 static void 
-hildon_caption_destroy                          (GtkObject *self)
+hildon_caption_destroy                          (GtkWidget *self)
 {
     HildonCaptionPrivate *priv = HILDON_CAPTION_GET_PRIVATE (self);
 
@@ -330,8 +337,8 @@ hildon_caption_destroy                          (GtkObject *self)
     }
 
     /* Parent classes destroy takes care of user packed contents */
-    if (GTK_OBJECT_CLASS (parent_class)->destroy)
-        GTK_OBJECT_CLASS (parent_class)->destroy (self);
+    if (GTK_WIDGET_CLASS (parent_class)->destroy)
+        GTK_WIDGET_CLASS (parent_class)->destroy (self);
 }
 
 static void 
@@ -510,8 +517,8 @@ static gboolean
 hildon_caption_button_press                     (GtkWidget *widget, 
                                                  GdkEventButton *event)
 {
-    gtk_widget_grab_focus (GTK_BIN (widget)->child);
-    
+    gtk_widget_grab_focus (gtk_bin_get_child (GTK_BIN (widget)));
+
     /* we'll update our focused state in set-focus when/if the child receives
      * focus */
 
@@ -618,26 +625,53 @@ hildon_caption_hierarchy_changed                (GtkWidget *widget,
                 G_CALLBACK (hildon_caption_set_focus), widget );
 }
 
-static void 
-hildon_caption_size_request                     (GtkWidget *widget,
-                                                 GtkRequisition *requisition)
+static void
+hildon_caption_get_preferred_height             (GtkWidget *widget,
+                                                 gint      *minimal_height,
+                                                 gint      *natural_height)
 {
-    GtkRequisition req;
+    gint caption_minimal, caption_natural;
+    HildonCaptionPrivate *priv = NULL;
+    GtkStyle *style;
+    g_return_if_fail (HILDON_IS_CAPTION(widget));
+
+    priv = HILDON_CAPTION_GET_PRIVATE (widget);
+
+    /* Use the height for the main box of the caption */
+    gtk_widget_get_preferred_height (priv->caption_area, &caption_minimal, &caption_natural);
+
+    if (GTK_WIDGET_CLASS (parent_class)->get_preferred_height)
+        GTK_WIDGET_CLASS (parent_class)->get_preferred_height (widget, minimal_height, natural_height);
+
+    g_object_get (widget, "style", &style, NULL);
+
+    if ((caption_minimal + (2 * style->ythickness)) > *minimal_height)
+        *minimal_height = caption_minimal + (2 * style->ythickness);
+    if ((caption_natural + (2 * style->ythickness)) > *natural_height)
+        *natural_height = caption_natural + (2 * style->ythickness);
+
+    g_object_unref (style);
+}
+
+static void
+hildon_caption_get_preferred_width              (GtkWidget *widget,
+                                                 gint      *minimal_width,
+                                                 gint      *natural_width)
+{
+    gint caption_minimal, caption_natural;
     HildonCaptionPrivate *priv = NULL;
     g_return_if_fail (HILDON_IS_CAPTION(widget));
 
     priv = HILDON_CAPTION_GET_PRIVATE (widget);
 
-    /* Use the same size requisition for the main box of the caption */
-    gtk_widget_size_request (priv->caption_area, &req);
+    /* Use the width for the main box of the caption */
+    gtk_widget_get_preferred_width (priv->caption_area, &caption_minimal, &caption_natural);
 
-    if (GTK_WIDGET_CLASS (parent_class)->size_request)
-        GTK_WIDGET_CLASS (parent_class)->size_request (widget, requisition);
+    if (GTK_WIDGET_CLASS (parent_class)->get_preferred_width)
+        GTK_WIDGET_CLASS (parent_class)->get_preferred_width (widget, minimal_width, natural_width);
 
-    requisition->width += req.width + HILDON_CAPTION_SPACING * 3;
-
-    if ((req.height + (2 * widget->style->ythickness)) > requisition->height)
-        requisition->height = req.height + (2 * widget->style->ythickness);
+    *minimal_width += caption_minimal + HILDON_CAPTION_SPACING * 3;
+    *natural_width += caption_natural + HILDON_CAPTION_SPACING * 3;
 }
 
 /* We use HILDON_CAPTION_SPACING to make it look a bit nicer */
@@ -651,6 +685,7 @@ hildon_caption_size_allocate                    (GtkWidget *widget,
     GtkWidget *child = NULL;
     HildonCaptionPrivate *priv = NULL;
     gboolean rtl;
+    guint border_width;
 
     g_assert (HILDON_IS_CAPTION (widget));
     priv = HILDON_CAPTION_GET_PRIVATE (widget);
@@ -659,18 +694,21 @@ hildon_caption_size_allocate                    (GtkWidget *widget,
     rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
 
     /* Position the caption to its allocated location */
-    if (GTK_WIDGET_REALIZED (widget))
-        gdk_window_move_resize (widget->window,
-                allocation->x + GTK_CONTAINER (widget)->border_width,
-                allocation->y + GTK_CONTAINER (widget)->border_width,
-                MAX (allocation->width - GTK_CONTAINER (widget)->border_width * 2, 0),
-                MAX (allocation->height - GTK_CONTAINER (widget)->border_width * 2, 0));
+    if (gtk_widget_get_realized (widget))
+    {
+        border_width = gtk_container_get_border_width (GTK_CONTAINER (widget));
+        gdk_window_move_resize (gtk_widget_get_window (widget),
+                allocation->x + border_width,
+                allocation->y + border_width,
+                MAX (allocation->width - border_width * 2, 0),
+                MAX (allocation->height - border_width * 2, 0));
+    }
 
-    child = GTK_BIN (widget)->child;
+    child = gtk_bin_get_child (GTK_BIN (widget));
     if (child)
         gtk_widget_get_child_requisition (child, &child_req);
 
-    widget->allocation = *allocation;
+    gtk_widget_size_allocate (widget, allocation);
     gtk_widget_get_child_requisition (priv->caption_area, &req);
 
     child_alloc.height = caption_alloc.height = allocation->height;
@@ -702,13 +740,13 @@ hildon_caption_size_allocate                    (GtkWidget *widget,
     }
 
     /* Give the child at least its minimum requisition, unless it is expandable */
-    if (! priv->expand && child && GTK_WIDGET_VISIBLE(child))
+    if (! priv->expand && child && gtk_widget_get_visible (child))
     {
         child_alloc.width  = MIN (child_alloc.width,  child_req.width);
         child_alloc.height = MIN (child_alloc.height, child_req.height);
 	/* Center the child */
 	child_alloc.y = (allocation->height - child_alloc.height -
-			 2 * GTK_CONTAINER (widget)->border_width)/2;
+			 2 * gtk_container_get_border_width (GTK_CONTAINER (widget)))/2;
     }
 
     /* Ensure there are no negative dimensions */
@@ -725,7 +763,7 @@ hildon_caption_size_allocate                    (GtkWidget *widget,
     child_alloc.height = MAX (child_alloc.height, 0);
     caption_alloc.height = MAX (caption_alloc.height, 0);
 
-    if (child && GTK_WIDGET_VISIBLE(child) )
+    if (child && gtk_widget_get_visible (child) )
         gtk_widget_size_allocate (child, &child_alloc );
 
     gtk_widget_size_allocate (priv->caption_area, &caption_alloc);
@@ -1072,14 +1110,14 @@ hildon_caption_get_separator                    (const HildonCaption *caption)
 static void 
 hildon_caption_activate                         (GtkWidget *widget)
 {
-    GtkWidget *child = GTK_BIN (widget)->child;
+    GtkWidget *child = gtk_bin_get_child (GTK_BIN (widget));
     gtk_widget_grab_focus (child);
 }
 
 static void
 hildon_caption_grab_focus                       (GtkWidget *widget)
 {
-    gtk_widget_grab_focus (GTK_BIN (widget)->child);
+    gtk_widget_grab_focus (gtk_bin_get_child (GTK_BIN (widget)));
 }
 
 /**
@@ -1104,13 +1142,13 @@ hildon_caption_set_child_expand                 (HildonCaption *caption,
         return;
 
     priv->expand = expand;
-    child = GTK_BIN (caption)->child;
+    child = gtk_bin_get_child (GTK_BIN (caption));
 
     /* We do not have a child, nothing to do */
     if (! GTK_IS_WIDGET (child))
         return;
 
-    if (GTK_WIDGET_VISIBLE (child) && GTK_WIDGET_VISIBLE (caption))
+    if (gtk_widget_get_visible (child) && gtk_widget_get_visible (GTK_WIDGET (caption)))
         gtk_widget_queue_resize (child);
 
     gtk_widget_child_notify (child, "expand");

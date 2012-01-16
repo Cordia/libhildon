@@ -86,7 +86,7 @@ static void
 finalize                                        (GObject *object);
 
 static void
-destroy                                         (GtkObject *object);
+destroy                                         (GtkWidget *object);
 
 static void 
 response                                        (HildonWizardDialog *wizard, 
@@ -146,7 +146,7 @@ static void
 hildon_wizard_dialog_class_init                 (HildonWizardDialogClass *wizard_dialog_class)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (wizard_dialog_class);
-    GtkObjectClass *gtk_object_class = GTK_OBJECT_CLASS (wizard_dialog_class);
+    GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (wizard_dialog_class);
     parent_class = g_type_class_peek_parent (wizard_dialog_class);
 
     g_type_class_add_private (wizard_dialog_class, sizeof (HildonWizardDialogPrivate));
@@ -155,7 +155,7 @@ hildon_wizard_dialog_class_init                 (HildonWizardDialogClass *wizard
     object_class->set_property = hildon_wizard_dialog_set_property;
     object_class->get_property = hildon_wizard_dialog_get_property;
     object_class->finalize     = finalize;
-    gtk_object_class->destroy  = destroy;
+    widget_class->destroy      = destroy;
 
     /**
      * HildonWizardDialog:wizard-name:
@@ -215,7 +215,7 @@ finalize                                        (GObject *object)
 }
 
 static void
-destroy                                         (GtkObject *object)
+destroy                                         (GtkWidget *object)
 {
     HildonWizardDialogPrivate *priv = HILDON_WIZARD_DIALOG_GET_PRIVATE (object);
 
@@ -262,9 +262,6 @@ hildon_wizard_dialog_init                       (HildonWizardDialog *wizard_dial
 
     GtkDialog *dialog = GTK_DIALOG (wizard_dialog);
 
-    /* Init internal widgets */
-    gtk_dialog_set_has_separator (dialog, FALSE);
-
     /* Default values for user provided properties */
     priv->notebook = NULL;
     priv->wizard_name = NULL;
@@ -283,7 +280,7 @@ hildon_wizard_dialog_init                       (HildonWizardDialog *wizard_dial
     make_buttons_sensitive (wizard_dialog, FALSE, FALSE, TRUE);
 
     /* Show all the internal widgets */
-    gtk_widget_show_all (GTK_WIDGET (dialog->vbox));
+    gtk_widget_show_all (GTK_WIDGET (gtk_dialog_get_content_area (dialog)));
 
     /* connect to dialog's response signal */
     g_signal_connect (G_OBJECT (dialog), "response",
@@ -344,7 +341,7 @@ hildon_wizard_dialog_set_property               (GObject *object,
              * and remove borders) to make it look like a nice wizard widget */
             gtk_notebook_set_show_tabs (priv->notebook, FALSE);
             gtk_notebook_set_show_border (priv->notebook, FALSE);
-            gtk_box_pack_start_defaults (GTK_BOX (dialog->vbox), GTK_WIDGET (priv->notebook));
+            gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (dialog)), GTK_WIDGET (priv->notebook), TRUE, TRUE, 0);
 
             /* Show the notebook so that a gtk_widget_show on the dialog is
              * all that is required to display the dialog correctly */
@@ -392,7 +389,7 @@ hildon_wizard_dialog_get_property               (GObject *object,
 static void
 create_title                                    (HildonWizardDialog *wizard_dialog)
 {
-    gint pages, current;
+    gint current;
     gchar *str = NULL;
     HildonWizardDialogPrivate *priv = HILDON_WIZARD_DIALOG_GET_PRIVATE (wizard_dialog);
     GtkNotebook *notebook;
@@ -404,7 +401,6 @@ create_title                                    (HildonWizardDialog *wizard_dial
         return;
 
     /* Get page information, we'll need that when creating title */
-    pages = gtk_notebook_get_n_pages (notebook);
     current = gtk_notebook_get_current_page (priv->notebook);
     if (current < 0)
         current = 0;
@@ -448,7 +444,7 @@ response                                        (HildonWizardDialog *wizard_dial
 
     g_assert (priv);
 
-    current = gtk_notebook_current_page (notebook);
+    current = gtk_notebook_get_current_page (notebook);
 
     switch (response_id) {
 

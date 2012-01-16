@@ -192,12 +192,12 @@ hildon_animation_actor_realize                 (GtkWidget *widget)
 
     /* Set animation actor window type. */
 
-    display = gdk_drawable_get_display (widget->window);
+    display = gdk_window_get_display (gtk_widget_get_window (widget));
 
     wm_type = gdk_x11_get_xatom_by_name_for_display (display, "_NET_WM_WINDOW_TYPE");
     applet_type = gdk_x11_get_xatom_by_name_for_display (display, "_HILDON_WM_WINDOW_TYPE_ANIMATION_ACTOR");
 
-    XChangeProperty (GDK_DISPLAY_XDISPLAY (display), GDK_WINDOW_XID (widget->window), wm_type,
+    XChangeProperty (GDK_DISPLAY_XDISPLAY (display), GDK_WINDOW_XID (gtk_widget_get_window (widget)), wm_type,
                      XA_ATOM, 32, PropModeReplace,
                      (unsigned char *) &applet_type, 1);
 
@@ -243,7 +243,7 @@ hildon_animation_actor_realize                 (GtkWidget *widget)
 
     /* Wait for a ready message */
 
-    gdk_window_add_filter (widget->window,
+    gdk_window_add_filter (gtk_widget_get_window (widget),
 			   hildon_animation_actor_event_filter,
 			   widget);
 }
@@ -251,7 +251,7 @@ hildon_animation_actor_realize                 (GtkWidget *widget)
 static void
 hildon_animation_actor_unrealize               (GtkWidget *widget)
 {
-    gdk_window_remove_filter (widget->window,
+    gdk_window_remove_filter (gtk_widget_get_window (widget),
 			      hildon_animation_actor_event_filter,
 			      widget);
 
@@ -382,8 +382,8 @@ hildon_animation_actor_update_ready (HildonAnimationActor *self)
     HildonAnimationActorPrivate
 	               *priv = HILDON_ANIMATION_ACTOR_GET_PRIVATE (self);
     GtkWidget          *widget = GTK_WIDGET (self);
-    Display            *display = GDK_WINDOW_XDISPLAY (widget->window);
-    Window              window = GDK_WINDOW_XID (widget->window);
+    Display            *display = GDK_WINDOW_XDISPLAY (gtk_widget_get_window (widget));
+    Window              window = GDK_WINDOW_XID (gtk_widget_get_window (widget));
 
     int status;
     gint xerror;
@@ -432,7 +432,7 @@ hildon_animation_actor_update_ready (HildonAnimationActor *self)
 			      G_CALLBACK(hildon_animation_actor_map_event),
 			      self);
 
-	if (GTK_WIDGET_MAPPED (GTK_WIDGET (self)))
+	if (gtk_widget_get_mapped (GTK_WIDGET (self)))
 	{
 	    gtk_widget_unmap (GTK_WIDGET (self));
 	    gtk_widget_map (GTK_WIDGET (self));
@@ -558,8 +558,8 @@ hildon_animation_actor_send_message (HildonAnimationActor *self,
                                      guint32 l4)
 {
     GtkWidget          *widget = GTK_WIDGET (self);
-    Display            *display = GDK_WINDOW_XDISPLAY (widget->window);
-    Window              window = GDK_WINDOW_XID (widget->window);
+    Display            *display = GDK_WINDOW_XDISPLAY (gtk_widget_get_window (widget));
+    Window              window = GDK_WINDOW_XID (gtk_widget_get_window (widget));
 #if 0
     XClientMessageEvent event;
 
@@ -641,12 +641,12 @@ hildon_animation_actor_set_show_full (HildonAnimationActor *self,
     priv->opacity = opacity;
     priv->set_show = 1;
 
-    if (GTK_WIDGET_MAPPED (widget) && priv->ready)
+    if (gtk_widget_get_mapped (widget) && priv->ready)
     {
 	/* Defer show messages until the animation actor is parented
 	 * and the parent window is mapped */
 
-	if (!priv->parent || !GTK_WIDGET_MAPPED (GTK_WIDGET (priv->parent)))
+	if (!priv->parent || !gtk_widget_get_mapped (GTK_WIDGET (priv->parent)))
 	    return;
 
 	hildon_animation_actor_send_message (self,
@@ -751,7 +751,7 @@ hildon_animation_actor_set_position_full (HildonAnimationActor *self,
     priv->depth = depth;
     priv->set_position = 1;
 
-    if (GTK_WIDGET_MAPPED (widget) && priv->ready)
+    if (gtk_widget_get_mapped (widget) && priv->ready)
     {
 	hildon_animation_actor_send_message (self,
 					     position_atom,
@@ -831,7 +831,7 @@ hildon_animation_actor_set_scalex (HildonAnimationActor *self,
     priv->scale_y = y_scale;
     priv->set_scale = 1;
 
-    if (GTK_WIDGET_MAPPED (widget) && priv->ready)
+    if (gtk_widget_get_mapped (widget) && priv->ready)
     {
 	hildon_animation_actor_send_message (self,
 					     scale_atom,
@@ -925,7 +925,7 @@ hildon_animation_actor_set_rotationx (HildonAnimationActor     *self,
 
     priv->set_rotation |= mask;
 
-    if (GTK_WIDGET_MAPPED (widget) && priv->ready)
+    if (gtk_widget_get_mapped (widget) && priv->ready)
     {
 	hildon_animation_actor_send_message (self,
 					     rotation_atom,
@@ -998,7 +998,7 @@ hildon_animation_actor_set_anchor (HildonAnimationActor *self,
     priv->anchor_y = y;
     priv->set_anchor = 1;
 
-    if (GTK_WIDGET_MAPPED (widget) && priv->ready)
+    if (gtk_widget_get_mapped (widget) && priv->ready)
     {
 	hildon_animation_actor_send_message (self,
 					     anchor_atom,
@@ -1035,7 +1035,7 @@ hildon_animation_actor_set_anchor_from_gravity (HildonAnimationActor *self,
     priv->gravity = gravity;
     priv->set_anchor = 1;
 
-    if (GTK_WIDGET_MAPPED (widget) && priv->ready)
+    if (gtk_widget_get_mapped (widget) && priv->ready)
     {
 	hildon_animation_actor_send_message (self,
 					     anchor_atom,
@@ -1162,14 +1162,14 @@ hildon_animation_actor_set_parent (HildonAnimationActor *self,
 	}
     }
 
-    if (GTK_WIDGET_MAPPED (widget) && priv->ready)
+    if (gtk_widget_get_mapped (widget) && priv->ready)
     {
 	Window win = 0;
 
 	/* If the animation actor is being unparented or parented to an
 	 * unmapped widget, force its visibility to "hidden". */
 
-	if (!priv->parent || !GTK_WIDGET_MAPPED (GTK_WIDGET (priv->parent)))
+	if (!priv->parent || !gtk_widget_get_mapped (GTK_WIDGET (priv->parent)))
 	{
 	    hildon_animation_actor_send_message (self,
 						 show_atom,
@@ -1184,10 +1184,10 @@ hildon_animation_actor_set_parent (HildonAnimationActor *self,
 
 	if (priv->parent)
 	{
-	    if (!GTK_WIDGET_MAPPED (GTK_WIDGET (priv->parent)))
+	    if (!gtk_widget_get_mapped (GTK_WIDGET (priv->parent)))
 		return;
 
-	    GdkWindow *gdk = GTK_WIDGET (parent)->window;
+	    GdkWindow *gdk = gtk_widget_get_window (GTK_WIDGET (parent));
 	    win = GDK_WINDOW_XID (gdk);
 	}
 

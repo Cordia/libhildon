@@ -93,7 +93,6 @@ hildon_ca_context_get (void)
 void 
 hildon_play_system_sound(const gchar *sample)
 {
-    int ret;
     ca_context *ca_con = NULL;
     ca_proplist *pl = NULL;
 
@@ -104,7 +103,7 @@ hildon_play_system_sound(const gchar *sample)
     ca_proplist_sets(pl, CA_PROP_MEDIA_ROLE, "dialog-information");
     ca_proplist_sets(pl, "module-stream-restore.id", "x-maemo-system-sound");
 
-    ret = ca_context_play_full(ca_con, 0, pl, NULL, NULL);
+    ca_context_play_full(ca_con, 0, pl, NULL, NULL);
 
     ca_proplist_destroy(pl);
 }

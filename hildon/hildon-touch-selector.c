@@ -262,6 +262,10 @@ hildon_touch_selector_set_property              (GObject *object,
                                                  const GValue *value,
                                                  GParamSpec *pspec);
 /* gtkwidget */
+static void
+hildon_touch_selector_get_preferred_height      (GtkWidget *widget,
+                                                 gint      *minimal,
+                                                 gint      *natural);
 
 /* gtkcontainer */
 static void hildon_touch_selector_remove        (GtkContainer * container,
@@ -342,17 +346,14 @@ static void hildon_touch_selector_column_cell_layout_reorder       (GtkCellLayou
 static GList *hildon_touch_selector_column_cell_layout_get_cells   (GtkCellLayout         *cell_layout);
 
 static void
-hildon_touch_selector_check_ui_mode_coherence   (HildonTouchSelector *selector);
-
-static void
 hildon_touch_selector_class_init (HildonTouchSelectorClass * class)
 {
   GObjectClass *gobject_class;
-  GtkObjectClass *object_class;
+  GtkWidgetClass *widget_class;
   GtkContainerClass *container_class;
 
   gobject_class = G_OBJECT_CLASS (class);
-  object_class = GTK_OBJECT_CLASS (class);
+  widget_class = (GtkWidgetClass *) class;
   container_class = GTK_CONTAINER_CLASS (class);
 
   /* GObject */
@@ -361,6 +362,7 @@ hildon_touch_selector_class_init (HildonTouchSelectorClass * class)
   gobject_class->set_property = hildon_touch_selector_set_property;
 
   /* GtkWidget */
+  widget_class->get_preferred_height = hildon_touch_selector_get_preferred_height;
 
   /* GtkContainer */
   container_class->remove = hildon_touch_selector_remove;
@@ -449,7 +451,7 @@ hildon_touch_selector_class_init (HildonTouchSelectorClass * class)
                        "} widget \"*.fremantle-htst\" style \"fremantle-htst\""
                        "widget_class \"*<HildonPannableArea>.GtkTreeView\" style :highest \"fremantle-htst\"");
 
-  g_type_class_add_private (object_class, sizeof (HildonTouchSelectorPrivate));
+  g_type_class_add_private (class, sizeof (HildonTouchSelectorPrivate));
 }
 
 static void
@@ -503,7 +505,7 @@ hildon_touch_selector_init (HildonTouchSelector * selector)
 {
   selector->priv = HILDON_TOUCH_SELECTOR_GET_PRIVATE (selector);
 
-  GTK_WIDGET_SET_FLAGS (GTK_WIDGET (selector), GTK_NO_WINDOW);
+  gtk_widget_set_has_window (GTK_WIDGET (selector), FALSE);
   gtk_widget_set_redraw_on_allocate (GTK_WIDGET (selector), FALSE);
 
   selector->priv->columns = NULL;
@@ -619,7 +621,7 @@ void
 hildon_touch_selector_column_disable_focus      (HildonTouchSelectorColumn *col)
 {
     g_return_if_fail (HILDON_IS_TOUCH_SELECTOR_COLUMN (col));
-    GTK_WIDGET_UNSET_FLAGS (GTK_WIDGET (col->priv->tree_view), GTK_CAN_FOCUS);
+    gtk_widget_set_can_focus (GTK_WIDGET (col->priv->tree_view), FALSE);
 }
 
 static void
@@ -2340,7 +2342,8 @@ search_nearest_element (HildonPannableArea *panarea,
 
   /* we add this in order to check the nearest to the center of
      the visible area */
-  target_value = gtk_adjustment_get_value (adj) + adj->page_size/2;
+  target_value = gtk_adjustment_get_value (adj)
+               + gtk_adjustment_get_page_size (adj)/2;
 
   path = result_path = selected_rows->data;
   gtk_tree_view_get_background_area (tv, path, NULL, &rect);
@@ -2397,7 +2400,7 @@ hildon_touch_selector_scroll_to (HildonTouchSelectorColumn *column,
                                  GtkTreeView *tv,
                                  GtkTreePath *path)
 {
-  if (GTK_WIDGET_REALIZED (column->priv->panarea)) {
+  if (gtk_widget_get_realized (GTK_WIDGET (column->priv->panarea))) {
     GdkRectangle rect;
     gint y;
 
@@ -2571,69 +2574,64 @@ hildon_touch_selector_center_on_selected         (HildonTouchSelector *selector)
 }
 
 /**
- * hildon_touch_selector_optimal_size_request
- * @selector: a #HildonTouchSelector
- * @requisition: a #GtkRequisition
+ * hildon_touch_selector_get_preferred_height
+ * @widget:	a #GtkWidget instance (of #HildonTouchSelector)
+ * @minimum_height:	location to store the minimum height, or NULL. [out][allow-none]
+ * @natural_height:	location to store the natural height, or NULL. [out][allow-none]
  *
- * Gets the optimal size request of the touch selector. This function is mostly
+ * Gets the optimal height of the touch selector. This function is mostly
  * intended for dialog implementations that include a #HildonTouchSelector and
  * want to optimize the screen real state, for example, when you want a dialog
  * to show as much of the selector, avoiding any extra empty space below the
  * selector.
  *
  * See #HildonPickerDialog implementation for an example.
- *
- * This function is oriented to be used in the size_request of a dialog or window,
- * if you are not sure do not use it.
- *
- * There is a precondition to this function: Since this function does not
- * call the "size_request" method, it can only be used when you know that
- * gtk_widget_size_request() has been called since the last time a resize was
- * queued.
- *
- * Since: 2.2
  **/
-void
-hildon_touch_selector_optimal_size_request      (HildonTouchSelector *selector,
-                                                 GtkRequisition *requisition)
+static void
+hildon_touch_selector_get_preferred_height      (GtkWidget *widget,
+                                                 gint      *minimal,
+                                                 gint      *natural)
 {
+  HildonTouchSelectorClass *klass;
+  GtkVBoxClass *parent_class;
   GSList *iter = NULL;
   gint height = 0;
   gint base_height = 0;
 
-  g_return_if_fail (HILDON_IS_TOUCH_SELECTOR (selector));
+  g_return_if_fail (HILDON_IS_TOUCH_SELECTOR (widget));
 
-  iter = selector->priv->columns;
+  iter = HILDON_TOUCH_SELECTOR (widget)->priv->columns;
 
   /* Default optimal values are the current ones */
-  gtk_widget_get_child_requisition (GTK_WIDGET (selector),
-                                    requisition);
+  klass = HILDON_TOUCH_SELECTOR_GET_CLASS (widget);
+  parent_class = g_type_class_peek_parent (klass);
+  GTK_WIDGET_CLASS (parent_class)->get_preferred_height (widget, minimal, natural);
 
   if (iter == NULL) {
-    height = requisition->height;
+    height = *natural;
   } else {
     /* we use the normal requisition as base, as the touch selector can has
        extra widgets, not only the columns (ie: HildonTouchSelectorEntry) */
-    base_height = requisition->height;
+    base_height = *natural;
   }
 
   /* Compute optimal height for the columns */
   while (iter) {
     HildonTouchSelectorColumn *column;
     GtkWidget *child;
-    GtkRequisition child_requisition = {0};
+    gint child_minimal, child_natural;
 
     column = HILDON_TOUCH_SELECTOR_COLUMN (iter->data);
     child = GTK_WIDGET (column->priv->tree_view);
 
-    gtk_widget_get_child_requisition (child, &child_requisition);
+    gtk_widget_get_preferred_height (child, &child_minimal, &child_natural);
 
-    height = MAX (height, child_requisition.height);
+    height = MAX (height, child_natural);
 
     iter = g_slist_next (iter);
   }
 
-  requisition->height = base_height + height;
+  *natural = base_height + height;
 }
 
 

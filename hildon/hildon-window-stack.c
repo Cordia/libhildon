@@ -188,7 +188,7 @@ hildon_window_stack_window_realized             (GtkWidget         *win,
                                                  HildonWindowStack *stack)
 {
     GdkWindow *leader = hildon_window_stack_get_leader_window (stack, win);
-    gdk_window_set_group (win->window, leader);
+    gdk_window_set_group (gtk_widget_get_window (win), leader);
 }
 
 /* Remove a window from its stack, no matter its position */
@@ -203,8 +203,8 @@ hildon_window_stack_remove                      (HildonStackableWindow *win)
 
         hildon_stackable_window_set_stack (win, NULL, -1);
         gtk_window_set_transient_for (GTK_WINDOW (win), NULL);
-        if (GTK_WIDGET (win)->window) {
-            gdk_window_set_group (GTK_WIDGET (win)->window, NULL);
+        if (gtk_widget_get_window (GTK_WIDGET (win))) {
+            gdk_window_set_group (gtk_widget_get_window (GTK_WIDGET (win)), NULL);
         }
 
         /* If the window removed is in the middle of the stack, update
@@ -303,7 +303,7 @@ _hildon_window_stack_do_push                    (HildonWindowStack     *stack,
         }
 
         /* Set window group */
-        if (GTK_WIDGET_REALIZED (win)) {
+        if (gtk_widget_get_realized (GTK_WIDGET (win))) {
             hildon_window_stack_window_realized (GTK_WIDGET (win), stack);
         } else {
             g_signal_connect (win, "realize",

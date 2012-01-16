@@ -218,12 +218,13 @@ hildon_change_style_recursive_from_list         (GtkWidget *widget,
         HildonLogicalElement *element = (HildonLogicalElement *) iterator->data;
 
         if (element->is_color == TRUE) {
-
+            GtkStyle *style;
             /* Changing logical color */
             GdkColor color;
             gtk_widget_ensure_style (widget);
-            if (gtk_style_lookup_color (widget->style, element->logical_color_name, &color) == TRUE) {
-               
+            g_object_get (widget, "style", &style, NULL);
+            if (gtk_style_lookup_color (style, element->logical_color_name, &color) == TRUE) {
+
                 switch (element->rc_flags)
                 {
                     case GTK_RC_FG:
@@ -243,6 +244,7 @@ hildon_change_style_recursive_from_list         (GtkWidget *widget,
                         break;
                 }
             }
+            g_object_unref (style);
         } else {
             
             /* Changing logical font */
@@ -404,13 +406,16 @@ hildon_helper_set_logical_color                 (GtkWidget *widget,
  * Finger-Sized scrollbar should always be used together with finger-sized content.
  **/
 void
-hildon_helper_set_thumb_scrollbar               (GtkScrolledWindow *win, 
+hildon_helper_set_thumb_scrollbar               (GtkScrolledWindow *win,
                                                  gboolean thumb)
 {
+    GtkWidget *vscrollbar;
+
     g_return_if_fail (GTK_IS_SCROLLED_WINDOW (win));
 
-    if (win->vscrollbar) 
-        gtk_widget_set_name (win->vscrollbar, (thumb) ? "hildon-thumb-scrollbar" : NULL);
+    vscrollbar = gtk_scrolled_window_get_vscrollbar (win);
+    if (vscrollbar)
+        gtk_widget_set_name (vscrollbar, (thumb) ? "hildon-thumb-scrollbar" : NULL);
 }
 
 /**

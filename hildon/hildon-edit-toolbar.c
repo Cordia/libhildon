@@ -118,21 +118,17 @@ hildon_edit_toolbar_style_set                   (GtkWidget *widget,
 }
 
 static gboolean
-hildon_edit_toolbar_expose                      (GtkWidget      *widget,
-                                                 GdkEventExpose *event)
+hildon_edit_toolbar_draw                        (GtkWidget *widget,
+                                                 cairo_t   *cr)
 {
-    if (GTK_WIDGET_DRAWABLE (widget)) {
-        gtk_paint_flat_box (widget->style,
-                            widget->window,
-                            GTK_STATE_NORMAL,
-                            GTK_SHADOW_NONE,
-                            &event->area, widget, "edit-toolbar",
-                            widget->allocation.x, widget->allocation.y,
-                            widget->allocation.width, widget->allocation.height);
-    }
+    gtk_render_background (gtk_widget_get_style_context (widget),
+                           cr,
+                           0, 0,
+                           gtk_widget_get_allocated_width (widget),
+                           gtk_widget_get_allocated_height (widget));
 
-    if (GTK_WIDGET_CLASS (hildon_edit_toolbar_parent_class)->expose_event)
-        return GTK_WIDGET_CLASS (hildon_edit_toolbar_parent_class)->expose_event (widget, event);
+    if (GTK_WIDGET_CLASS (hildon_edit_toolbar_parent_class)->draw)
+        return GTK_WIDGET_CLASS (hildon_edit_toolbar_parent_class)->draw (widget, cr);
 
     return FALSE;
 }
@@ -144,7 +140,7 @@ hildon_edit_toolbar_class_init                  (HildonEditToolbarClass *klass)
     GtkWidgetClass *widget_class = (GtkWidgetClass *)klass;
 
     widget_class->style_set = hildon_edit_toolbar_style_set;
-    widget_class->expose_event = hildon_edit_toolbar_expose;
+    widget_class->draw = hildon_edit_toolbar_draw;
 
     g_type_class_add_private (klass, sizeof (HildonEditToolbarPrivate));
 
