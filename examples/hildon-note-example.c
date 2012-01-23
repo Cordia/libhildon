@@ -42,8 +42,8 @@ on_information_clicked                          (GtkWidget *widget, gpointer dat
     i = gtk_dialog_run (GTK_DIALOG (note));
     if (i == GTK_RESPONSE_DELETE_EVENT)
       g_debug ("%s: GTK_RESPONSE_DELETE_EVENT", __FUNCTION__);
-    gtk_object_destroy (GTK_OBJECT (note));
     
+    gtk_widget_destroy (GTK_WIDGET (note));
     return TRUE;
 }
 
@@ -57,8 +57,8 @@ on_confirmation_clicked                         (GtkWidget *widget, gpointer dat
 
     gtk_window_set_transient_for (GTK_WINDOW(note), GTK_WINDOW(window));
     i = gtk_dialog_run (GTK_DIALOG (note));
-    gtk_object_destroy (GTK_OBJECT (note));
     
+    gtk_widget_destroy (GTK_WIDGET (note));
     if (i == GTK_RESPONSE_OK)
         g_debug ("Button 'OK' pressed");
     else if (i == GTK_RESPONSE_DELETE_EVENT)
@@ -84,7 +84,7 @@ on_progress_clicked                             (GtkWidget *widget, gpointer dat
       g_debug ("%s: GTK_RESPONSE_DELETE_EVENT", __FUNCTION__);
     else
       g_debug ("Button 'Cancel' pressed");
-    gtk_object_destroy (GTK_OBJECT (note));
+    gtk_widget_destroy (GTK_WIDGET (note));
 
     return TRUE;
 }

@@ -41,6 +41,7 @@ static gboolean cb(gpointer win)
 int main(int argc, char const *argv[])
 {
   GtkWidget *win, *text;
+  GdkWindow *window;
 
   Block = !argv[1];
   gtk_init(NULL, NULL);
@@ -55,8 +56,9 @@ int main(int argc, char const *argv[])
   gtk_container_add(GTK_CONTAINER(win), text);
 
   gtk_widget_realize(win);
-  gdk_window_set_events(win->window,
-            gdk_window_get_events(win->window) | GDK_BUTTON_PRESS_MASK);
+  window = GDK_WINDOW (gtk_widget_get_window (win));
+  gdk_window_set_events(window,
+            gdk_window_get_events(window) | GDK_BUTTON_PRESS_MASK);
   gtk_widget_show_all(win);
 
   gtk_main();

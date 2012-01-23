@@ -58,8 +58,6 @@ main                                            (int argc,
     GtkDialog *dialog = GTK_DIALOG (gtk_dialog_new ());
     gtk_window_set_title (GTK_WINDOW (dialog), "icons");
 
-    gtk_dialog_set_has_separator (dialog, FALSE);
- 
     GtkTable *table = GTK_TABLE (gtk_table_new (3, 3, TRUE));
     gtk_table_attach (table, create_button_with_icon (GTK_STOCK_OK), 0, 1, 0, 1, 0, 0, 0, 0);
     gtk_table_attach (table, create_button_with_icon (GTK_STOCK_CANCEL), 1, 2, 0, 1, 0, 0, 0, 0);
@@ -72,7 +70,7 @@ main                                            (int argc,
     gtk_table_set_col_spacings (table, 6);
     gtk_table_set_row_spacings (table, 6);
 
-    gtk_box_pack_start (GTK_BOX (dialog->vbox), GTK_WIDGET (table), FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (dialog)), GTK_WIDGET (table), FALSE, FALSE, 0);
 
     gtk_dialog_add_button (dialog, "Close", GTK_RESPONSE_CLOSE);
 

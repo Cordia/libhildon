@@ -78,7 +78,7 @@ on_hide_clicked                                 (GtkWidget *widget)
     if (! has_toolbar) 
         hildon_banner_show_information (widget, NULL, "No toolbar added"); 
     else 
-        gtk_widget_hide_all (GTK_WIDGET (toolbar));
+        gtk_widget_hide (GTK_WIDGET (toolbar));
 
     return TRUE;
 }

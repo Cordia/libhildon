@@ -75,7 +75,7 @@ main                                            (int    argc,
 
     filter = gtk_tree_model_filter_new (create_model (), NULL);
 
-    iconview = hildon_gtk_icon_view_new_with_model (HILDON_UI_MODE_NORMAL, filter);
+    iconview = gtk_icon_view_new_with_model (filter);
     gtk_icon_view_set_text_column (GTK_ICON_VIEW (iconview), 0);
     gtk_icon_view_set_pixbuf_column (GTK_ICON_VIEW (iconview), 1);
     livesearch = hildon_live_search_new ();

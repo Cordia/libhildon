@@ -43,7 +43,7 @@ on_button_press                                 (GtkWidget *widget,
         note = HILDON_NOTE (hildon_note_new_information (NULL, "You clicked with stylus!"));
 
     gtk_dialog_run (GTK_DIALOG (note));
-    gtk_object_destroy (GTK_OBJECT (note));
+    gtk_widget_destroy (GTK_WIDGET (note));
 
     return TRUE;
 }
@@ -61,8 +61,6 @@ main                                            (int argc,
     gtk_widget_set_events (GTK_WIDGET (area), 
                            GDK_BUTTON_PRESS_MASK);
 
-    gtk_widget_set_extension_events (GTK_WIDGET (area), GDK_EXTENSION_EVENTS_ALL);
- 
     GtkWidget *window = hildon_window_new ();
     hildon_program_add_window (program, HILDON_WINDOW (window));    
 

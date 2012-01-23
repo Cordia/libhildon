@@ -36,6 +36,8 @@ main                                            (int argc,
 
     GtkDialog *dialog = GTK_DIALOG (gtk_dialog_new ());
 
+    GtkVBox *vbox = GTK_VBOX (gtk_dialog_get_content_area (dialog));
+
     GtkSizeGroup *size_group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
 
     GtkWidget *caption1 = hildon_caption_new (size_group, "Caption std", gtk_entry_new (), 
@@ -53,11 +55,11 @@ main                                            (int argc,
     hildon_caption_set_icon_position (HILDON_CAPTION (caption3), HILDON_CAPTION_POSITION_RIGHT);
     hildon_caption_set_label_markup (HILDON_CAPTION (caption5), "<b>Bold caption</b>");
     
-    gtk_box_pack_start (GTK_BOX (dialog->vbox), caption1, FALSE, FALSE, 0);
-    gtk_box_pack_start (GTK_BOX (dialog->vbox), caption2, FALSE, FALSE, 0);
-    gtk_box_pack_start (GTK_BOX (dialog->vbox), caption3, FALSE, FALSE, 0);
-    gtk_box_pack_start (GTK_BOX (dialog->vbox), caption4, FALSE, FALSE, 0);
-    gtk_box_pack_start (GTK_BOX (dialog->vbox), caption5, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox), caption1, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox), caption2, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox), caption3, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox), caption4, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox), caption5, FALSE, FALSE, 0);
 
     gtk_dialog_add_button (dialog, "Close", GTK_RESPONSE_CLOSE);
 

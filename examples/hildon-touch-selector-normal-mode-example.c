@@ -95,9 +95,6 @@ create_selector ()
                                                 renderer, "stock-id", 0, NULL);
   g_object_set (G_OBJECT (column), "text-column", 0, NULL);
 
-  hildon_touch_selector_set_hildon_ui_mode (HILDON_TOUCH_SELECTOR (selector),
-                                            HILDON_UI_MODE_NORMAL);
-
   g_object_unref (store_icons);
 
   return selector;

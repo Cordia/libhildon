@@ -36,7 +36,7 @@ static void
 set_placeholder_button_clicked                  (GtkButton *button,
                                                  GtkEntry  *entry)
 {
-    hildon_gtk_text_view_set_placeholder_text (textview, gtk_entry_get_text (entry));
+    //hildon_gtk_text_view_set_placeholder_text (textview, gtk_entry_get_text (entry));
 }
 
 static void
@@ -90,7 +90,7 @@ main                                            (int    argc,
     /* The text view */
     textview = GTK_TEXT_VIEW (hildon_text_view_new ());
     buffer = gtk_text_view_get_buffer (textview);
-    hildon_gtk_text_view_set_placeholder_text (textview, "This is a placeholder - change using the buttons above");
+    //hildon_gtk_text_view_set_placeholder_text (textview, "This is a placeholder - change using the buttons above");
     textviewframe = gtk_frame_new (NULL);
 
     /* This label is used to show the contents -not the placeholder- of the HildonTextView */

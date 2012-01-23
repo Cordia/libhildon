@@ -64,21 +64,13 @@ item_activated_callback (GtkWidget         *icon_view,
 }
 
 static GtkWidget *
-create_icon_view (HildonUIMode  mode,
-                  const char   *name,
-                  gboolean      multi_select)
+create_icon_view (gboolean      multi_select)
 {
   GtkWidget *icon_view;
   GtkCellRenderer *renderer;
   GtkTreeModel *model;
 
-  if (name && g_str_equal (name, "fremantle-widget"))
-      icon_view = hildon_gtk_icon_view_new (mode);
-  else
-      icon_view = gtk_icon_view_new ();
-
-  if (name)
-    gtk_widget_set_name (icon_view, name);
+  icon_view = gtk_icon_view_new ();
 
   model = create_model ();
   gtk_icon_view_set_model (GTK_ICON_VIEW (icon_view), model);
@@ -87,7 +79,7 @@ create_icon_view (HildonUIMode  mode,
   if (multi_select)
     gtk_icon_view_set_selection_mode (GTK_ICON_VIEW (icon_view),
                                       GTK_SELECTION_MULTIPLE);
-  else if (mode != HILDON_UI_MODE_NORMAL)
+  else
     gtk_icon_view_set_selection_mode (GTK_ICON_VIEW (icon_view),
                                       GTK_SELECTION_SINGLE);
 
@@ -113,11 +105,9 @@ static void
 create_icon_view_window (GtkWidget *button,
                          gpointer   user_data)
 {
-  const char *name;
   GtkWidget *window;
   GtkWidget *sw;
   GtkWidget *icon_view;
-  HildonUIMode mode = 0;
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_signal_connect (window, "delete-event",
@@ -127,21 +117,7 @@ create_icon_view_window (GtkWidget *button,
   sw = hildon_pannable_area_new ();
   gtk_container_add (GTK_CONTAINER (window), sw);
 
-  if ((GPOINTER_TO_INT (user_data) & NORMAL_MODE) == NORMAL_MODE)
-    {
-      mode = HILDON_UI_MODE_NORMAL;
-      name = "fremantle-widget";
-    }
-  else if ((GPOINTER_TO_INT (user_data) & EDIT_MODE) == EDIT_MODE)
-    {
-      mode = HILDON_UI_MODE_EDIT;
-      name = "fremantle-widget";
-    }
-  else
-    name = NULL;
-
-  icon_view = create_icon_view (mode, name,
-                                (GPOINTER_TO_INT (user_data) & MULTI_SELECT) == MULTI_SELECT);
+  icon_view = create_icon_view ((GPOINTER_TO_INT (user_data) & MULTI_SELECT) == MULTI_SELECT);
 
   /* Some signals doing printfs() to see if the behavior is correct. */
   g_signal_connect (icon_view, "item-activated",

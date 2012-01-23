@@ -73,22 +73,14 @@ row_insensitive_callback (GtkWidget         *tree_view,
 }
 
 static GtkWidget *
-create_tree_view (HildonUIMode  mode,
-                  const char   *name,
-                  gboolean      multi_select)
+create_tree_view (gboolean      multi_select)
 {
   GtkWidget *tree_view;
   GtkCellRenderer *renderer;
   GtkTreeSelection *selection;
   GtkTreeModel *model;
 
-  if (name && g_str_equal (name, "fremantle-widget"))
-      tree_view = hildon_gtk_tree_view_new (mode);
-  else
-      tree_view = gtk_tree_view_new ();
-
-  if (name)
-    gtk_widget_set_name (tree_view, name);
+  tree_view = gtk_tree_view_new ();
 
   gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (tree_view), TRUE);
 
@@ -99,7 +91,7 @@ create_tree_view (HildonUIMode  mode,
   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tree_view));
   if (multi_select)
     gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
-  else if (mode != HILDON_UI_MODE_NORMAL)
+  else
     gtk_tree_selection_set_mode (selection, GTK_SELECTION_SINGLE);
 
   renderer = gtk_cell_renderer_text_new ();
@@ -121,11 +113,9 @@ static void
 create_tree_view_window (GtkWidget *button,
                          gpointer   user_data)
 {
-  const char *name;
   GtkWidget *window;
   GtkWidget *sw;
   GtkWidget *tree_view;
-  HildonUIMode mode = 0;
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_signal_connect (window, "delete-event",
@@ -135,21 +125,7 @@ create_tree_view_window (GtkWidget *button,
   sw = hildon_pannable_area_new ();
   gtk_container_add (GTK_CONTAINER (window), sw);
 
-  if ((GPOINTER_TO_INT (user_data) & NORMAL_MODE) == NORMAL_MODE)
-    {
-      mode = HILDON_UI_MODE_NORMAL;
-      name = "fremantle-widget";
-    }
-  else if ((GPOINTER_TO_INT (user_data) & EDIT_MODE) == EDIT_MODE)
-    {
-      mode = HILDON_UI_MODE_EDIT;
-      name = "fremantle-widget";
-    }
-  else
-    name = NULL;
-
-  tree_view = create_tree_view (mode, name,
-                                (GPOINTER_TO_INT (user_data) & MULTI_SELECT) == MULTI_SELECT);
+  tree_view = create_tree_view ((GPOINTER_TO_INT (user_data) & MULTI_SELECT) == MULTI_SELECT);
 
   /* Some signals doing printfs() to see if the behavior is correct. */
   g_signal_connect (tree_view, "row-activated",

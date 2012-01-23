@@ -89,7 +89,7 @@ create_tree_view                                (void)
     GtkCellRenderer *renderer;
     GtkTreeModel *model;
 
-    tree_view = hildon_gtk_tree_view_new (HILDON_UI_MODE_NORMAL);
+    tree_view = gtk_tree_view_new ();
     gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (tree_view), TRUE);
 
     model = create_model ();

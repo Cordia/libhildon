@@ -50,7 +50,7 @@ main                                            (int argc,
     hildon_window_set_main_menu (HILDON_WINDOW (window), menu);
 
     g_signal_connect_swapped (menu_item, "activate",
-		    	      G_CALLBACK (gtk_object_destroy), window);
+		    	      G_CALLBACK (gtk_widget_destroy), window);
 
     g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
     gtk_widget_show_all (GTK_WIDGET (window));

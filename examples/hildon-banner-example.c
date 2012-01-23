@@ -30,8 +30,8 @@ area_expose                                     (GtkWidget      *widget,
                                                  GdkEventExpose *expose,
                                                  gpointer        data)
 {
-    cairo_t *cr = gdk_cairo_create (GDK_DRAWABLE (widget->window));
-    gint width, height, x, y;
+    cairo_t *cr = gdk_cairo_create (gtk_widget_get_window (widget));
+    gint width, height;
     GError *error = NULL;
 
     GdkPixbuf *pixbuf = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (),
@@ -43,19 +43,17 @@ area_expose                                     (GtkWidget      *widget,
     gint h_margins = 100;
     gdouble fill_level = 0.4;
 
-    width = widget->allocation.width;
-    height = widget->allocation.height;
-    x = widget->allocation.x;
-    y = widget->allocation.y;
+    width = gtk_widget_get_allocated_width (widget);
+    height = gtk_widget_get_allocated_width (widget);
 
-    cairo_rectangle (cr, x + h_margins, y + v_margins,
+    cairo_rectangle (cr, h_margins, v_margins,
                      (width - 2 * h_margins)*fill_level,
                      height - 2 * v_margins);
     cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 0.5);
     cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
     cairo_fill (cr);
 
-    cairo_rectangle (cr, x + h_margins, y + v_margins,
+    cairo_rectangle (cr, h_margins, v_margins,
                      width - 2 * h_margins,
                      height - 2 * v_margins);
 
@@ -64,8 +62,8 @@ area_expose                                     (GtkWidget      *widget,
     cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
     cairo_stroke (cr);
 
-    gdk_cairo_set_source_pixbuf (cr, pixbuf, x,
-                                 y + (height - gdk_pixbuf_get_height (pixbuf))/2);
+    gdk_cairo_set_source_pixbuf (cr, pixbuf, 0,
+                                 (height - gdk_pixbuf_get_height (pixbuf))/2);
     cairo_paint (cr);
 
     cairo_destroy (cr);
@@ -77,7 +75,7 @@ static GtkWidget *
 custom_widget_new (void)
 {
     GtkWidget *area = gtk_event_box_new ();
-    GTK_WIDGET_SET_FLAGS (area, GTK_NO_WINDOW);
+    gtk_widget_set_has_window (area, FALSE);
     gtk_widget_set_size_request (area, 600, 50);
     g_signal_connect (area, "expose-event",
                       G_CALLBACK (area_expose),

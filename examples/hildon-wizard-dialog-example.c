@@ -31,13 +31,13 @@
 
 gboolean
 on_page_switch (GtkNotebook *notebook, 
-                GtkNotebookPage *page, 
+                GtkWidget   *page, 
                 guint num,
                 HildonWizardDialog *dialog);
 
 gboolean
 on_page_switch (GtkNotebook *notebook, 
-                GtkNotebookPage *page, 
+                GtkWidget   *page, 
                 guint num,
                 HildonWizardDialog *dialog)
 {

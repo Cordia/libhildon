@@ -36,7 +36,7 @@ static void
 set_placeholder_button_clicked                  (GtkButton *button,
                                                  GtkEntry  *entry)
 {
-    hildon_gtk_entry_set_placeholder_text (mainentry, gtk_entry_get_text (entry));
+    //hildon_gtk_entry_set_placeholder_text (mainentry, gtk_entry_get_text (entry));
 }
 
 static void
@@ -83,7 +83,7 @@ main                                            (int    argc,
 
     /* Main HildonEntry - this is the one showcased in this example */
     mainentry = GTK_ENTRY (hildon_entry_new (HILDON_SIZE_FINGER_HEIGHT | HILDON_SIZE_AUTO_WIDTH));
-    hildon_gtk_entry_set_placeholder_text (mainentry, "This is a placeholder - change using the buttons above");
+    //hildon_gtk_entry_set_placeholder_text (mainentry, "This is a placeholder - change using the buttons above");
 
     /* This label is used to show the contents -not the placeholder- of the HildonEntry */
     label = gtk_label_new (NULL);
