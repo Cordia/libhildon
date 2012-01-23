@@ -24,8 +24,7 @@
 
 #include <stdlib.h>
 #include <check.h>
-#include <gtk/gtkmain.h>
-#include <gtk/gtklabel.h>
+#include <gtk/gtk.h>
 #include "test_suites.h"
 #include <hildon/hildon-helper.h>
 

@@ -42,11 +42,17 @@ AC_PROG_AWK
 AC_HEADER_STDC
 
 GTK_VERSION=3.2
+X11_VERSION=1.4.3
 
 PKG_CHECK_MODULES(GTK, gtk+-3.0 >= $GTK_VERSION)
 AC_SUBST(GTK_LIBS)
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_VERSION)
+
+PKG_CHECK_MODULES(X11, x11 >= $X11_VERSION)
+AC_SUBST(X11_LIBS)
+AC_SUBST(X11_CFLAGS)
+AC_SUBST(X11_VERSION)
 
 # libcanberra is needed for the hildon-note sounds.
 
@@ -174,8 +180,8 @@ CFLAGS="$CFLAGS ${ASSERT_CFLAGS} ${DEBUG_CFLAGS} -Wall -Wmissing-prototypes -Wmi
 # default vars for the examples
 # includes all the low-level flags
 # FIXME Add esd and gconf flags
-HILDON_OBJ_CFLAGS="\$(CFLAGS) \$(GTK_CFLAGS) \$(CHECK_CFLAGS) \$(GCONF_CFLAGS) -I\$(top_builddir)/hildon/"
-HILDON_OBJ_LIBS="\$(top_builddir)/hildon/libhildon-\$(API_VERSION_MAJOR).la \$(GTK_LIBS) \$(GCONF_LIBS) \$(CHECK_LIBS) `pkg-config --libs gthread-2.0`"
+HILDON_OBJ_CFLAGS="\$(CFLAGS) \$(GTK_CFLAGS) \$(X11_CFLAGS) \$(CHECK_CFLAGS) \$(GCONF_CFLAGS) -I\$(top_builddir)/hildon/"
+HILDON_OBJ_LIBS="\$(top_builddir)/hildon/libhildon-\$(API_VERSION_MAJOR).la \$(GTK_LIBS) \$(X11_LIBS) \$(GCONF_LIBS) \$(CHECK_LIBS) `pkg-config --libs gthread-2.0`"
 AC_SUBST(HILDON_OBJ_CFLAGS)
 AC_SUBST(HILDON_OBJ_LIBS)
 

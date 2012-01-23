@@ -25,7 +25,7 @@
 #ifndef _CHECK_UTILS_H_
 #define _CHECK_UTILS_H_
 
-#include <gtk/gtkwidget.h>
+#include <gtk/gtk.h>
 
 #define TEST_WINDOW_WIDTH  100
 #define TEST_WINDOW_HEIGHT 100

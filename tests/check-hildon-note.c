@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <check.h>
-#include <gtk/gtkmain.h>
+#include <gtk/gtk.h>
 #include "test_suites.h"
 #include <hildon/hildon-window.h>
 #include <hildon/hildon-note.h>

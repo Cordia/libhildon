@@ -22,8 +22,6 @@
  *
  */
 
-#include <gtk/gtkmain.h>
-
 #include "check_utils.h"
 #include <hildon/hildon-window.h>
 

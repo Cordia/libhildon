@@ -11,7 +11,6 @@ tests					= check_test.c 				\
 					  check-hildon-caption.c 		\
 					  check-hildon-helper.c 		\
 					  check-hildon-note.c 			\
-					  check-hildon-banner.c 		\
 					  check-hildon-wizard-dialog.c 		\
 					  check-hildon-find-toolbar.c 		\
 					  check-hildon-window.c 		\

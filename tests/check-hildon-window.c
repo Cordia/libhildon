@@ -24,11 +24,6 @@
 
 #include <stdlib.h>
 #include <check.h>
-#include <gtk/gtkmain.h>
-#include <gtk/gtkhbox.h>
-#include <gtk/gtkentry.h>
-#include <gtk/gtkviewport.h>
-#include <gtk/gtkscrolledwindow.h>
 #include "test_suites.h"
 #include "check_utils.h"
 

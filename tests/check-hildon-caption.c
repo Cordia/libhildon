@@ -25,15 +25,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <check.h>
-#include <gtk/gtkmain.h>
-#include <gtk/gtkentry.h>
-#include <gtk/gtkhbox.h>
-#include <gtk/gtkwindow.h>
 #include "test_suites.h"
 #include "check_utils.h"
 #include <hildon/hildon-caption.h>
 
-#include <gtk/gtkvbox.h>
 #include <hildon/hildon-window.h>
 
 #include <libintl.h>
