@@ -194,7 +194,7 @@ hildon_app_menu_insert                          (HildonAppMenu *menu,
     /* Add the item to the menu */
     g_object_ref_sink (item);
     priv->buttons = g_list_insert (priv->buttons, item, position);
-    if (gtk_widget_get_visible (item))
+    if (gtk_widget_get_visible (GTK_WIDGET (item)))
         hildon_app_menu_repack_items (menu, position);
 
     /* Enable accelerators */
@@ -304,7 +304,7 @@ hildon_app_menu_add_filter                      (HildonAppMenu *menu,
     /* Add the filter to the menu */
     g_object_ref_sink (filter);
     priv->filters = g_list_append (priv->filters, filter);
-    if (gtk_widget_get_visible (filter))
+    if (gtk_widget_get_visible (GTK_WIDGET (filter)))
         hildon_app_menu_repack_filters (menu);
 
     /* Enable accelerators */
@@ -379,7 +379,7 @@ hildon_app_menu_set_parent_window              (HildonAppMenu *self,
 
     priv->parent_window = parent_window;
 
-    if (parent_window == NULL && gtk_widget_get_visible (self))
+    if (parent_window == NULL && gtk_widget_get_visible (GTK_WIDGET (self)))
         gtk_widget_hide (GTK_WIDGET (self));
 }
 
@@ -472,24 +472,6 @@ hildon_app_menu_show_all                        (GtkWidget *widget)
     hildon_app_menu_repack_filters (menu);
 }
 
-
-static void
-hildon_app_menu_hide_all                        (GtkWidget *widget)
-{
-    HildonAppMenu *menu = HILDON_APP_MENU (widget);
-    HildonAppMenuPrivate *priv = HILDON_APP_MENU_GET_PRIVATE (widget);
-
-    priv->inhibit_repack = TRUE;
-
-    /* Hide children, but not self. */
-    g_list_foreach (priv->buttons, (GFunc) gtk_widget_hide_all, NULL);
-    g_list_foreach (priv->filters, (GFunc) gtk_widget_hide_all, NULL);
-
-    priv->inhibit_repack = FALSE;
-
-    hildon_app_menu_repack_items (menu, 0);
-    hildon_app_menu_repack_filters (menu);
-}
 
 /*
  * There's a race condition that can freeze the UI if a dialog appears
@@ -640,14 +622,13 @@ hildon_app_menu_delete_event_handler            (GtkWidget   *widget,
 }
 
 static void
-hildon_app_menu_size_request                    (GtkWidget      *widget,
-                                                 GtkRequisition *requisition)
+hildon_app_menu_get_preferred_width             (GtkWidget   *widget,
+                                                 gint        *minimal_width,
+                                                 gint        *natural_width)
 {
     HildonAppMenuPrivate *priv = HILDON_APP_MENU_GET_PRIVATE (widget);
 
-    GTK_WIDGET_CLASS (hildon_app_menu_parent_class)->size_request (widget, requisition);
-
-    requisition->width = priv->width_request;
+    *minimal_width = *natural_width = priv->width_request;
 }
 
 static void
@@ -969,7 +950,7 @@ hildon_app_menu_init                            (HildonAppMenu *menu)
 
     /* This should be treated like a normal, ref-counted widget */
     g_object_force_floating (G_OBJECT (menu));
-    GTK_WINDOW (menu)->has_user_ref_count = FALSE;
+    gtk_window_set_has_user_ref_count (GTK_WINDOW (menu), FALSE);
 
     gtk_widget_show_all (GTK_WIDGET (priv->vbox));
 }
@@ -1038,7 +1019,6 @@ hildon_app_menu_class_init                      (HildonAppMenuClass *klass)
     gobject_class->dispose = hildon_app_menu_dispose;
     gobject_class->finalize = hildon_app_menu_finalize;
     widget_class->show_all = hildon_app_menu_show_all;
-    widget_class->hide_all = hildon_app_menu_hide_all;
     widget_class->map = hildon_app_menu_map;
     widget_class->realize = hildon_app_menu_realize;
     widget_class->unrealize = hildon_app_menu_unrealize;
@@ -1046,7 +1026,7 @@ hildon_app_menu_class_init                      (HildonAppMenuClass *klass)
     widget_class->key_press_event = hildon_app_menu_key_press;
     widget_class->style_set = hildon_app_menu_style_set;
     widget_class->delete_event = hildon_app_menu_delete_event_handler;
-    widget_class->size_request = hildon_app_menu_size_request;
+    widget_class->get_preferred_width = hildon_app_menu_get_preferred_width;
 
     g_type_class_add_private (klass, sizeof (HildonAppMenuPrivate));
 

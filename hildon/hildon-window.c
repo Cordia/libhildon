@@ -722,7 +722,7 @@ hildon_window_size_allocate                     (GtkWidget *widget,
 
     tb = priv->toolbar_borders;
 
-    gtk_widget_size_allocate (widget, allocation);
+    GTK_WIDGET_CLASS (hildon_window_parent_class)->size_allocate (widget, allocation);
 
     /* Calculate allocation of edit toolbar */
     if (priv->edit_toolbar != NULL && gtk_widget_get_visible (priv->edit_toolbar))
@@ -1102,10 +1102,7 @@ static gboolean
 hildon_window_key_press_event                   (GtkWidget *widget, 
                                                  GdkEventKey *event)
 {
-    HildonWindowPrivate *priv = HILDON_WINDOW_GET_PRIVATE (widget);
-
     g_return_val_if_fail (HILDON_IS_WINDOW (widget),FALSE);
-    g_assert (priv);
 
     switch (event->keyval)
     {

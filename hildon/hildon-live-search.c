@@ -200,7 +200,7 @@ convert_path_to_child_path (GtkTreeModel *model,
     return gtk_tree_path_copy (path);
 
   g_assert (GTK_IS_TREE_MODEL_SORT (model));
-  g_assert (gtk_tree_model_sort_get_model (model) == base_model);
+  g_assert (gtk_tree_model_sort_get_model (GTK_TREE_MODEL_SORT (model)) == base_model);
 
   return gtk_tree_model_sort_convert_path_to_child_path
       (GTK_TREE_MODEL_SORT (model), path);
@@ -315,14 +315,12 @@ reference_row_has_path (GtkTreeRowReference *row_ref, gpointer value, GtkTreePat
 static void
 selection_map_update_selection_from_map         (HildonLiveSearchPrivate *priv)
 {
-    GtkTreeModel *base_model;
     GtkTreeSelection *selection;
     GList *selected_list, *l_iter;
 
     if (!GTK_IS_TREE_VIEW (priv->kb_focus_widget))
         return;
 
-    base_model = gtk_tree_model_filter_get_model (priv->filter);
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->kb_focus_widget));
 
     /* unselect things which are not in priv->selection_map */
@@ -559,24 +557,24 @@ on_key_press_event                              (GtkWidget        *widget,
          * passed to the focus widget, with the exception of
          * Ctrl + Space, which is given to the entry, so that the input method
          * is allowed to switch the keyboard layout. */
-        if (gtk_widget_get_visible (live_search) ||
+        if (gtk_widget_get_visible (GTK_WIDGET (live_search)) ||
             !(event->state & GDK_CONTROL_MASK ||
-              event->keyval == GDK_Control_L ||
-              event->keyval == GDK_Control_R) ||
+              event->keyval == GDK_KEY_Control_L ||
+              event->keyval == GDK_KEY_Control_R) ||
             (event->state & GDK_CONTROL_MASK &&
-             event->keyval == GDK_space)) {
+             event->keyval == GDK_KEY_space)) {
             GdkEvent *new_event;
 
             /* If the entry is realized and has focus, it is enough to catch events.
              * This assumes that the toolbar is a child of the hook widget. */
             gtk_widget_realize (priv->entry);
-            if (!GTK_WIDGET_HAS_FOCUS (priv->entry))
+            if (!gtk_widget_has_focus (priv->entry))
                 gtk_widget_grab_focus (priv->entry);
 
             new_event = gdk_event_copy ((GdkEvent *)event);
             handled = gtk_widget_event (priv->entry, new_event);
             gdk_event_free (new_event);
-        } else if (!GTK_WIDGET_HAS_FOCUS (priv->kb_focus_widget)) {
+        } else if (!gtk_widget_has_focus (priv->kb_focus_widget)) {
             gtk_widget_grab_focus (GTK_WIDGET (priv->kb_focus_widget));
         }
     }
@@ -818,7 +816,7 @@ hildon_live_search_init                         (HildonLiveSearch *self)
                                           HILDON_ICON_SIZE_FINGER);
     gtk_misc_set_padding (GTK_MISC (close), 0, 0);
     close_button = gtk_tool_button_new (close, NULL);
-    gtk_widget_set_can_focus (close_button, FALSE);
+    gtk_widget_set_can_focus (GTK_WIDGET (close_button), FALSE);
 
     close_button_alignment = gtk_alignment_new (0.0f, 0.0f, 1.0f, 1.0f);
     gtk_alignment_set_padding (GTK_ALIGNMENT (close_button_alignment),

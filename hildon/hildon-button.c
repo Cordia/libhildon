@@ -214,6 +214,7 @@ set_logical_color                               (GtkWidget *button)
     const gchar *colorname;
     HildonButtonPrivate *priv = HILDON_BUTTON_GET_PRIVATE (button);
     GtkWidget *label = GTK_WIDGET (priv->value);
+    gboolean found;
 
     switch (priv->style) {
     case HILDON_BUTTON_STYLE_NORMAL:
@@ -227,7 +228,9 @@ set_logical_color                               (GtkWidget *button)
     }
 
     gtk_widget_ensure_style (label);
-    if (gtk_style_lookup_color (label->style, colorname, &color) == TRUE) {
+    found = gtk_style_lookup_color (gtk_widget_get_style (label),
+                                    colorname, &color);
+    if (found) {
         priv->setting_style = TRUE;
         gtk_widget_modify_fg (label, GTK_STATE_NORMAL, &color);
         gtk_widget_modify_fg (label, GTK_STATE_PRELIGHT, &color);
@@ -762,8 +765,12 @@ hildon_button_set_image                         (HildonButton *button,
     if (image == priv->image)
         return;
 
-    if (priv->image && priv->image->parent)
-        gtk_container_remove (GTK_CONTAINER (priv->image->parent), priv->image);
+    if (priv->image) {
+        GtkWidget *parent = gtk_widget_get_parent (priv->image);
+
+        if (parent)
+            gtk_container_remove (GTK_CONTAINER (parent), priv->image);
+    }
 
     priv->image = image;
 
@@ -1011,6 +1018,7 @@ hildon_button_construct_child                   (HildonButton *button)
     GtkWidget *child;
     gint image_spacing;
     const gchar *title, *value;
+    GtkWidget *lb_parent;
 
     /* Don't do anything if the button is not constructed yet */
     if (G_UNLIKELY (priv->label_box == NULL))
@@ -1024,14 +1032,17 @@ hildon_button_construct_child                   (HildonButton *button)
 
     /* Save a ref to the image, and remove it from its container if necessary */
     if (priv->image) {
+        GtkWidget *parent = gtk_widget_get_parent (priv->image);
+
         g_object_ref (priv->image);
-        if (priv->image->parent != NULL)
-            gtk_container_remove (GTK_CONTAINER (priv->image->parent), priv->image);
+
+        if (parent)
+            gtk_container_remove (GTK_CONTAINER (parent), priv->image);
     }
 
-    if (priv->label_box->parent != NULL) {
-        gtk_container_remove (GTK_CONTAINER (priv->label_box->parent), priv->label_box);
-    }
+    lb_parent = gtk_widget_get_parent (priv->label_box);
+    if (lb_parent)
+        gtk_container_remove (GTK_CONTAINER (lb_parent), priv->label_box);
 
     /* Remove the child from the container and add priv->alignment */
     child = gtk_bin_get_child (GTK_BIN (button));

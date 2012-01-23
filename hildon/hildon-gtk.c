@@ -43,10 +43,12 @@ image_visible_changed_cb                        (GtkWidget  *image,
 static void
 parent_changed_cb                               (GtkWidget  *image,
                                                  GParamSpec *arg1,
-                                                 gpointer   oldparent)
+                                                 gpointer    oldparent)
 {
+    GtkWidget *parent = gtk_widget_get_parent (image);
+
     /* If the parent has really changed, remove the old signal handlers */
-    if (image->parent != oldparent) {
+    if (parent != oldparent) {
         g_signal_handlers_disconnect_by_func (image, parent_changed_cb, oldparent);
         g_signal_handlers_disconnect_by_func (image, image_visible_changed_cb, NULL);
     }
@@ -62,12 +64,14 @@ image_changed_cb                                (GtkButton  *button,
     g_return_if_fail (image == NULL || GTK_IS_WIDGET (image));
 
     if (image != NULL) {
+        GtkWidget *parent = gtk_widget_get_parent (image);
+
         /* If the button has a new image, show it */
         gtk_widget_show (image);
         /* Show the image no matter the value of gtk-button-images */
         g_signal_connect (image, "notify::visible", G_CALLBACK (image_visible_changed_cb), NULL);
         /* If the image is removed from the button, disconnect these handlers */
-        g_signal_connect (image, "notify::parent", G_CALLBACK (parent_changed_cb), image->parent);
+        g_signal_connect (image, "notify::parent", G_CALLBACK (parent_changed_cb), parent);
     }
 }
 
@@ -372,7 +376,7 @@ hildon_gtk_window_take_screenshot               (GtkWindow *window,
     XEvent xev = { 0 };
 
     g_return_if_fail (GTK_IS_WINDOW (window));
-    g_return_if_fail (gtk_widget_get_mapped (window));
+    g_return_if_fail (gtk_widget_get_mapped (GTK_WIDGET (window)));
 
     xev.xclient.type = ClientMessage;
     xev.xclient.serial = 0;
@@ -422,9 +426,7 @@ hildon_gtk_window_take_screenshot_sync          (GtkWindow *window,
                                                  gboolean   take)
 {
   XEvent foo;
-  GdkWindow *win;
 
-  win = gtk_widget_get_window (GTK_WIDGET (window));
   hildon_gtk_window_take_screenshot (window, take);
   XIfEvent (GDK_DISPLAY_XDISPLAY (gtk_widget_get_display (GTK_WIDGET (window))),
             &foo, (void *)screenshot_done, (XPointer)window);
@@ -519,7 +521,7 @@ hildon_gtk_widget_set_theme_size (GtkWidget      *widget,
     }
 
   if (widget_name)
-    widget_name = g_strconcat (g_type_name (GTK_WIDGET_TYPE (widget)),
+    widget_name = g_strconcat (g_type_name (G_OBJECT_TYPE (widget)),
                                widget_name, NULL);
 
     /* Requested width */

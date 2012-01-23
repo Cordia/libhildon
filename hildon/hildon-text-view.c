@@ -90,12 +90,13 @@ hildon_text_view_button_press_event             (GtkWidget        *widget,
                                                  GdkEventButton   *event)
 {
     HildonTextViewPrivate *priv = HILDON_TEXT_VIEW_GET_PRIVATE (widget);
+    GtkTextView *text_view = GTK_TEXT_VIEW (widget);
 
     gtk_widget_grab_focus (widget);
 
-    if (GTK_TEXT_VIEW (widget)->editable)
+    if (gtk_text_view_get_editable (text_view))
     {
-        GTK_TEXT_VIEW (widget)->need_im_reset = TRUE;
+        gtk_text_view_reset_im_context (text_view);
         return TRUE;
     }
 
@@ -108,7 +109,6 @@ hildon_text_view_button_press_event             (GtkWidget        *widget,
             GtkTextWindowType window_type;
             GtkTextIter iter;
             gint x, y;
-            GtkTextView *text_view = GTK_TEXT_VIEW (widget);
 
             priv->selection_movement = TRUE;
 
@@ -143,9 +143,9 @@ hildon_text_view_button_release_event           (GtkWidget        *widget,
     GtkTextIter iter;
     gint x, y;
 
-    if (text_view->editable)
+    if (gtk_text_view_get_editable (text_view))
     {
-        text_view->need_im_reset = TRUE;
+        gtk_text_view_reset_im_context (text_view);
         return TRUE;
     }
 
