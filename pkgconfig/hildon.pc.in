@@ -5,7 +5,7 @@ includedir=@includedir@/hildon-@API_VERSION_MAJOR@
 
 Name: hildon
 Description: Hildon widgets library
-Requires: gtk+-2.0 >= @GTK_VERSION@
+Requires: gtk+-3.0 >= @GTK_VERSION@
 Version: @VERSION@
 Libs: -L${libdir} -lhildon-@API_VERSION_MAJOR@
 Cflags: -I${includedir}
