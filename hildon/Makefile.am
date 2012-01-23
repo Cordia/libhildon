@@ -69,6 +69,7 @@ libhildon_@API_VERSION_MAJOR@_includedir = \
 		$(includedir)/$(PACKAGE)-$(API_VERSION_MAJOR)/$(PACKAGE)
 
 libhildon_@API_VERSION_MAJOR@_public_headers = \
+		hildon-banner.h				\
 		hildon-caption.h 			\
 		hildon-defines.h 			\
 		hildon-find-toolbar.h 			\
