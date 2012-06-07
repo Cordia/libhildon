@@ -2502,7 +2502,7 @@ hildon_pannable_area_handle_move (HildonPannableArea *area,
         (priv->vmax - priv->vmin)) + priv->vmin);
     priv->vel_y = ((*y > 0) ? 1 : -1) *
       (((ABS (*y) /
-         (gdouble) gtk_widget_get_allocated_width (GTK_WIDGET (area))) *
+         (gdouble) gtk_widget_get_allocated_height (GTK_WIDGET (area))) *
         (priv->vmax - priv->vmin)) + priv->vmin);
     break;
   case HILDON_PANNABLE_AREA_MODE_AUTO:
