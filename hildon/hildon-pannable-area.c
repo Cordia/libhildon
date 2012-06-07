@@ -1036,7 +1036,7 @@ hildon_pannable_area_realize (GtkWidget * widget)
   gint attributes_mask;
   gint border_width;
   HildonPannableAreaPrivate *priv;
-  GtkAllocation *allocation = NULL;
+  GtkAllocation allocation;
 
   priv = HILDON_PANNABLE_AREA (widget)->priv;
 
@@ -1044,10 +1044,10 @@ hildon_pannable_area_realize (GtkWidget * widget)
 
   border_width = gtk_container_get_border_width (GTK_CONTAINER (widget));
 
-  gtk_widget_get_allocation (widget, allocation);
+  gtk_widget_get_allocation (widget, &allocation);
 
-  attributes.x = allocation->x + border_width;
-  attributes.y = allocation->y + border_width;
+  attributes.x = allocation.x + border_width;
+  attributes.y = allocation.y + border_width;
   attributes.width = MAX (gtk_widget_get_allocated_width (widget) - 2 * border_width, 0);
   attributes.height = MAX (gtk_widget_get_allocated_height (widget) - 2 * border_width, 0);
   attributes.window_type = GDK_WINDOW_CHILD;
