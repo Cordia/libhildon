@@ -200,6 +200,8 @@ enum {
   PROP_LAST
 };
 
+static GtkBinClass *bin_class = NULL;
+
 static void hildon_pannable_area_class_init (HildonPannableAreaClass * klass);
 static void hildon_pannable_area_init (HildonPannableArea * area);
 static void hildon_pannable_area_get_property (GObject * object,
@@ -255,6 +257,7 @@ static GdkWindow * hildon_pannable_area_get_topmost (GdkWindow * window,
                                                      gint * tx, gint * ty,
                                                      GdkEventMask mask);
 static void synth_crossing (GdkWindow * child,
+                            GdkDevice * device,
                             gint x, gint y,
                             gint x_root, gint y_root,
                             guint32 time, gboolean in);
@@ -320,6 +323,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
   GtkContainerClass *container_class = GTK_CONTAINER_CLASS (klass);
 
+  bin_class = g_type_class_peek (GTK_TYPE_BIN);
 
   g_type_class_add_private (klass, sizeof (HildonPannableAreaPrivate));
 
@@ -1036,7 +1040,7 @@ hildon_pannable_area_realize (GtkWidget * widget)
   gint attributes_mask;
   gint border_width;
   HildonPannableAreaPrivate *priv;
-  GtkAllocation *allocation = NULL;
+  GtkAllocation allocation;
 
   priv = HILDON_PANNABLE_AREA (widget)->priv;
 
@@ -1044,10 +1048,10 @@ hildon_pannable_area_realize (GtkWidget * widget)
 
   border_width = gtk_container_get_border_width (GTK_CONTAINER (widget));
 
-  gtk_widget_get_allocation (widget, allocation);
+  gtk_widget_get_allocation (widget, &allocation);
 
-  attributes.x = allocation->x + border_width;
-  attributes.y = allocation->y + border_width;
+  attributes.x = allocation.x + border_width;
+  attributes.y = allocation.y + border_width;
   attributes.width = MAX (gtk_widget_get_allocated_width (widget) - 2 * border_width, 0);
   attributes.height = MAX (gtk_widget_get_allocated_height (widget) - 2 * border_width, 0);
   attributes.window_type = GDK_WINDOW_CHILD;
@@ -1834,6 +1838,7 @@ hildon_pannable_area_get_topmost (GdkWindow * window,
 
 static void
 synth_crossing (GdkWindow * child,
+                GdkDevice * device,
 		gint x, gint y,
 		gint x_root, gint y_root,
                 guint32 time, gboolean in)
@@ -1843,6 +1848,7 @@ synth_crossing (GdkWindow * child,
 
   /* Send synthetic enter event */
   event = gdk_event_new (type);
+  gdk_event_set_device(event, device);
   event->any.type = type;
   event->any.window = g_object_ref (child);
   event->any.send_event = FALSE;
@@ -1867,6 +1873,7 @@ hildon_pannable_area_button_press_cb (GtkWidget * widget,
   gint x, y;
   HildonPannableArea *area = HILDON_PANNABLE_AREA (widget);
   HildonPannableAreaPrivate *priv = area->priv;
+  GdkDevice *device = gdk_event_get_device((GdkEvent *)event);
 
   priv->selection_movement =
       (event->state & GDK_SHIFT_MASK) &&
@@ -1893,7 +1900,7 @@ hildon_pannable_area_button_press_cb (GtkWidget * widget,
 
   if (priv->button_pressed && priv->child) {
     /* Widget stole focus on last click, send crossing-out event */
-    synth_crossing (priv->child, 0, 0, event->x_root, event->y_root,
+    synth_crossing (priv->child, device, 0, 0, event->x_root, event->y_root,
 		    event->time, FALSE);
   }
 
@@ -1934,7 +1941,7 @@ hildon_pannable_area_button_press_cb (GtkWidget * widget,
     g_object_add_weak_pointer ((GObject *) priv->child,
 			       (gpointer) & priv->child);
 
-    synth_crossing (priv->child, x, y, event->x_root,
+    synth_crossing (priv->child, device, x, y, event->x_root,
 		    event->y_root, event->time, TRUE);
 
     /* Avoid reinjecting the event to create an infinite loop */
@@ -2371,6 +2378,7 @@ hildon_pannable_area_check_move (HildonPannableArea *area,
                                  gdouble *y)
 {
   HildonPannableAreaPrivate *priv = area->priv;
+  GdkDevice *device = gdk_event_get_device((GdkEvent *)event);
 
   if (priv->first_drag && (!priv->moved) &&
       ((ABS (*x) > (priv->panning_threshold))
@@ -2444,7 +2452,7 @@ hildon_pannable_area_check_move (HildonPannableArea *area,
         pos_x = priv->cx + (event->x - priv->ix);
         pos_y = priv->cy + (event->y - priv->iy);
 
-        synth_crossing (priv->child, pos_x, pos_y, event->x_root,
+        synth_crossing (priv->child, device, pos_x, pos_y, event->x_root,
                         event->y_root, event->time, FALSE);
       }
 
@@ -2502,7 +2510,7 @@ hildon_pannable_area_handle_move (HildonPannableArea *area,
         (priv->vmax - priv->vmin)) + priv->vmin);
     priv->vel_y = ((*y > 0) ? 1 : -1) *
       (((ABS (*y) /
-         (gdouble) gtk_widget_get_allocated_width (GTK_WIDGET (area))) *
+         (gdouble) gtk_widget_get_allocated_height (GTK_WIDGET (area))) *
         (priv->vmax - priv->vmin)) + priv->vmin);
     break;
   case HILDON_PANNABLE_AREA_MODE_AUTO:
@@ -2558,6 +2566,7 @@ hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
 {
   HildonPannableArea *area = HILDON_PANNABLE_AREA (widget);
   HildonPannableAreaPrivate *priv = area->priv;
+  GdkDevice *device = gdk_event_get_device((GdkEvent *)event);
   gdouble x, y;
 
   if (gtk_bin_get_child (GTK_BIN (widget)) == NULL)
@@ -2596,7 +2605,7 @@ hildon_pannable_area_motion_notify_cb (GtkWidget * widget,
 
       if (((!priv->last_in)&&in)||((priv->last_in)&&(!in))) {
 
-        synth_crossing (priv->child, pos_x, pos_y, event->x_root,
+        synth_crossing (priv->child, device, pos_x, pos_y, event->x_root,
                         event->y_root, event->time, in);
 
         priv->last_in = in;
@@ -2630,11 +2639,12 @@ hildon_pannable_leave_notify_event (GtkWidget *widget,
 {
   HildonPannableArea *area = HILDON_PANNABLE_AREA (widget);
   HildonPannableAreaPrivate *priv = area->priv;
+  GdkDevice *device = gdk_event_get_device((GdkEvent *)event);
 
   if ((priv->child)&&(priv->last_in)) {
     priv->last_in = FALSE;
 
-    synth_crossing (priv->child, 0, 0, event->x_root,
+    synth_crossing (priv->child, device, 0, 0, event->x_root,
                     event->y_root, event->time, FALSE);
   }
 
@@ -2661,6 +2671,7 @@ hildon_pannable_area_button_release_cb (GtkWidget * widget,
 {
   HildonPannableArea *area = HILDON_PANNABLE_AREA (widget);
   HildonPannableAreaPrivate *priv = area->priv;
+  GdkDevice *device = gdk_event_get_device((GdkEvent *)event);
   gint x, y;
   gdouble dx, dy;
   GdkWindow *child;
@@ -2814,7 +2825,7 @@ hildon_pannable_area_button_release_cb (GtkWidget * widget,
    */
   if ((child != priv->child) || (priv->moved)) {
     /* Send synthetic leave event */
-    synth_crossing (priv->child, x, y, event->x_root,
+    synth_crossing (priv->child, device, x, y, event->x_root,
 		    event->y_root, event->time, FALSE);
     /* insure no click will happen for widgets that do not handle
        leave-notify */
@@ -2828,7 +2839,7 @@ hildon_pannable_area_button_release_cb (GtkWidget * widget,
     ((GdkEvent *) event)->any.window = g_object_ref (child);
     gdk_event_put ((GdkEvent *) event);
     /* Send synthetic leave event */
-    synth_crossing (priv->child, x, y, event->x_root,
+    synth_crossing (priv->child, device, x, y, event->x_root,
 		    event->y_root, event->time, FALSE);
   }
   g_object_remove_weak_pointer ((GObject *) priv->child,
@@ -2920,8 +2931,7 @@ hildon_pannable_area_add (GtkContainer *container, GtkWidget *child)
 
   g_return_if_fail (gtk_bin_get_child (GTK_BIN (container)) == NULL);
 
-  gtk_widget_set_parent (child, GTK_WIDGET (container));
-  gtk_container_add (container, child);
+  GTK_CONTAINER_CLASS (bin_class)->add (container, child);
 
   g_signal_connect_after (child, "map-event",
                           G_CALLBACK (hildon_pannable_area_child_mapped),
