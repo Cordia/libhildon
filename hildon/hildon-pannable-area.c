@@ -200,6 +200,8 @@ enum {
   PROP_LAST
 };
 
+static GtkBinClass *bin_class = NULL;
+
 static void hildon_pannable_area_class_init (HildonPannableAreaClass * klass);
 static void hildon_pannable_area_init (HildonPannableArea * area);
 static void hildon_pannable_area_get_property (GObject * object,
@@ -320,6 +322,7 @@ hildon_pannable_area_class_init (HildonPannableAreaClass * klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
   GtkContainerClass *container_class = GTK_CONTAINER_CLASS (klass);
 
+  bin_class = g_type_class_peek (GTK_TYPE_BIN);
 
   g_type_class_add_private (klass, sizeof (HildonPannableAreaPrivate));
 
@@ -2920,8 +2923,7 @@ hildon_pannable_area_add (GtkContainer *container, GtkWidget *child)
 
   g_return_if_fail (gtk_bin_get_child (GTK_BIN (container)) == NULL);
 
-  gtk_widget_set_parent (child, GTK_WIDGET (container));
-  gtk_container_add (container, child);
+  GTK_CONTAINER_CLASS (bin_class)->add (container, child);
 
   g_signal_connect_after (child, "map-event",
                           G_CALLBACK (hildon_pannable_area_child_mapped),
