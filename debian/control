@@ -12,7 +12,7 @@ Package: libhildon1-dev
 Section: devel
 Architecture: any
 Multi-Arch: same
-Depends: ${misc:Depends}, libhildon1 (= ${binary:Version}), pkg-config, libgtk2.0-dev (>= 2:2.12.12-1maemo12), libgconf2-dev, libcanberra-dev
+Depends: ${misc:Depends}, libhildon1 (= ${binary:Version}), pkg-config, libgtk-3-dev, libgconf2-dev, libcanberra-dev
 Description: Hildon libraries development files
 
 Package: libhildon1
