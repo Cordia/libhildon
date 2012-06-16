@@ -1,9 +1,12 @@
 Source: libhildon
 Section: x11
 Priority: optional
-Maintainer: Claudio Saavedra <csaavedra@igalia.com>
-Build-Depends: debhelper (>= 5), cdbs, libgtk2.0-dev (>= 2:2.14.7-1maemo5), libcanberra-dev, libxi-dev, libxt-dev, libpng12-dev, libgconf2-dev, gtk-doc-tools, libgtk2.0-doc, libglib2.0-doc
-Standards-Version: 3.6.0
+Maintainer: Thomas-Karl Pietrowski <thopiekar@googlemail.com>
+Build-Depends: debhelper (>= 5), cdbs, libcanberra-dev, libgconf2-dev, gtk-doc-tools, libgtk-3-dev
+Standards-Version: 3.9.2
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Git: git://git.debian.org/collab-maint/libhildon.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/libhildon.git;a=summary
 
 Package: libhildon1-dev
 Section: devel

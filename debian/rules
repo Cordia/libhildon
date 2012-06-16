@@ -1,27 +1,17 @@
 #!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
 
-include /usr/share/cdbs/1/rules/buildvars.mk
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
 
-ifeq (,$(findstring nodocs,$(DEB_BUILD_OPTIONS)))
-ENABLE_GTK_DOC = --enable-gtk-doc
-else
-ENABLE_GTK_DOC = --disable-gtk-doc
-DEB_INDEP_PACKAGES := $(subst libhildon1-doc,,$(DEB_INDEP_PACKAGES))
-endif
+%:
+	dh $@ 
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/autotools.mk
-include /usr/share/cdbs/1/rules/utils.mk
-
-DEB_CONFIGURE_SCRIPT_ENV += LDFLAGS="-Wl,-O1 -Wl,--as-needed" PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/share/pkgconfig
-DEB_CONFIGURE_EXTRA_FLAGS := $(ENABLE_GTK_DOC) --enable-maintainer-mode
-DEB_COMPRESS_EXCLUDE := .c
-
-config.status: $(DEB_SRCDIR)/configure
-
-$(DEB_SRCDIR)/configure:
-	AUTOGEN_SUBDIR_MODE=1 NOCONFIGURE=yes $(DEB_SRCDIR)/autogen.sh
-
-binary-post-install/libhildon1-examples::
-	( cd $(DEB_SRCDIR)/debian/libhildon1-examples/usr/share/doc/libhildon1-examples/examples && \
-	mv Makefile.static Makefile )
+override_dh_auto_configure:
+	[ -f configure ] || ./autogen.sh
+	dh_auto_configure -- --with-examples --enable-gtk-doc
