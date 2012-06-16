@@ -9,9 +9,11 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
 %:
 	dh $@ 
 
 override_dh_auto_configure:
 	[ -f configure ] || ./autogen.sh
-	dh_auto_configure -- --with-examples --enable-gtk-doc
+	dh_auto_configure -- --with-examples --enable-gtk-doc --libdir=\$${prefix}/lib/$(DEB_HOST_MULTIARCH)
