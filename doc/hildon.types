@@ -1,40 +1,16 @@
 #include                                        <hildon/hildon-banner.h>
-#include                                        <hildon/hildon-calendar-popup.h>
 #include                                        <hildon/hildon-caption.h>
-#include                                        <hildon/hildon-code-dialog.h>
-#include                                        <hildon/hildon-color-button.h>
-#include                                        <hildon/hildon-color-chooser-dialog.h>
-#include                                        <hildon/hildon-color-chooser.h>
-#include                                        <hildon/hildon-controlbar.h>
-#include                                        <hildon/hildon-date-editor.h>
 #include                                        <hildon/hildon-defines.h>
 #include                                        <hildon/hildon-helper.h>
 #include                                        <hildon/hildon-enum-types.h>
 #include                                        <hildon/hildon-find-toolbar.h>
 #include                                        <hildon/hildon-edit-toolbar.h>
-#include                                        <hildon/hildon-font-selection-dialog.h>
-#include                                        <hildon/hildon-get-password-dialog.h>
-#include                                        <hildon/hildon-hvolumebar.h>
-#include                                        <hildon/hildon-login-dialog.h>
 #include                                        <hildon/hildon-marshalers.h>
 #include                                        <hildon/hildon-note.h>
-#include                                        <hildon/hildon-number-editor.h>
 #include                                        <hildon/hildon-program.h>
-#include                                        <hildon/hildon-range-editor.h>
-#include                                        <hildon/hildon-seekbar.h>
-#include                                        <hildon/hildon-set-password-dialog.h>
-#include                                        <hildon/hildon-sort-dialog.h>
 #include                                        <hildon/hildon-sound.h>
-#include                                        <hildon/hildon-time-editor.h>
-#include                                        <hildon/hildon-time-picker.h>
-#include                                        <hildon/hildon-volumebar-range.h>
-#include                                        <hildon/hildon-volumebar.h>
-#include                                        <hildon/hildon-vvolumebar.h>
-#include                                        <hildon/hildon-weekday-picker.h>
 #include                                        <hildon/hildon-window.h>
 #include                                        <hildon/hildon-wizard-dialog.h>
-#include                                        <hildon/hildon-calendar.h>
-#include                                        <hildon/hildon-dialog.h>
 #include                                        <hildon/hildon-pannable-area.h>
 #include                                        <hildon/hildon-stackable-window.h>
 #include                                        <hildon/hildon-window-stack.h>
@@ -55,37 +31,13 @@
 #include                                        <hildon/hildon-time-button.h>
 
 hildon_banner_get_type
-hildon_calendar_popup_get_type
 hildon_caption_get_type
-hildon_code_dialog_get_type
-hildon_color_button_get_type
-hildon_color_chooser_dialog_get_type
-hildon_color_chooser_get_type
-hildon_controlbar_get_type
-hildon_date_editor_get_type
 hildon_find_toolbar_get_type
 hildon_edit_toolbar_get_type
-hildon_font_selection_dialog_get_type
-hildon_get_password_dialog_get_type
-hildon_hvolumebar_get_type
-hildon_login_dialog_get_type
 hildon_note_get_type
-hildon_number_editor_get_type
 hildon_program_get_type
-hildon_range_editor_get_type
-hildon_seekbar_get_type
-hildon_set_password_dialog_get_type
-hildon_sort_dialog_get_type
-hildon_time_editor_get_type
-hildon_time_picker_get_type
-hildon_volumebar_get_type
-hildon_volumebar_range_get_type
-hildon_vvolumebar_get_type
-hildon_weekday_picker_get_type
 hildon_wizard_dialog_get_type
 hildon_window_get_type
-hildon_calendar_get_type
-hildon_dialog_get_type
 hildon_pannable_area_get_type
 hildon_stackable_window_get_type
 hildon_window_stack_get_type
