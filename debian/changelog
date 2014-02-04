@@ -1,3 +1,9 @@
+libhildon (2.3.0-2ubuntu0) precise; urgency=low
+
+  * Fixes in doc/hildon.types and made packaging files multiarch compatible for precise.
+
+ -- Thomas-Karl Pietrowski <thopiekar@googlemail.com>  Sat, 16 Jun 2012 16:31:33 +0200
+
 libhildon (2.3.0-1~unreleased) unstable; urgency=low
 
   * bumped unreleased
